@@ -1,0 +1,47 @@
+#guests-container {
+    width: 250px;
+    position: fixed;
+    height: 86vh;
+    top: 81px;
+    left: 21px;
+    background-color: var(--color-three);
+    border-radius: 25px;
+    overflow: hidden;
+}
+
+.guest-info {
+    position: relative;
+    background-color: rgb(20, 20, 20);
+    margin: 0px 0px;
+    padding: 10px;
+}
+
+.guest-info div {
+    display: flex;
+    justify-content: flex-start;
+    /* align-content: center; */
+    align-items: center;
+    gap: 6px;
+}
+
+.guest-info h3 {
+    display: inline-block;
+    margin: 0;
+    margin-block: 0;
+    padding: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 150px;
+}
+
+.guest-status {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+#room-input-guess {
+    display: block;
+    font-size: 1.2em;
+}

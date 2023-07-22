@@ -1,13 +1,109 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: "Roboto-Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("Roboto-Regular"), 
+      url("./assets/fonts/Roboto/Roboto-Regular.ttf") 
+      format("truetype");
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@font-face {
+  font-family: "Roboto-Medium";
+  font-style: normal;
+  font-weight: 500;
+  src: local("Roboto-Medium"), 
+      url("./assets/fonts/Roboto/Roboto-Medium.ttf") 
+      format("truetype");
+}
+
+:root {
+  --color-one: rgb(20, 20, 20);
+  --color-three: rgb(25, 25, 25);
+  --color-two: rgb(50, 50, 50);
+}
+
+* {
+  box-sizing: content-box;
+  font-family: "Roboto-Regular", "sans-serif";
+}
+
+body, #root {
+  min-height: 100vh;
+}
+
+body {
+  background-color: var(--color-two);
+  color: rgb(240, 240, 240);
+  margin: 0;
+}
+
+main {
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+input[type="text"] {
+  display: inline-block;
+  font-size: 2.2em;
+  color: white;
+  background: transparent;
+  outline: solid 1px rgb(128, 128, 128);
+  border-radius: 25px;
+  border: 0px;
+  padding: 5px 25px;
+}
+
+input[type="range"] {
+  appearance: none;
+  border-radius: 25px;
+  background-color: transparent;
+  outline: solid 1px rgb(128, 128, 128);
+  width: 230px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  background: rgb(128, 128, 128);;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  background: white;
+}
+
+input[type="range"]::-moz-range-thumb {
+  appearance: none;
+  background: rgb(128, 128, 128);;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+input[type="range"]:hover::-moz-range-thumb {
+  background: white;
+}
+
+.btn {
+  display: block;
+  color: rgb(200, 200, 200);
+  font-family: "Roboto-Regular";
+  font-size: 1.2em;
+  padding: 10px 16px;
+  background-color: rgba(128, 128, 128, 0.3);
+  border-radius: 25px;
+  transition: 0.2s;
+  border: 0px;
+}
+
+.btn:hover {
+  color: rgb(240, 240, 240);
+  background-color: rgba(128, 128, 128, 0.5);
+  cursor: pointer;
 }

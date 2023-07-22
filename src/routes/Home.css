@@ -1,0 +1,33 @@
+.home-join-container {
+    font-family: "Roboto-Regular";
+}
+
+.home-join-container label {
+    display: block;
+    font-size: 2.5em;
+    margin: 0 25px;
+    padding: 10px 0px;
+}
+
+.home-join-container div {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    column-gap: 8px;
+}
+
+.home-join-container input {
+    display: inline-block;
+    font-size: 2.2em;
+    color: white;
+    background: transparent;
+    outline: solid 1px rgb(128, 128, 128);
+    border-radius: 25px;
+    border: 0px;
+    padding: 5px 25px;
+}
+
+.home-join-container .btn {
+    display: inline-block;
+    font-size: 1.5em;
+}
