@@ -9,6 +9,12 @@
     overflow: hidden;
 }
 
+#guests-container ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
 .guest-info {
     position: relative;
     background-color: rgb(20, 20, 20);

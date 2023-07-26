@@ -9,12 +9,18 @@ export default class YoutubePlayer extends Component {
         super(props);
 
         this.state = {
-            videoId: null,
+            videoId: this.props.videoId,
             video: null,
             interval: null,
             progress: 0,
             volume: 25,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.videoId !== this.props.videoId) {
+            this.loadVideoById(this.props.videoId);
+        }
     }
 
     _onReady = (event) => {
@@ -191,7 +197,7 @@ export default class YoutubePlayer extends Component {
                     <div className="volume-control">
                         <VolumeUpRounded sx={{ color: "black" }} />
                         <div className="volume-dropdown">
-                            <input type="range" orient="vertical"
+                            <input type="range"
                                 value={this.getVolume()}
                                 min="0" max="100" step="1"
                                 onInput={this.setVolume} />

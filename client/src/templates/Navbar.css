@@ -34,7 +34,7 @@
     background-color: rgba(128, 128, 128, 0.5);
 }
 
-#navbar a[has-icon] {
+#navbar *[has-icon] {
     padding: 10px 12px;
 }
 
