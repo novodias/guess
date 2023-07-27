@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
 const HomePage = () => {
 
     const [room, setRoom] = useState('');
-    // const [redirect, setRedirect] = useState(false);
     let navigate = useNavigate();
 
     const redirectPage = () => {
-        // setRedirect(true);
         navigate(`room/${room}`);
     };
     
@@ -25,7 +23,6 @@ const HomePage = () => {
 
     return (
         <div className='home-join-container'>
-            {/* {redirect ? <Navigate to={`/room/${room}`} replace={true} /> : null} */}
             <label htmlFor='join-room-input'>Join a room</label>
             <div>
                 <input id='join-room-input' value={room}

@@ -1,20 +1,17 @@
-import React, { Component, useState } from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import {
-  // Route,
-  // Routes,
-  // Navigate,
-  // BrowserRouter,
   createBrowserRouter,
+  Navigate,
   Outlet,
   RouterProvider,
 } from "react-router-dom"
 import HomePage from './routes/Home';
 import ErrorPage from './Error';
 import Navbar from './templates/Navbar';
-import RoomPage from './routes/Room';
+import RoomPage, { RoomLoader } from './routes/Room';
 
 const router = createBrowserRouter([
   {
@@ -29,21 +26,12 @@ const router = createBrowserRouter([
         path: "room/:id",
         element: <RoomPage />,
         errorElement: <ErrorPage />,
-        loader: async ({ params }) => {
-          const res = await fetch(`http://localhost:3001/api/room/get/${params.id}`);
-          if (!res.ok) {
-            throw new Error("Could not fetch to the server");
-          }
-          
-          if (res.status === 404) {
-            throw new Response("Not Found", { status: 404 });
-          }
-          
-          const data = await res.json();
-          return data;
-        }
+        loader: RoomLoader
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" />
       }
-      // { path: "*", errorElement: <ErrorPage /> }
     ]
   },
 ]);

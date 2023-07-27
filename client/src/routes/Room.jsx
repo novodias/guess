@@ -1,8 +1,8 @@
+import './Room.css';
 import React, { Component } from 'react';
 import YoutubePlayer from '../components/YoutubePlayer';
 import Guest from '../components/room/Guest';
-import { GuestAnswerStatus } from '../components/room/Guest';
-import './Room.css';
+// import { Status } from '../components/room/Guest';
 import { useLoaderData, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 class RoomPage extends Component {
@@ -10,6 +10,7 @@ class RoomPage extends Component {
         super(props)
 
         this.state = {
+            room_id: "",
             guests: [
                 // { nickname: "novodias", points: 69, answer: GuestAnswerStatus.Correct },
                 // { nickname: "xxClebeRxx", points: 24, answer: GuestAnswerStatus.Pending },
@@ -21,27 +22,42 @@ class RoomPage extends Component {
     }
 
     componentDidMount() {
-
         const room = this.props.router.loader;
+        this.setState({ room_id: room.id });
+        
+        this.ws = new WebSocket("ws://localhost:3001");
 
-        this.setState({ guests: room.players });
+        let nickname = sessionStorage.getItem("nickname");
+        nickname = nickname === null ? "Guest" : nickname;
 
-        // const id = this.props.router.params.id;
-        // fetch(`http://localhost:3001/api/room/get/${id}`)
-        //     .then((response) => {
-        //         if (response.status === 404) {
-        //             throw new Response("Not Found", { status: response.status })
-        //         }
-                
-        //         return response.json();
-        //     })
-        //     .then(room => {
-        //         console.log(room);
-        //         this.setState({ guests: room.players });
-        //     })
-        //     .catch(error => {
-        //         throw error;
-        //     });
+        this.ws.onopen = (event) => {
+            const message = {
+                type: "joined",
+                body: {
+                    nickname,
+                    room_id: room.id
+                }
+            }
+
+            console.log("conectado")
+            this.ws.send(JSON.stringify(message));
+        };
+
+        this.ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            console.log(message);
+
+            if (message.type === "players") {
+                const players = message.body;
+                this.setState({
+                    guests: players
+                });
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        this.ws.close();
     }
 
     _onInput = (event) => {
@@ -95,6 +111,20 @@ function withRouter(Component) {
     }
 
     return RoomWithRouterProp;
+}
+
+export async function RoomLoader({ params }) {
+    const res = await fetch(`http://localhost:3001/api/room/get/${params.id}`);
+    if (!res.ok) {
+        throw new Error("Could not fetch to the server");
+    }
+    
+    if (res.status === 404) {
+        throw new Response("Not Found", { status: 404 });
+    }
+    
+    const data = await res.json();
+    return data;
 }
 
 export default withRouter(RoomPage);

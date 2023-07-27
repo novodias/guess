@@ -1,9 +1,9 @@
 const webSocket = require('ws');
+const http = require('http');
 const Room = require('./room');
 const Player = require('./player');
 
 const _messageHandler = {
-    // client joined
     /**
      * 
      * @param {RoomsCluster} cluster 
@@ -31,11 +31,10 @@ const _messageHandler = {
     },
 
     // client exited
-    "exited": function (cluster) {
+    // "exited": function (cluster, ws, body) {
+    // },
 
-    },
-
-    "generic": function (playerLocal, playerNetworked) {
+    "generic": function (cluster, ws, body) {
 
     }
 }
@@ -60,27 +59,35 @@ const generateRoomCode = () => {
 }
 
 class RoomsCluster {
-    constructor() {
+
+    /**
+     * 
+     * @param {http.Server} server 
+     * @returns 
+     */
+    constructor(server, port) {
         if (RoomsCluster._instance) {
             return RoomsCluster._instance;
         }
 
         RoomsCluster._instance = this;
 
-        this.wss = new webSocket.Server({ port: 3030 });
+        this.wss = new webSocket.Server({ server: server });
         this.rooms = new Map();
-
-        console.log(`[Websocket] Server listening on 3030`);
+        this._addEvents();
+        
+        console.log(`[WebSocket] Listening on ${port}`);
     }
 
     createRoom() {
         const id = generateRoomCode();
         const room = new Room(id)
         
-        room.onEmptyRoom = function (id) {
+        room.onempty(id => {
+            console.log(`[Rooms] Deleted ${id}`);
             this.deleteRoom(id);
-            room = null;
-        }
+            // room = null;
+        });
 
         this.rooms.set(id, room);
 
@@ -89,7 +96,6 @@ class RoomsCluster {
         //     if (!room) {
         //         return;
         //     }
-            
         //     if (room !== null && room.getSize() === 0) {
         //         this.deleteRoom(room.id);
         //         console.log(`[Rooms] Deleted room ${room.id} due to inactivity`);
@@ -127,7 +133,9 @@ class RoomsCluster {
      */
     _setupClient(ws) {
         ws.on('message', (data) => {
-
+            const message = JSON.parse(data.toString());
+            console.log(message);
+            _messageHandler[message.type](this, ws, message.body);
         })
     }
 
@@ -137,24 +145,5 @@ class RoomsCluster {
         })
     }
 }
-
-// var RoomsWSS = (function () {
-//     var instance;
-
-//     return {
-//         /**
-//          * 
-//          * @returns {RoomsSingleton}
-//          */
-//         getInstance: function () {
-//             if (instance === null) {
-//                 instance = new RoomsSingleton();
-//                 instance.constructor = null;
-//             }
-
-//             return instance;
-//         }
-//     };
-// })();
 
 module.exports = RoomsCluster;

@@ -9,6 +9,7 @@ class Room {
     constructor(id) {
         this.id = id;
         this.players = new Map();
+        this.listeners = {};
     }
 
     getSize() {
@@ -18,7 +19,9 @@ class Room {
     getPlayers() {
         return Array
             .from(this.players)
-            .map(player => player.getPlayerData());
+            .map(([id, player]) => {
+                return player.getPlayerData();
+            });
     }
 
     getRoomData() {
@@ -39,19 +42,21 @@ class Room {
 
         this.players.set(player.id, player);
 
-        const messageAll = {
+        const joined = {
             type: "joined",
             body: player.getPlayerData(),
         };
 
-        const messageOne = {
+        const players = {
             type: "players",
             body: this.getPlayers(),
         };
 
-        this.send(messageOne, player);
+        // sends to player who's joined all the players
+        // this.send(players, player);
+        
         // sends to all players the person who's joined
-        this.sendAll(messageAll, player);
+        this.broadcast(players);
     }
 
     
@@ -60,18 +65,32 @@ class Room {
      * @param {Object} object 
      * @param {*} ignore 
      */
-    sendAll(object, ignore) {
+    broadcast(object, ignore) {
         if (!object) {
             return;
         }
 
-        this.players.forEach(player => {
-            if (!ignore.id || player.id !== ignore.id) {
-                if (player instanceof Player) {
-                    player.send(object);
-                }
+        // this.players.forEach(player => {
+        //     if (!ignore || player.id !== ignore.id) {
+        //         if (player instanceof Player) {
+        //             player.send(object);
+        //         }
+        //     }
+        // })
+
+        for (const [id, player] of this.players) {
+            if (ignore && player.id === ignore.id) {
+                continue;
             }
-        })
+
+            if (!(player instanceof Player)) {
+                continue;
+            }
+
+            if (player.ws.readyState === player.ws.OPEN) {
+                player.send(object);
+            }
+        }
     }
 
     /**
@@ -93,19 +112,41 @@ class Room {
         this.players.delete(id);
 
         const size = this.getSize();
-        if (size === 0 && typeof this.onEmptyRoom === 'function') {
-            onEmptyRoom(this.id);
+        if (size === 0 && typeof this.listeners["empty"] === 'function') {
+            this.emit("empty", this.id);
         } else {
             const message = {
                 type: "exited",
-                id
+                body: { id }
             };
 
-            this.sendAll(message);
+            this.broadcast(message);
         }
     }
 
-    onEmptyRoom = null;
+    onempty(callback) {
+        this.addEventListener("empty", callback);
+    }
+
+    emit(method, payload = null) {
+        const callback = this.listeners[method];
+        if (typeof callback === 'function') {
+            callback(payload);
+        }
+    }
+
+    addEventListener(method, callback) {
+        this.listeners[method] = callback;
+    }
+
+    removeEventListener(method) {
+        delete this.listeners[method];
+    }
+
+    // empty = null
+    // onEmpty(callback) {
+    //     empty = callback;
+    // }
 }
 
 module.exports = Room;
