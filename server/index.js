@@ -38,12 +38,16 @@ app.get("/api/titles", async (req, res) => {
     const { name, type } = req.query;
     
     try {
-        let result;
-        if (type) {
-            result = await db.get_titles_starts_with_and_type(name, type);
-        } else {
-            result = await db.get_titles_starts_with(name);
-        }
+        // let result;
+        // if (type) {
+        //     result = await db.get_titles_starts_with_and_type(name, type);
+        // } else {
+        //     result = await db.get_titles_starts_with(name);
+        // }
+
+        let result = await (type ?
+            db.get_titles_starts_with_and_type(name, type) :
+            db.get_titles_starts_with(name));
         
         res.json(result);
     } catch (error) {
