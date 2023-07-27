@@ -98,8 +98,29 @@ class GuessDb {
     async get_titles_starts_with(name) {
         name += '%';
         const query = {
-            text: `SELECT * FROM titles WHERE title ILIKE $1 ORDER BY song_name LIMIT 100`,
+            text: `SELECT * FROM titles WHERE title ILIKE $1 ORDER BY title LIMIT 100`,
             values: [name]
+        };
+
+        let result = null;
+
+        const client = await this.pool.connect();
+        try {
+            result = await client.query(query);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+
+        return result.rows;
+    }
+
+    async get_titles_starts_with_and_type(name, type) {
+        name += '%';
+        const query = {
+            text: `SELECT * FROM titles WHERE title ILIKE $1 AND type = $2 ORDER BY title LIMIT 100`,
+            values: [name, type]
         };
 
         let result = null;
