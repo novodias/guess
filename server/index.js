@@ -34,6 +34,24 @@ app.get("/api/room/create", (req, res) => {
     res.send(id);
 });
 
+app.get("/api/titles", async (req, res) => {
+    const { name, type } = req.query;
+    
+    try {
+        let result;
+        if (type) {
+            result = await db.get_titles_starts_with_and_type(name, type);
+        } else {
+            result = await db.get_titles_starts_with(name);
+        }
+        
+        res.json(result);
+    } catch (error) {
+        res.status(404).send("Not found");
+        console.log(error);
+    }
+})
+
 app.post("/api/titles/create", async (req, res) => {
     const { type, title } = req.body;
 
