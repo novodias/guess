@@ -2,6 +2,7 @@ const webSocket = require('ws');
 const http = require('http');
 const Room = require('./room');
 const Player = require('./player');
+const { GuessDb } = require('./db');
 
 const _messageHandler = {
     /**
@@ -62,10 +63,12 @@ class RoomsCluster {
 
     /**
      * 
-     * @param {http.Server} server 
+     * @param {http.Server} server
+     * @param {Number} port
+     * @param {GuessDb} db 
      * @returns 
      */
-    constructor(server, port) {
+    constructor(server, port, db) {
         if (RoomsCluster._instance) {
             return RoomsCluster._instance;
         }
@@ -74,6 +77,7 @@ class RoomsCluster {
 
         this.wss = new webSocket.Server({ server: server });
         this.rooms = new Map();
+        this.db = db;
         this._addEvents();
         
         console.log(`[WebSocket] Listening on ${port}`);
@@ -92,19 +96,19 @@ class RoomsCluster {
         this.rooms.set(id, room);
 
         // timer
-        // const timerDeleteRoom = (time) => {
-        //     if (!room) {
-        //         return;
-        //     }
-        //     if (room !== null && room.getSize() === 0) {
-        //         this.deleteRoom(room.id);
-        //         console.log(`[Rooms] Deleted room ${room.id} due to inactivity`);
-        //     } else {
-        //         console.log(`[Rooms] Setting timer to room ${room.id} in case of inactivity`);
-        //         setTimeout(timerDeleteRoom, time);
-        //     }
-        // }
-        // setTimeout(timerDeleteRoom, 1 * 60 * 1000);
+        const timerDeleteRoom = (time) => {
+            if (!room) {
+                return;
+            }
+            if (room !== null && room.getSize() === 0) {
+                this.deleteRoom(room.id);
+                console.log(`[Rooms] Deleted room ${room.id} due to inactivity`);
+            } else {
+                console.log(`[Rooms] Setting timer to room ${room.id} in case of inactivity`);
+                setTimeout(timerDeleteRoom, time);
+            }
+        }
+        setTimeout(timerDeleteRoom, 5 * 60 * 1000);
         
         return id;
     }
