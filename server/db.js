@@ -1,4 +1,5 @@
 const pg = require('pg');
+const moment = require('moment');
 
 class Song {
     constructor(title_id, type, song_name, song_duration, youtube_id) {
@@ -14,8 +15,25 @@ class GuessDb {
     constructor(connectionString) {
         // this.pool = new pg.Pool(connectionString);
         this.pool = new pg.Pool();
+        this.beat = { lastbeat: null, count: 0 };
 
         this.pool.on("error", console.error);
+        this.pool.on('connect', () => {
+            this.beat.count++;
+            
+            const now = new Date;
+            
+            if (this.beat.lastbeat === null) {
+                this.beat.lastbeat = now.getMinutes();
+                return;
+            }
+
+            if (this.beat.lastbeat !== now.getMinutes()) {
+                console.log(`[Db/Heartbeat] ${(this.beat.count / 60).toFixed(2)} connections per minute`);
+                this.beat.count = 0;
+                this.beat.lastbeat = now.getMinutes();
+            }
+        });
     }
     
     async add_title(type, title) {
@@ -137,11 +155,37 @@ class GuessDb {
         return result.rows;
     }
 
-    async get_songs_starts_with(name) {
-        name += '%';
+    async get_songs_starts_with({name, type, title_id}) {
+        // name += '%';
+        // const queryType = !type ?
+        //     '' :
+        //     `AND type = $2`;
+        // const queryTitle = !title_id ?
+        //     '' :
+        //     `AND id = $3`;
+        
+        const values = [];
+        let batch = 1;
+        let queryName = '', queryType = '', queryTitle = '';
+        if (name) {
+            name += '%';
+            queryName = `song_name ILIKE $${batch++}`;
+            values.push(name);
+        }
+
+        if (type) {
+            queryType = !type ? '' : `${batch > 1 ? "AND" : ""} type = $${batch++}`;
+            values.push(type);
+        }
+
+        if (title_id) {
+            queryTitle = !title_id ? '' : `${batch > 1 ? "AND" : ""} title_id = $${batch++}`;
+            values.push(title_id);
+        }
+
         const query = {
-            text: `SELECT * FROM songs WHERE song_name ILIKE $1 ORDER BY song_name LIMIT 100`,
-            values: [name]
+            text: `SELECT * FROM songs WHERE ${queryName} ${queryType} ${queryTitle} ORDER BY song_name LIMIT 100`,
+            values
         };
 
         let result = null;
