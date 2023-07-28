@@ -31,20 +31,13 @@ app.get("/api/room/get/:id", (req, res) => {
 
 app.get("/api/room/create", (req, res) => {
     const id = rooms.createRoom();
-    res.send(id);
+    res.json(id);
 });
 
 app.get("/api/titles", async (req, res) => {
     const { name, type } = req.query;
     
     try {
-        // let result;
-        // if (type) {
-        //     result = await db.get_titles_starts_with_and_type(name, type);
-        // } else {
-        //     result = await db.get_titles_starts_with(name);
-        // }
-
         let result = await (type ?
             db.get_titles_starts_with_and_type(name, type) :
             db.get_titles_starts_with(name));
@@ -66,6 +59,22 @@ app.post("/api/titles/create", async (req, res) => {
 
     try {
         const result = await db.add_title(type, title);
+        res.json(result);
+    } catch (error) {
+        res.status(404).send("Not found");
+        console.log(error);
+    }
+})
+
+app.get("/api/songs", async (req, res) => {
+    const { name, type, title_id } = req.query;
+
+    // if (!name) {
+    //     res.status(406).send("Not acceptable - Query 'name' is empty.");
+    // }
+
+    try {
+        const result = await db.get_songs_starts_with({ name, type, title_id });
         res.json(result);
     } catch (error) {
         res.status(404).send("Not found");
