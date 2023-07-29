@@ -32,6 +32,7 @@
 #navbar a:hover {
     color: rgb(240, 240, 240);
     background-color: rgba(128, 128, 128, 0.5);
+    transform: scale(1.1);
 }
 
 #navbar *[has-icon] {
