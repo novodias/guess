@@ -113,6 +113,31 @@ class GuessDb {
         }
     }
 
+    async get_title_by_id(id) {
+        const query = {
+            text: `SELECT * FROM titles WHERE id = $1`,
+            values: [id]
+        };
+
+        let result = null;
+
+        const client = await this.pool.connect();
+        try {
+            result = await client.query(query);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+
+        return result.rows;
+    }
+
+    /**
+     * 
+     * @param {String} name 
+     * @returns {Array | null}
+     */
     async get_titles_starts_with(name) {
         name += '%';
         const query = {
@@ -139,6 +164,26 @@ class GuessDb {
         const query = {
             text: `SELECT * FROM titles WHERE title ILIKE $1 AND type = $2 ORDER BY title LIMIT 100`,
             values: [name, type]
+        };
+
+        let result = null;
+
+        const client = await this.pool.connect();
+        try {
+            result = await client.query(query);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+
+        return result.rows;
+    }
+
+    async get_song_by_youtube_id(id) {
+        const query = {
+            text: `SELECT * FROM songs WHERE youtube_id = $1`,
+            values: [id]
         };
 
         let result = null;

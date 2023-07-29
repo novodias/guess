@@ -17,6 +17,65 @@ const app = express()
     .use(bodyParser.urlencoded({ extended: false }));
 const db = new database.GuessDb(process.env.PG_CONNECTION_STRING);
 
+app.post("/api/create", async (req, res) => {
+    const content_type = req.get("Content-Type");
+    if (content_type && content_type !== "application/json") {
+        res.status(406).send("Not acceptable");
+    }
+    
+    const { title_id, title, type, song_name, youtube_id } = req.body;
+
+    if (!title_id || !title || !type || !song_name || !youtube_id) {
+        res.status(400).send("Request body invalid");
+        return;
+    }
+    
+    let titleFound;
+    if (title_id === 0) {
+        console.log("[Db/Titles] Title doesn't exist, creating", title);
+        titleFound = (await db.add_title(type, title))[0];
+        
+    } else {
+        titleFound = (await db.get_title_by_id(title_id))[0];
+    }
+
+    const songYoutubeIdFound = await db.get_song_by_youtube_id(youtube_id);
+
+    if (songYoutubeIdFound.length > 0) {
+        console.log("[Db/Songs] Youtube ID found, ignoring create", youtube_id);
+        res.status(400).send("A song with the youtube ID sent already exists.");
+        return;
+    }
+
+    const songFound = await db.get_songs_starts_with({
+        name: song_name, title_id: titleFound.id, type: titleFound.type
+    });
+
+    if (songFound.length > 0) {
+        console.log("[Db/Songs] Song name found, ignoring create", song_name);
+        res.status(400).send("A song with the same name already exists.");
+        return;
+    }
+
+    try {
+        const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
+        
+        const duration = moment
+            .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
+            .asSeconds();
+        const song = new database.Song(titleFound.id, titleFound.type, song_name, duration, youtube_id);
+        const result = await db.add_song(song);
+        
+        console.log(result);
+        res.json(result);
+    } catch (error) {
+        res.status(404).send("Not found");
+        console.log(error);
+    }
+
+    // res.send("ok");
+})
+
 app.get("/api/room/get/:id", (req, res) => {
     const id = req.params.id;
     const room = rooms.getRoom(id);
