@@ -1,0 +1,120 @@
+.titles-container {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    gap: 0;
+    /* align-items: center; */
+}
+
+.title-wrapper {
+    position: relative;
+}
+
+.titles-container > input {
+    width: 50px;
+    text-align: center;
+    font-size: 2.2em;
+    outline: none !important;
+    border-radius: 0;
+    border: solid 1px rgb(128, 128, 128) !important;
+    border-left: 0 !important;
+    padding: 0px 10px;
+    color: rgb(128, 128, 128);
+    background: transparent;
+}
+
+#title-input {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    width: 300px;
+}
+
+.title-input-focused {
+    display: block;
+    width: 94%;
+}
+
+.titles-container select {
+    appearance: none;
+
+    font-size: 2.2em;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border: 0;
+    padding: 5px 25px;
+    color: white;
+    background: transparent;
+    border: solid 1px rgb(128, 128, 128);
+    /* outline: solid 1px rgb(128, 128, 128); */
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.titles-container input {
+    outline: none;
+    border: solid 1px rgb(128, 128, 128);
+    border-left: 0;
+}
+
+.titles-container select:hover {
+    background-color: rgb(120, 120, 120);
+}
+
+.titles-container option {
+    appearance: none;
+    background-color: transparent;
+    color: white;
+}
+
+/* .titles-container {
+    border: 1px solid rgb(128, 128, 128);
+    border-radius: 25px;
+    padding: 50px;
+} */
+
+/* .titles-container::after {
+    content: "Create Title";
+    font-style: italic;
+    font-size: 2.2rem;
+    background-color: var(--color-two);
+    position: absolute;
+    top: 0%;
+    transform: translateY(-50%);
+    padding: 20px;
+} */
+
+.songs-container {
+    margin-top: 50px;
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    /* align-items: center; */
+    justify-content: center;
+    gap: 10px;
+
+    border: 1px solid rgb(128, 128, 128);
+    border-radius: 25px;
+    padding: 50px;
+}
+
+.songs-container::after {
+    content: "Create Song";
+    font-style: italic;
+    font-size: 2.2rem;
+    background-color: var(--color-two);
+    
+    position: absolute;
+    top: 0%;
+    transform: translateY(-50%);
+    padding: 20px;
+}
+
+.songs-container input[type="text"] {
+    font-size: 1.3em;
+    /* width: 350px; */
+}
+
+.songs-container .btn {
+    width: fit-content;
+    align-self: flex-end;
+}

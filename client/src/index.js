@@ -12,6 +12,7 @@ import HomePage from './routes/Home';
 import ErrorPage from './Error';
 import Navbar from './templates/Navbar';
 import RoomPage, { RoomLoader } from './routes/Room';
+import CreatePage from './routes/Create';
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
         element: <RoomPage />,
         errorElement: <ErrorPage />,
         loader: RoomLoader
+      },
+      {
+        path: "create",
+        element: <CreatePage />,
       },
       {
         path: "*",
