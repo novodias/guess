@@ -4,10 +4,17 @@ class Room {
 
     /**
      * 
-     * @param {String} id 
+     * @param {String} id
+     * @param {String} name 
+     * @param {String} passwordHash
+     * @param {boolean} isPrivate
      */
-    constructor(id) {
+    constructor(id, name, passwordHash, isPrivate) {
         this.id = id;
+        this.name = name;
+        this.passwordHash = passwordHash || null;
+        this.isPrivate = isPrivate === true;
+        
         this.players = new Map();
         this.listeners = {};
     }
@@ -24,6 +31,14 @@ class Room {
             });
     }
 
+    getRoomInformation() {
+        return {
+            id: this.id,
+            requirePassword: this.passwordHash !== null,
+            isPrivate: this.isPrivate,
+        };
+    }
+    
     getRoomData() {
         return {
             id: this.id,

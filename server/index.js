@@ -76,21 +76,38 @@ app.post("/api/create", async (req, res) => {
     }
 })
 
-app.get("/api/room/get/:id", (req, res) => {
+app.post("/api/room/:id", (req, res) => {
     const id = req.params.id;
+    const { passwordHash } = req.body;
     const room = rooms.getRoom(id);
 
-    if (room) {
-        res.json(room.getRoomData());
+    if (!room) {
+        res.status(404).send("Not found");
         return;
     }
 
-    res.status(404).send("Not found");
+    if (room.passwordHash && !passwordHash) {
+        res.json(room.getRoomInformation());
+    }
+
+    if (room.passwordHash !== passwordHash) {
+        res.status(400).send("Wrong password");
+    }
+    
+    res.json(room.getRoomData());
 });
 
-app.get("/api/room/create", (req, res) => {
-    const id = rooms.createRoom();
-    res.json({id: id});
+app.post("/api/room", (req, res) => {
+    const content_type = req.get("Content-Type");
+    if (content_type && content_type !== "application/json") {
+        res.status(406).send("Not acceptable");
+    }
+
+    const { name, passwordHash, isPrivate } = req.body;
+
+    const id = rooms.createRoom(name, passwordHash, isPrivate);
+
+    res.json({ id: id });
 });
 
 app.get("/api/titles", async (req, res) => {

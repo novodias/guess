@@ -83,9 +83,16 @@ class RoomsCluster {
         console.log(`[WebSocket] Listening on ${port}`);
     }
 
-    createRoom() {
+    /**
+     * 
+     * @param {String} name 
+     * @param {String} passwordHash 
+     * @param {Boolean} isPrivate 
+     * @returns 
+     */
+    createRoom(name, passwordHash, isPrivate) {
         const id = generateRoomCode();
-        const room = new Room(id)
+        const room = new Room(id, name, passwordHash, isPrivate);
         
         room.onempty(id => {
             console.log(`[Rooms] Deleted ${id}`);
