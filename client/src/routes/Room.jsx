@@ -28,8 +28,6 @@ class RoomPage extends Component {
     componentDidMount() {
         const room = this.props.router.loader;
         
-        console.log(room);
-        
         window.history.replaceState(null, "Room", "/room");
         // this.setState({ room_id: room.id });
         
@@ -105,33 +103,7 @@ class RoomPage extends Component {
     }
 }
 
-// function withRouter(Component) {
-//     function RoomWithRouterProp(props) {
-//         let location = useLocation();
-//         let navigate = useNavigate();
-//         let params = useParams();
-//         let loader = useLoaderData();
-
-//         const { id, requirePassword, isPrivate } = loader;
-
-//         if (requirePassword) {
-//             return <PasswordPage router={{ location, navigate, params, loader }} />
-//         }
-
-//         return (
-//           <Component
-//             {...props}
-//             router={{ location, navigate, params, loader }}
-//           />
-//         );
-//     }
-
-//     return RoomWithRouterProp;
-// }
-
 export async function RoomLoader({ params }) {
-    // let location = useLocation();
-    // let navigate = useNavigate();
     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
     sessionStorage.removeItem("RoomPasswordHash");
 
