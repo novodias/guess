@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import reportWebVitals from './reportWebVitals';
+// import reportWebVitals from './reportWebVitals';
 import {
   createBrowserRouter,
   Navigate,
@@ -24,11 +24,22 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
       },
       {
-        path: "room/:id",
-        element: <RoomPage />,
-        errorElement: <ErrorPage />,
-        loader: RoomLoader
+        path: "room",
+        element: <Navigate to="/" />,
+        children: [
+          {
+            path: ":id",
+            element: <RoomPage />, errorElement: <ErrorPage />,
+            loader: RoomLoader,
+          }
+        ]
       },
+      // {
+      //   path: "room/:id",
+      //   element: <RoomPage />,
+      //   errorElement: <ErrorPage />,
+      //   loader: RoomLoader
+      // },
       {
         path: "create",
         element: <CreatePage />,
@@ -108,4 +119,4 @@ root.render(<App/>);
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();
