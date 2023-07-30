@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
+import crypto from 'crypto-js';
 
 const HomePage = () => {
 
     const [room, setRoom] = useState('');
+    
+    const [name, setName] = useState('');
+    const [password, setPassword] = useState('');
+
     let navigate = useNavigate();
 
     const redirectPage = () => {
-        navigate(`room/${room}`);
+        navigate(`/room/${room}`);
     };
     
     const _onInput = (event) => {
@@ -22,8 +27,24 @@ const HomePage = () => {
     }
 
     const createRoom = async () => {
-        const response = await fetch("http://localhost:3001/api/room/create");
+        if (!name || name === '') {
+            setName(`${sessionStorage.getItem('nickname')}'s room`);
+        }
+
+        const passwordHash = crypto.MD5(password).toString();
+        const response = await fetch("http://localhost:3001/api/room", {
+            method: "POST",
+            body: JSON.stringify({ name, passwordHash }),
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+        
         const { id } = await response.json();
+
+        sessionStorage.setItem("RoomPasswordHash", passwordHash);
+        
+        // password here
         navigate(`room/${id}`);
     }
 
@@ -43,10 +64,12 @@ const HomePage = () => {
                 <h2>Create a room</h2>
                 <label htmlFor="create-room-input">Name</label>
                 <h3>Insert the room's name below</h3>
-                <input type='text' id='create-room-input'/>
+                <input type='text' id='create-room-input'
+                    value={name} onInput={(e) => setName(e.target.value)} />
                 <label htmlFor="create-room-password-input">Password</label>
                 <h3>Insert the room's password below</h3>
-                <input type='text' id='create-room-password-input'/>
+                <input type='password' id='create-room-password-input'
+                    value={password} onInput={(e) => setPassword(e.target.value)} />
                 <button className='btn' onClick={createRoom}>Create</button>
             </div>
         </div>

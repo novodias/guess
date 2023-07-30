@@ -3,14 +3,17 @@ import React, { Component } from 'react';
 import YoutubePlayer from '../components/YoutubePlayer';
 import Guest from '../components/room/Guest';
 // import { Status } from '../components/room/Guest';
-import { useLoaderData, useLocation, useNavigate, useParams } from 'react-router-dom';
+import withRouter from '../components/WithRouter';
+import { Navigate } from 'react-router-dom';
 
 class RoomPage extends Component {
     constructor(props) {
         super(props)
+        
+        const room = this.props.router.loader;
 
         this.state = {
-            room_id: "",
+            room_id: room.id,
             guests: [
                 // { nickname: "novodias", points: 69, answer: GuestAnswerStatus.Correct },
                 // { nickname: "xxClebeRxx", points: 24, answer: GuestAnswerStatus.Pending },
@@ -19,13 +22,16 @@ class RoomPage extends Component {
             videoIdInput: "",
             videoId: "fhUqu-g0pVY",
         }
+
     }
 
     componentDidMount() {
-        window.history.replaceState(null, "Room", "/room");
-
         const room = this.props.router.loader;
-        this.setState({ room_id: room.id });
+        
+        console.log(room);
+        
+        window.history.replaceState(null, "Room", "/room");
+        // this.setState({ room_id: room.id });
         
         this.ws = new WebSocket("ws://localhost:3001");
 
@@ -76,6 +82,8 @@ class RoomPage extends Component {
     render() {
         return (
             <>
+                {this.props.router.loader.requirePassword &&
+                    <Navigate to={`/enter/${this.props.router.loader.id}`} />}
                 <div id='guests-container'>
                     <ul>
                         {this.state.guests.map((v, i) => {
@@ -97,26 +105,44 @@ class RoomPage extends Component {
     }
 }
 
-function withRouter(Component) {
-    function RoomWithRouterProp(props) {
-        let location = useLocation();
-        let navigate = useNavigate();
-        let params = useParams();
-        let loader = useLoaderData();
+// function withRouter(Component) {
+//     function RoomWithRouterProp(props) {
+//         let location = useLocation();
+//         let navigate = useNavigate();
+//         let params = useParams();
+//         let loader = useLoaderData();
 
-        return (
-          <Component
-            {...props}
-            router={{ location, navigate, params, loader }}
-          />
-        );
-    }
+//         const { id, requirePassword, isPrivate } = loader;
 
-    return RoomWithRouterProp;
-}
+//         if (requirePassword) {
+//             return <PasswordPage router={{ location, navigate, params, loader }} />
+//         }
+
+//         return (
+//           <Component
+//             {...props}
+//             router={{ location, navigate, params, loader }}
+//           />
+//         );
+//     }
+
+//     return RoomWithRouterProp;
+// }
 
 export async function RoomLoader({ params }) {
-    const res = await fetch(`http://localhost:3001/api/room/get/${params.id}`);
+    // let location = useLocation();
+    // let navigate = useNavigate();
+    let passwordHash = sessionStorage.getItem("RoomPasswordHash");
+    sessionStorage.removeItem("RoomPasswordHash");
+
+    const res = await fetch(`http://localhost:3001/api/room/${params.id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ passwordHash }) || null
+    });
+
     if (!res.ok) {
         throw new Error("Could not fetch to the server");
     }
@@ -126,6 +152,7 @@ export async function RoomLoader({ params }) {
     }
     
     const data = await res.json();
+
     return data;
 }
 
