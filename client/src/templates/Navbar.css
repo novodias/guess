@@ -1,5 +1,5 @@
 #navbar {
-    position: fixed;
+    position: static;
     min-width: 100vw;
     z-index: 10;
 }
