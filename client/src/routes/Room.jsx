@@ -22,6 +22,8 @@ class RoomPage extends Component {
     }
 
     componentDidMount() {
+        window.history.replaceState(null, "Room", "/room");
+
         const room = this.props.router.loader;
         this.setState({ room_id: room.id });
         
