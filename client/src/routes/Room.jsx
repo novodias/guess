@@ -14,11 +14,7 @@ class RoomPage extends Component {
 
         this.state = {
             room_id: room.id,
-            guests: [
-                // { nickname: "novodias", points: 69, answer: GuestAnswerStatus.Correct },
-                // { nickname: "xxClebeRxx", points: 24, answer: GuestAnswerStatus.Pending },
-                // { nickname: "thekronn0s", points: -1, answer: GuestAnswerStatus.Wrong },
-            ],
+            guests: [],
             videoIdInput: "",
             videoId: "fhUqu-g0pVY",
         }
@@ -29,7 +25,6 @@ class RoomPage extends Component {
         const room = this.props.router.loader;
         
         window.history.replaceState(null, "Room", "/room");
-        // this.setState({ room_id: room.id });
         
         this.ws = new WebSocket("ws://localhost:3001");
 
