@@ -247,11 +247,35 @@ class GuessDb {
         return result.rows;
     }
 
-    async get_songs_random(total) {
+    async get_table_estimage_length(table) {
         const query = {
-            text: `SELECT * FROM f_random_sample(null::"songs", "id", $1, 1.03) ORDER BY song_name`,
+            text: `SELECT count(*) AS count FROM $1`,
+            values: [table],
+        };
+
+        let result = null;
+
+        const client = await this.pool.connect();
+        try {
+            result = await client.query(query);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+
+        return result.rows;
+    }
+
+    async get_songs_random(total, type) {
+
+        const query = {
+            // text: `SELECT * FROM f_random_sample(null::"songs", 'oDD ID', $1, 1.03)`,
+            text: `SELECT * FROM songs ${type && 'WHERE type = $2'} ORDER BY random() LIMIT $1`,
             values: [total]
         };
+
+        type && query.values.push(type);
 
         let result = null;
 

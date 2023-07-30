@@ -25,7 +25,9 @@ app.post("/api/create", async (req, res) => {
     
     const { title_id, title, type, song_name, youtube_id } = req.body;
 
-    if (!title_id || !title || !type || !song_name || !youtube_id) {
+    if (title_id === null || title_id === undefined ||
+        !title || !type || !song_name || !youtube_id) {
+        console.log(req.body);
         res.status(400).send("Request body invalid");
         return;
     }
@@ -69,11 +71,9 @@ app.post("/api/create", async (req, res) => {
         console.log(result);
         res.json(result);
     } catch (error) {
-        res.status(404).send("Not found");
+        res.status(404).send("Youtube video not found");
         console.log(error);
     }
-
-    // res.send("ok");
 })
 
 app.get("/api/room/get/:id", (req, res) => {
@@ -90,7 +90,7 @@ app.get("/api/room/get/:id", (req, res) => {
 
 app.get("/api/room/create", (req, res) => {
     const id = rooms.createRoom();
-    res.json(id);
+    res.json({id: id});
 });
 
 app.get("/api/titles", async (req, res) => {
@@ -131,6 +131,8 @@ app.get("/api/songs", async (req, res) => {
     // if (!name) {
     //     res.status(406).send("Not acceptable - Query 'name' is empty.");
     // }
+    // const nameFiltered = name.replaceAll('"', '').replaceAll("+", " ");
+    // console.log(nameFiltered);
 
     try {
         const result = await db.get_songs_starts_with({ name, type, title_id });
@@ -154,13 +156,6 @@ app.post("/api/songs/create", async (req, res) => {
         res.status(406).send("Not acceptable");
     }
 
-    // const song = {
-    //     title_id,
-    //     type,
-    //     song_name,
-    //     youtube_id
-    // };
-
     // todo: verify visibility
     try {
         const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
@@ -176,6 +171,13 @@ app.post("/api/songs/create", async (req, res) => {
         res.status(404).send("Not found");
         console.log(error);
     }
+})
+
+// temporary
+app.get("/api/songs/random", async (req, res) => {
+    const { total, type } = req.query;
+    const result = await db.get_songs_random(Number.parseInt(total), type);
+    res.json(result);
 })
 
 const server        = require('http').createServer(app);
