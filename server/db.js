@@ -247,26 +247,6 @@ class GuessDb {
         return result.rows;
     }
 
-    async get_table_estimage_length(table) {
-        const query = {
-            text: `SELECT count(*) AS count FROM $1`,
-            values: [table],
-        };
-
-        let result = null;
-
-        const client = await this.pool.connect();
-        try {
-            result = await client.query(query);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            client.release();
-        }
-
-        return result.rows;
-    }
-
     async get_songs_random(total, type) {
 
         const query = {
