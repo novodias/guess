@@ -13,6 +13,7 @@ import ErrorPage from './Error';
 import Navbar from './templates/Navbar';
 import RoomPage, { RoomLoader } from './routes/Room';
 import CreatePage from './routes/Create';
+import PasswordPage from './routes/Password';
 
 const router = createBrowserRouter([
   {
@@ -34,12 +35,10 @@ const router = createBrowserRouter([
           }
         ]
       },
-      // {
-      //   path: "room/:id",
-      //   element: <RoomPage />,
-      //   errorElement: <ErrorPage />,
-      //   loader: RoomLoader
-      // },
+      {
+        path: "enter/:id",
+        element: <PasswordPage />,
+      },
       {
         path: "create",
         element: <CreatePage />,
@@ -78,40 +77,6 @@ function Layout() {
 function App() {
   return (<RouterProvider router={router} />);
 }
-
-// render() {
-//   return (
-//     <BrowserRouter>
-//       <Navbar showOptions={this.state.options} onClick={this.onClick} />
-//       <main>
-//         <Routes>
-//           <Route exact path='/' element={<HomePage />} />
-          
-//           <Route path='/' errorElement={<ErrorPage />}>
-//             <Route path='room/:id'
-//               loader={async ({ params }) => {
-//                 const res = await fetch(`http://localhost:3001/api/room/get/${params.id}`);
-//                 if (res.status === 404) {
-//                   throw new Response("Not Found", { status: 404 });
-//                 }
-
-//                 if (!res.ok) {
-//                   throw new Error("Could not fetch to the server");
-//                 }
-                
-//                 const data = await res.json();
-//                 return data;
-//               }}
-//               element={<RoomPage />}
-//               errorElement={<ErrorPage />} />
-//           </Route>
-      
-//           <Route path='*' element={<Navigate to="/" />} />     
-//         </Routes>
-//       </main>
-//     </BrowserRouter>
-//   );
-// }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App/>);
