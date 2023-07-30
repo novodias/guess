@@ -3,7 +3,7 @@ import './Navbar.css';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import OptionsBubble from '../components/Options';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Navbar = ({ showOptions, onClick }) => {
     
