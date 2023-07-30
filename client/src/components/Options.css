@@ -7,6 +7,9 @@
     padding: 10px;
     right: 5px;
     top: 78px;
+    z-index: 999;
+    outline: 1px solid var(--color-four);
+    /* transform-style: preserve-3d; */
 }
 
 .bubble::before {
@@ -18,8 +21,10 @@
     width: 20px;
     background: var(--color-one);
     box-sizing: border-box;
-    transform: rotate(45deg);
+    transform: rotate(45deg) translateZ(-1px);
     border-top-left-radius: 4px;
+    /* outline: 1px solid var(--color-four); */
+    /* z-index: 998; */
 }
 
 .bubble h1 {
