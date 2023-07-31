@@ -1,10 +1,11 @@
 import './Room.css';
 import React, { Component } from 'react';
-import YoutubePlayer from '../components/YoutubePlayer';
+// import YoutubePlayer from '../components/YoutubePlayer';
 import Guest from '../components/room/Guest';
 // import { Status } from '../components/room/Guest';
 import withRouter from '../components/WithRouter';
 import { Navigate } from 'react-router-dom';
+import BubbleCopyLink from '../components/room/CopyLink';
 
 class RoomPage extends Component {
     constructor(props) {
@@ -17,6 +18,7 @@ class RoomPage extends Component {
             guests: [],
             videoIdInput: "",
             videoId: "fhUqu-g0pVY",
+            // codeVisible: false,
         }
 
     }
@@ -72,11 +74,31 @@ class RoomPage extends Component {
         }
     }
 
+    // _onClickCopyCode = () => {
+    //     navigator.clipboard.writeText("http://localhost:3000/room/" + this.state.room_id);
+    // }
+
     render() {
         return (
             <>
                 {this.props.router.loader.requirePassword &&
-                    <Navigate to={`/enter/${this.props.router.loader.id}`} />}
+                    <Navigate
+                        to={`/enter/${this.props.router.loader.id}`}
+                        state={this.props.router.loader} />}
+                {/* <div className='container copy-link-container'>
+                    <div className='row'>
+                        <span className={this.state.codeVisible ? 'hide-blur' : ''}>
+                            {this.state.room_id}
+                        </span>
+                        <button onClick={this._onClickCopyCode}>
+                            <CopyAllRounded htmlColor='white' />
+                        </button>
+                        <button onClick={() => this.setState({ codeVisible: !this.state.codeVisible})}>
+                            <Visibility htmlColor='white' />
+                        </button>
+                    </div>
+                </div> */}
+                <BubbleCopyLink id={this.state.room_id} />
                 <div id='guests-container'>
                     <ul>
                         {this.state.guests.map((v, i) => {
@@ -91,7 +113,7 @@ class RoomPage extends Component {
                 <div className='room-container'>
                     <input id='room-input-guess' type="text" placeholder='Video ID...'
                         value={this.state.videoIdInput} onInput={this._onInput} onKeyUp={this._onKeyUp} />
-                    <YoutubePlayer videoId={this.state.videoId} />
+                    {/* <YoutubePlayer videoId={this.state.videoId} /> */}
                 </div>
             </>
         );
@@ -100,18 +122,22 @@ class RoomPage extends Component {
 
 export async function RoomLoader({ params }) {
     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
-    sessionStorage.removeItem("RoomPasswordHash");
+    passwordHash && sessionStorage.removeItem("RoomPasswordHash");
 
     const res = await fetch(`http://localhost:3001/api/room/${params.id}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ passwordHash }) || null
+        body: JSON.stringify({ passwordHash })
     });
 
     if (!res.ok) {
-        throw new Error("Could not fetch to the server");
+        if (res.status !== 400) {
+            throw new Error("Could not fetch to the server");
+        }
+
+        return await res.json();
     }
     
     if (res.status === 404) {
