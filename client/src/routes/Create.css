@@ -7,9 +7,9 @@
 .forms-container {
     display: flex;
     flex-direction: column;
-    background-color: var(--color-one);
+    /* background-color: var(--color-one);
     border-radius: 8px;
-    padding: 25px;
+    padding: 25px; */
 }
 
 .titles-form {

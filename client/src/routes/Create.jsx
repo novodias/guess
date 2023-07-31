@@ -182,7 +182,7 @@ export default function CreatePage() {
 
     function titleContainer() {
         return (
-            <div className='forms-container titles-container'>
+            <div className='container forms-container titles-container'>
                 <h2><MovieRounded /> Select a title</h2>
                 <h3>If not found, the title will be created with the song.</h3>
 
@@ -218,7 +218,7 @@ export default function CreatePage() {
 
     function songContainer() {
         return (
-            <div className='forms-container songs-container'>
+            <div className='container forms-container songs-container'>
                 <h2><MusicNoteRounded /> Add a new song</h2>
                 <h3>Make sure to not add a copyrighted music/song since most of them block embeds.</h3>
 
