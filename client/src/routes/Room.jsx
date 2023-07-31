@@ -18,7 +18,6 @@ class RoomPage extends Component {
             guests: [],
             videoIdInput: "",
             videoId: "fhUqu-g0pVY",
-            // codeVisible: false,
         }
 
     }
@@ -74,10 +73,6 @@ class RoomPage extends Component {
         }
     }
 
-    // _onClickCopyCode = () => {
-    //     navigator.clipboard.writeText("http://localhost:3000/room/" + this.state.room_id);
-    // }
-
     render() {
         return (
             <>
@@ -85,19 +80,6 @@ class RoomPage extends Component {
                     <Navigate
                         to={`/enter/${this.props.router.loader.id}`}
                         state={this.props.router.loader} />}
-                {/* <div className='container copy-link-container'>
-                    <div className='row'>
-                        <span className={this.state.codeVisible ? 'hide-blur' : ''}>
-                            {this.state.room_id}
-                        </span>
-                        <button onClick={this._onClickCopyCode}>
-                            <CopyAllRounded htmlColor='white' />
-                        </button>
-                        <button onClick={() => this.setState({ codeVisible: !this.state.codeVisible})}>
-                            <Visibility htmlColor='white' />
-                        </button>
-                    </div>
-                </div> */}
                 <BubbleCopyLink id={this.state.room_id} />
                 <div id='guests-container'>
                     <ul>
@@ -144,9 +126,7 @@ export async function RoomLoader({ params }) {
         throw new Response("Not Found", { status: 404 });
     }
     
-    const data = await res.json();
-
-    return data;
+    return await res.json();
 }
 
 export default withRouter(RoomPage);
