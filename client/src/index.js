@@ -26,7 +26,7 @@ const router = createBrowserRouter([
       },
       {
         path: "room",
-        element: <Navigate to="/" />,
+        // element: <Navigate to="/" />,
         children: [
           {
             path: ":id",
@@ -75,6 +75,7 @@ function Layout() {
 }
 
 function App() {
+  sessionStorage.setItem("nickname", "Guest");
   return (<RouterProvider router={router} />);
 }
 
