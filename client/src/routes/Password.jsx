@@ -1,7 +1,8 @@
+import crypto from 'crypto-js';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import crypto from 'crypto-js';
 import { LockRounded } from '@mui/icons-material';
+import Alert from '../components/Alert';
 
 export default function PasswordPage() {
     const [password, setPassword] = useState('');
@@ -9,13 +10,19 @@ export default function PasswordPage() {
     let navigate = useNavigate();
     let location = useLocation();
 
-    // console.log(location.state);
-
     useEffect(() => {
+        // without a parameter id, go to '/'
         if (!params.id) {
             navigate('/');
         }
+        
+        // this prevents to anyone enter this page for a room
+        // that doesn't exist
+        if (!location.state) {
+            navigate('/');
+        }
     });
+    
     
     function enterPassword() {
         const hash = crypto.MD5(password).toString();
@@ -32,6 +39,8 @@ export default function PasswordPage() {
                 value={password} onInput={(e) => setPassword(e.target.value)}
                 style={{ fontSize: '1.5em' }} autoComplete='off'
             />
+            {location.state && location.state.message &&
+                <Alert message={location.state.message} style={{ marginTop: '20px' }} type={'danger'} />}
             <button className='btn'
                 style={{ alignSelf: 'flex-end', marginTop: '20px' }}
                 onClick={enterPassword}>
