@@ -14,6 +14,7 @@ class Room {
         this.name = name;
         this.passwordHash = passwordHash || null;
         this.isPrivate = isPrivate === true;
+        this.hasPassword = passwordHash !== null;
         
         this.players = new Map();
         this.listeners = {};
@@ -34,6 +35,7 @@ class Room {
     getRoomInformation() {
         return {
             id: this.id,
+            name: this.name,
             requirePassword: this.passwordHash !== null,
             isPrivate: this.isPrivate,
         };

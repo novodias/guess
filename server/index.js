@@ -86,14 +86,18 @@ app.post("/api/room/:id", (req, res) => {
         return;
     }
 
-    if (room.passwordHash && passwordHash === null || passwordHash === undefined) {
-        console.log(req.body);
+    if (!room.hasPassword) {
+        res.json(room.getRoomData());
+        return;
+    }
+
+    if (room.hasPassword && (passwordHash === null || passwordHash === undefined)) {
         res.json(room.getRoomInformation());
         return;
     }
 
     if (room.passwordHash !== passwordHash) {
-        res.status(400).send("Wrong password");
+        res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
         return;
     }
     
@@ -108,10 +112,10 @@ app.post("/api/room", (req, res) => {
 
     const { name, passwordHash, isPrivate } = req.body;
 
-    const id = rooms.createRoom(name, passwordHash, isPrivate);
-    console.log({id, name, passwordHash, isPrivate});
+    const room = rooms.createRoom(name, passwordHash, isPrivate);
+    console.log(room);
 
-    res.json({ id: id });
+    res.json({ id: room.id });
 });
 
 app.get("/api/titles", async (req, res) => {
