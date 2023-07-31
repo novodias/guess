@@ -104,20 +104,22 @@ class RoomsCluster {
 
         // timer
         const timerDeleteRoom = (time) => {
-            if (!room) {
+            const tRoom = this.getRoom(id);
+            if (!tRoom) {
                 return;
             }
-            if (room !== null && room.getSize() === 0) {
-                this.deleteRoom(room.id);
-                console.log(`[Rooms] Deleted room ${room.id} due to inactivity`);
+
+            if (tRoom !== null && tRoom.getSize() === 0) {
+                this.deleteRoom(tRoom.id);
+                console.log(`[Rooms] Deleted room ${tRoom.id} due to inactivity`);
             } else {
-                console.log(`[Rooms] Setting timer to room ${room.id} in case of inactivity`);
+                console.log(`[Rooms] Setting timer to room ${tRoom.id} in case of inactivity`);
                 setTimeout(timerDeleteRoom, time);
             }
         }
         setTimeout(timerDeleteRoom, 5 * 60 * 1000);
         
-        return id;
+        return {id, name, isPrivate};
     }
 
     /**
