@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import crypto from 'crypto-js';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
 
@@ -37,7 +37,6 @@ const HomePage = () => {
     const createRoom = async () => {
         let roomName;
         if (!name || name === '') {
-            // setName(`${sessionStorage.getItem('nickname')}'s room`);
             roomName = `${sessionStorage.getItem('nickname')}'s room`;
         } else {
             roomName = name;
