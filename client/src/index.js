@@ -25,15 +25,9 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
       },
       {
-        path: "room",
-        // element: <Navigate to="/" />,
-        children: [
-          {
-            path: ":id",
-            element: <RoomPage />, errorElement: <ErrorPage />,
-            loader: RoomLoader,
-          }
-        ]
+        path: "room/:id",
+        element: <RoomPage />, errorElement: <ErrorPage />,
+        loader: RoomLoader,
       },
       {
         path: "enter/:id",
