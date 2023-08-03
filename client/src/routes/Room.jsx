@@ -1,122 +1,381 @@
 import './Room.css';
-import React, { Component } from 'react';
-// import YoutubePlayer from '../components/YoutubePlayer';
+import React, { useEffect, useState } from 'react';
+import useWebSocket from 'react-use-websocket';
 import Guest from '../components/room/Guest';
-// import { Status } from '../components/room/Guest';
-import withRouter from '../components/WithRouter';
-import { Navigate } from 'react-router-dom';
+import { useLoaderData, useNavigate } from 'react-router-dom';
 import BubbleCopyLink from '../components/room/CopyLink';
+import InputTitles from '../components/InputTitles';
+import { LogoutRounded, MessageRounded } from '@mui/icons-material';
+// import YoutubePlayer from '../components/YoutubePlayer';
+// import { Status } from '../components/room/Guest';
 
-class RoomPage extends Component {
-    constructor(props) {
-        super(props)
-        
-        const room = this.props.router.loader;
+function crown() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
+        </svg>
+    );
+}
 
-        this.state = {
-            room_id: room.id,
-            guests: [],
-            videoIdInput: "",
-            videoId: "fhUqu-g0pVY",
-        }
+function RoomPage() {
+    const room = useLoaderData();
+    let navigate = useNavigate();
 
-    }
+    // this can cause a crash on the server.
+    let nickname = sessionStorage.getItem("nickname");
+    nickname = nickname === null ? "Guest" : nickname;
 
-    componentDidMount() {
-        const room = this.props.router.loader;
-        
-        window.history.replaceState(null, "Room", "/room");
-        
-        this.ws = new WebSocket("ws://localhost:3001");
+    const [id, setId] = useState(null);
+    const [owner, setOwner] = useState('');
+    const [guests, setGuests] = useState([]);
+    const [chat, setChat] = useState([]);
+    const [text, setText] = useState('');
+    const [showKickBtn, setShowKickBtn] = useState(false);
+    
+    // const [roomId, setRoomId] = useState(room.id);
+    // const [videoId, setVideoId] = useState('');
 
-        let nickname = sessionStorage.getItem("nickname");
-        nickname = nickname === null ? "Guest" : nickname;
-
-        this.ws.onopen = (event) => {
-            const message = {
-                type: "joined",
-                body: {
-                    nickname,
-                    room_id: room.id
-                }
-            }
-
-            console.log("conectado")
-            this.ws.send(JSON.stringify(message));
-        };
-
-        this.ws.onmessage = (event) => {
-            const message = JSON.parse(event.data);
+    const { sendJsonMessage } = useWebSocket(process.env.REACT_APP_WS, {
+        onOpen: () => {
+            console.log('connected');
+        },
+        onMessage: (e) => {
+            const message = JSON.parse(e.data);
             console.log(message);
 
             if (message.type === "players") {
                 const players = message.body;
-                this.setState({
-                    guests: players
-                });
+                setGuests(players);
+            }
+
+            if (message.type === "exited") {
+                const { id } = message.body;
+                // const newGuests = guests.filter(g => g.id !== id);
+                setGuests(array => array.filter(g => g.id !== id));
+            }
+
+            if (message.type === "yourid") {
+                const { id } = message.body;
+                setId(id);
+            }
+
+            if (message.type === "chat") {
+                const newChat = chat;
+                newChat.push(message.body);
+                setChat(newChat);
+            }
+        },
+        onClose: (e) => {
+            if (e.code === 3000) {
+                console.log(e.reason);
+            }
+
+            console.log("close");
+        },
+        shouldReconnect: () => false,
+        share: true,
+    }, true);
+
+    const KickPerson = (personId) => {
+        if (id === personId) {
+            return;
+        }
+
+        sendJsonMessage({ type: "kick", body: { owner, id: personId }});
+    }
+
+    const SendChatMessage = (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            if (!text || text === '' || text.startsWith('\n')) {
+                setText('');
+                return;
+            } else {
+                sendJsonMessage({ type: "chat", body: { text, nickname }})
+                setText('');
             }
         }
     }
 
-    componentWillUnmount() {
-        this.ws.close();
-    }
-
-    _onInput = (event) => {
-        this.setState({ videoIdInput: event.target.value });
-    }
-
-    _onKeyUp = (event) => {
-        if (event.key === 'Enter' || event.keyCode === 13) {
-            const videoId = this.state.videoIdInput;
-            this.setState({ videoId, videoIdInput: "" });
-        }
-    }
-
-    render() {
+    // todo: implement kick button client/server
+    function guest(v, i) {
+        const btn_kick = showKickBtn && owner;
         return (
-            <>
-                {this.props.router.loader.requirePassword &&
-                    <Navigate
-                        to={`/enter/${this.props.router.loader.id}`}
-                        state={this.props.router.loader} />}
-                <BubbleCopyLink id={this.state.room_id} />
-                <div id='guests-container'>
-                    <ul>
-                        {this.state.guests.map((v, i) => {
-                            return (
-                                <li key={i}>
-                                    <Guest {...v} />
-                                </li>
-                            );
-                        })}
-                    </ul>
+            <li key={i} className='row'>
+                {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
+                    <button onClick={() => KickPerson(v.id)}>
+                        <LogoutRounded htmlColor='white' />
+                    </button>
+                </div>}
+                <div className='crown'>
+                    {i === 0 ? crown() : null}
                 </div>
-                <div className='room-container'>
-                    <input id='room-input-guess' type="text" placeholder='Video ID...'
-                        value={this.state.videoIdInput} onInput={this._onInput} onKeyUp={this._onKeyUp} />
-                    {/* <YoutubePlayer videoId={this.state.videoId} /> */}
-                </div>
-            </>
-        );
+                <Guest {...v} />
+            </li>
+        )
     }
+
+    const ownerBtn = () => {
+        if (!owner) {
+            return null;
+        }
+
+        return (
+            <div className='row'>
+                <input type='checkbox' defaultChecked={false} id='checkbox-show-kick-btn' value={showKickBtn}
+                    onChange={(e) => setShowKickBtn(e.target.checked)}/>
+                <label htmlFor='checkbox-show-kick-btn'>Show kick button</label>
+            </div>
+        )
+    }
+
+    useEffect(() => {
+        const ownerId = sessionStorage.getItem("RoomOwnerId");
+        
+        ownerId && setOwner(ownerId);
+        ownerId && sessionStorage.removeItem("RoomOwnerId");
+
+        if (room.requirePassword) {
+            navigate(`/enter/${room.id}`, { state: room });
+        } else {
+            window.history.replaceState(null, "Room", "/room");
+
+            // this prevents sending joined to websocket again
+            if (id === null) {
+                sendJsonMessage({ type: "joined", body: { nickname, room_id: room.id } });
+            }
+        }
+    }, [navigate, sendJsonMessage, room, id, nickname]);
+
+    return (
+        <>
+            <div id='guests-container' className='col'>
+                <ul>
+                    {guests.map((v, i) => guest(v, i))}
+                </ul>
+                {ownerBtn()}
+            </div>
+            <div className='room-container col'>
+                <div className='timer'></div>
+                <div className='difficulty-container row'>
+                    <h2>DIFFICULTY</h2><span>???</span>
+                </div>
+                <InputTitles onDropdownClick={(title) => console.log(title)} />
+                {/* <input id='room-input-guess' type="text" placeholder='Video ID...'
+                    value={this.state.videoIdInput} onInput={this._onInput} onKeyUp={this._onKeyUp} /> */}
+                {/* <YoutubePlayer videoId={this.state.videoId} /> */}
+            </div>
+            <div className='col container chat-container'>
+                <BubbleCopyLink id={room.id} />
+                <div id='chat' className='col'>
+                    <ul className='remove-ul-li-style'>
+                        {
+                            chat.map((message, key) => {
+                                return <li key={key}>
+                                    <div className='chat-message'>
+                                        <span><h2>{message.nickname}</h2> {message.text}</span>
+                                    </div>
+                                </li>
+                            })
+                        }
+                    </ul>
+                    <div id='anchor'></div>
+                </div>
+                <div className='chat-textbox-container'>
+                    <textarea autoComplete='false' maxLength={200} value={text}
+                        onInput={(e) => setText(e.target.value)}
+                        onKeyUp={SendChatMessage}></textarea>
+                    <span><MessageRounded /></span>
+                </div>
+            </div>
+        </>
+    );
 }
+
+// class RoomPage extends Component {
+//     constructor(props) {
+//         super(props)
+        
+//         // let navigate = this.props.router.navigate;
+//         const room = this.props.router.loader;
+        
+//         const ownerId = sessionStorage.getItem("RoomOwnerId");
+
+//         this.state = {
+//             ownerId,
+//             room_id: room.id,
+//             guests: [],
+//             videoIdInput: "",
+//             videoId: "fhUqu-g0pVY",
+//             showKickBtn: false,
+//         }
+
+//         // remove from sessionStorage if is not null
+//         ownerId && sessionStorage.removeItem("RoomOwnerId");
+//     }
+
+//     closeWS() {
+//         if (this.ws === undefined) {
+//             return;
+//         }
+
+//         if (this.ws.CLOSED || this.ws.CLOSING) {
+//             return;
+//         }
+
+//         this.ws.close(0);
+//     }
+
+//     componentDidMount() {
+//         const room = this.props.router.loader;
+//         if (room.requirePassword) {
+//             Navigate(`/enter/${room.id}`, { state: room });
+//         } else {
+//             this.configure(room);
+//         }
+//     }
+
+//     configure(room) {
+//         window.history.replaceState(null, "Room", "/room");
+        
+//         this.ws = new WebSocket("ws://localhost:3001");
+
+//         let nickname = sessionStorage.getItem("nickname");
+//         nickname = nickname === null ? "Guest" : nickname;
+
+//         this.ws.onopen = (event) => {
+//             const message = {
+//                 type: "joined",
+//                 body: {
+//                     nickname,
+//                     room_id: room.id
+//                 }
+//             }
+
+//             this.ws.send(JSON.stringify(message));
+//         };
+
+//         this.ws.onmessage = (event) => {
+//             const message = JSON.parse(event.data);
+//             console.log(message);
+
+//             if (message.type === "players") {
+//                 const players = message.body;
+//                 this.setState({
+//                     guests: players
+//                 });
+//             }
+
+//             if (message.type === "exited") {
+//                 const { id } = message.body;
+//                 this.setState({
+//                     guests: this.state.guests.filter(g => g.id !== id)
+//                 });
+//             }
+
+//             if (message.type === "yourid") {
+//                 const { id } = message.body;
+//                 this.setState({id});
+//             }
+//         }
+
+//         window.onbeforeunload = this.closeWS;
+//     }
+
+//     componentWillUnmount() {
+//         this.closeWS();
+//     }
+
+//     _onInput = (event) => {
+//         this.setState({ videoIdInput: event.target.value });
+//     }
+
+//     _onKeyUp = (event) => {
+//         if (event.key === 'Enter' || event.keyCode === 13) {
+//             const videoId = this.state.videoIdInput;
+//             this.setState({ videoId, videoIdInput: "" });
+//         }
+//     }
+    
+//     render() {
+//         const id = this.state.id;
+//         const owner = this.state.ownerId;
+//         const guests = this.state.guests.sort((v1, v2) => v1.points - v2.points);
+//         const btn_kick = this.state.showKickBtn && owner;
+//         function crown() {
+//             return (
+//                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+//                     <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
+//                 </svg>
+//             );
+//         }
+
+//         // todo: implement kick button client/server
+//         function guest(v, i) {
+//             return (
+//                 <li key={i} className='row'>
+//                     {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
+//                         <button>
+//                             <LogoutRounded htmlColor='white' />
+//                         </button>
+//                     </div>}
+//                     <div className='crown'>
+//                         {i === 0 ? crown() : null}
+//                     </div>
+//                     <Guest {...v} />
+//                 </li>
+//             )
+//         }
+
+//         const ownerBtn = () => {
+//             if (!owner) {
+//                 return null;
+//             }
+
+//             return (
+//                 <div className='row'>
+//                     <input type='checkbox' defaultChecked={false} id='checkbox-show-kick-btn' value={this.state.showKickBtn}
+//                         onChange={(e) => this.setState({showKickBtn: e.target.checked})}/>
+//                     <label htmlFor='checkbox-show-kick-btn'>Show kick button</label>
+//                 </div>
+//             )
+//         }
+
+//         return (
+//             <>
+//                 {/* {this.props.router.loader.requirePassword &&
+//                     <Navigate
+//                         to={`/enter/${this.props.router.loader.id}`}
+//                         state={this.props.router.loader} />} */}
+//                 <BubbleCopyLink id={this.state.room_id} />
+//                 <div id='guests-container' className='col'>
+//                     <ul>
+//                         {guests.map((v, i) => guest(v, i))}
+//                     </ul>
+//                     {ownerBtn()}
+//                 </div>
+//                 <div className='room-container col'>
+//                     <div className='difficulty-container row'>
+//                         <h2>DIFFICULTY</h2><span>???</span>
+//                     </div>
+//                     {/* <input id='room-input-guess' type="text" placeholder='Video ID...'
+//                         value={this.state.videoIdInput} onInput={this._onInput} onKeyUp={this._onKeyUp} /> */}
+//                     <InputTitles onDropdownClick={(title) => console.log(title)} />
+//                     {/* <YoutubePlayer videoId={this.state.videoId} /> */}
+//                 </div>
+//             </>
+//         );
+//     }
+// }
 
 export async function RoomLoader({ params }) {
     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
     passwordHash && sessionStorage.removeItem("RoomPasswordHash");
 
-    const res = await fetch(`http://localhost:3001/api/room/${params.id}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ passwordHash })
-    });
+    const res = await fetch(`${process.env.REACT_APP_API}/room/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
 
     if (!res.ok) {
         if (res.status !== 400) {
-            throw new Error("Could not fetch to the server");
+            throw new Error(res.status);
         }
 
         return await res.json();
@@ -129,4 +388,4 @@ export async function RoomLoader({ params }) {
     return await res.json();
 }
 
-export default withRouter(RoomPage);
+export default RoomPage;

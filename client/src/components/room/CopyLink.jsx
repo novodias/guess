@@ -3,7 +3,7 @@ import { CopyAllRounded, Visibility } from '@mui/icons-material';
 
 
 export default function BubbleCopyLink({ id }) {
-    const [visible, setVisible] = useState(false);
+    const [visible, setVisible] = useState(true);
 
     function _onClickCopyCode() {
         navigator.clipboard.writeText("http://localhost:3000/room/" + id);
