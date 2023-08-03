@@ -4,41 +4,41 @@ const Room = require('./room');
 const Player = require('./player');
 const { GuessDb } = require('./db');
 
-const _messageHandler = {
-    /**
-     * 
-     * @param {RoomsCluster} cluster 
-     * @param {webSocket.WebSocket} ws 
-     * @param {*} body 
-     * @returns 
-     */
-    "joined": function (cluster, ws, body) {
-        const room = cluster.getRoom(body.room_id)
+// const _messageHandler = {
+//     /**
+//      * 
+//      * @param {RoomsCluster} cluster 
+//      * @param {webSocket.WebSocket} ws 
+//      * @param {*} body 
+//      * @returns 
+//      */
+//     "joined": function (cluster, ws, body) {
+//         const room = cluster.getRoom(body.room_id)
     
-        if (!room) {
-            const notFound = {
-                type: "error",
-                statusCode: 404,
-                message: "Room not found"
-            };
+//         if (room === undefined) {
+//             // const notFound = {
+//             //     type: "error",
+//             //     statusCode: 404,
+//             //     message: "Room not found"
+//             // };
 
-            ws.close("404", JSON.stringify(notFound));
-            return;
-        }
+//             ws.close();
+//             return;
+//         }
 
-        const id = room.getSize();
-        const player = new Player(ws, id, room.id, body.nickname, 0, 0);
-        room.addPlayer(player);
-    },
+//         const id = room.getSize();
+//         const player = new Player(ws, id, room.id, body.nickname, 0, 0);
+//         room.addPlayer(player);
+//     },
 
-    // client exited
-    // "exited": function (cluster, ws, body) {
-    // },
+//     // client exited
+//     // "exited": function (cluster, ws, body) {
+//     // },
 
-    "generic": function (cluster, ws, body) {
+//     "generic": function (cluster, ws, body) {
 
-    }
-}
+//     }
+// }
 
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
@@ -103,29 +103,29 @@ class RoomsCluster {
         this.rooms.set(id, room);
 
         // timer
-        const timerDeleteRoom = (time) => {
-            const tRoom = this.getRoom(id);
-            if (!tRoom) {
-                return;
-            }
+        // const timerDeleteRoom = (time) => {
+        //     const tRoom = this.getRoom(id);
+        //     if (tRoom === undefined) {
+        //         return;
+        //     }
 
-            if (tRoom !== null && tRoom.getSize() === 0) {
-                this.deleteRoom(tRoom.id);
-                console.log(`[Rooms] Deleted room ${tRoom.id} due to inactivity`);
-            } else {
-                console.log(`[Rooms] Setting timer to room ${tRoom.id} in case of inactivity`);
-                setTimeout(timerDeleteRoom, time);
-            }
-        }
-        setTimeout(timerDeleteRoom, 5 * 60 * 1000);
+        //     if (tRoom.getSize() === 0) {
+        //         this.deleteRoom(tRoom.id);
+        //         console.log(`[Rooms] Deleted room ${tRoom.id} due to inactivity`);
+        //     } else {
+        //         setTimeout(timerDeleteRoom, time);
+        //         console.log(`[Rooms] Setting timer to room ${tRoom.id} in case of inactivity`);
+        //     }
+        // }
+        // setTimeout(timerDeleteRoom, 5 * 60 * 1000);
         
-        return {id, name, isPrivate};
+        return { id, name, isPrivate, ownerId: room.ownerId };
     }
 
     /**
      * 
      * @param {String} id 
-     * @returns {Room}
+     * @returns {Room | undefined}
      */
     getRoom(id) {
         return this.rooms.get(id);
@@ -135,9 +135,9 @@ class RoomsCluster {
         this.rooms.delete(id);
     }
 
-    stringify(object) {
-        return JSON.stringify(object);
-    }
+    // stringify(object) {
+    //     return JSON.stringify(object);
+    // }
 
     /**
      * 
@@ -145,17 +145,58 @@ class RoomsCluster {
      * @param {*} body 
      */
     _setupClient(ws) {
-        ws.on('message', (data) => {
+        // Doesn't look pretty, but it works,
+        // this allows to do the message event inside the room
+        // Prevents adding room_id to the body for every message
+        // Makes more easy to do stuff inside the room
+        // which is where the stuff is happening.
+
+        const _onMessage = (data) => {
             const message = JSON.parse(data.toString());
             console.log(message);
-            _messageHandler[message.type](this, ws, message.body);
-        })
+
+            // only accept a joined type message upon joining
+            const body = message.body;
+            if (message.type !== "joined") {
+                console.log("[Cluster] Closing WebSocket client connection, type didn't match");
+                ws.close();
+                return;
+            }
+
+            const room = this.getRoom(body.room_id);
+            if (room === undefined) {
+                // const notFound = {
+                //     type: "error",
+                //     statusCode: 404,
+                //     message: "Room not found"
+                // };
+
+                ws.close();
+                return;
+            }
+
+            const id = room.getSize();
+            const player = new Player(ws, id, room.id, body.nickname, 0, 0);
+
+            // remove the callback here
+            ws.emit('remove', ws);
+            
+            // addPlayer handles the rest;
+            room.addPlayer(player);
+        };
+
+        ws.on('remove', ws => {
+            ws.off('message', _onMessage);
+            console.log("[Cluster] Player joined, removed event message");
+        });
+
+        ws.on('message', _onMessage);
     }
 
     _addEvents() {
         this.wss.on('connection', ws => {
             this._setupClient(ws);
-        })
+        });
     }
 }
 
