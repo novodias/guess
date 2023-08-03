@@ -24,7 +24,7 @@ export default function CreatePage() {
     const getTitlesAsync = async (name, type) => {
         console.log("Fetching titles...");
         try {
-            const response = await fetch(`http://localhost:3001/api/titles?name=${name || ''}${(name && type) ? '&type=' + type : ''}`);
+            const response = await fetch(`${process.env.REACT_APP_API}/titles?name=${name || ''}${(name && type) ? '&type=' + type : ''}`);
             const data = await response.json();
             setTitles(data);
         } catch (error) {
@@ -142,7 +142,7 @@ export default function CreatePage() {
         }
 
         try {
-            const response = await fetch('http://localhost:3001/api/create', {
+            const response = await fetch(`${process.env.REACT_APP_API}/create`, {
                 method: 'POST',
                 mode: 'cors',
                 cache: "no-cache",

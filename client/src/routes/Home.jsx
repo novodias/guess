@@ -43,7 +43,7 @@ const HomePage = () => {
         }
 
         const passwordHash = hasPass ? crypto.MD5(password).toString() : null;
-        const response = await fetch("http://localhost:3001/api/room", {
+        const response = await fetch(process.env.REACT_APP_API + "/room", {
             method: "POST",
             body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
             headers: {
@@ -51,7 +51,8 @@ const HomePage = () => {
             },
         });
         
-        const { id } = await response.json();
+        const { id, ownerId } = await response.json();
+        sessionStorage.setItem("RoomOwnerId", ownerId);
 
         if (hasPass === true) {
             sessionStorage.setItem("RoomPasswordHash", passwordHash);
