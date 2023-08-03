@@ -36,10 +36,19 @@ class Player {
         this.nickname = nickname;
         this.points = points;
         this.status = status;
+
+        this.listeners = {};
     }
 
-    closeWebSocket() {
-        this.ws.close();
+    /**
+     * 
+     * @param {Number | undefined} code 
+     * @param {String | undefined} reason 
+     */
+    closeWebSocket(code = undefined, reason = undefined) {
+        if (this.ws.readyState === this.ws.OPEN) {
+            this.ws.close(code, reason);
+        }
     }
 
     getPlayerData() {
@@ -52,8 +61,39 @@ class Player {
         };
     }
 
+    setPoints(points) {
+        this.points = points;
+
+        this.emit("onchange", { id: this.id, points: this.points });
+    }
+
+    setStatus(status) {
+        this.status = status;
+
+        this.emit("onchange", { id: this.id, status: this.status });
+    }
+
+    onchange(callback) {
+        this.addEventListener("onchange", callback);
+    }
+
     send(object) {
         this.ws.send(JSON.stringify(object));
+    }
+
+    emit(method, payload = null) {
+        const callback = this.listeners[method];
+        if (typeof callback === 'function') {
+            callback(payload);
+        }
+    }
+
+    addEventListener(method, callback) {
+        this.listeners[method] = callback;
+    }
+
+    removeEventListener(method) {
+        delete this.listeners[method];
     }
 }
 
