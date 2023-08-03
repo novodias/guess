@@ -17,6 +17,10 @@ const app = express()
     .use(bodyParser.urlencoded({ extended: false }));
 const db = new database.GuessDb(process.env.PG_CONNECTION_STRING);
 
+const nullUndefined = (value) => {
+    return value === null || value === undefined;
+}
+
 app.post("/api/create", async (req, res) => {
     const content_type = req.get("Content-Type");
     if (content_type && content_type !== "application/json") {
@@ -76,31 +80,67 @@ app.post("/api/create", async (req, res) => {
     }
 })
 
-app.post("/api/room/:id", (req, res) => {
-    const id = req.params.id;
-    const { passwordHash } = req.body;
-    const room = rooms.getRoom(id);
+app.use("/api/room/:id", (req, res, next) => {
+    if (req.method === 'GET') {
+        const id = req.params.id;
+        const { hash } = req.query;
+        const room = rooms.getRoom(id);
+        console.log(id, hash);
 
-    if (!room) {
-        res.status(404).send("Not found");
-        return;
+        if (!room) {
+            res.status(404).send("Not found");
+            return;
+        }
+
+        if (!room.hasPassword) {
+            req.room = room;
+            next()
+            return;
+        }
+
+        // if (room.hasPassword && (hash === null || hash === undefined)) {
+        if (room.hasPassword && nullUndefined(hash)) {
+            res.json(room.getRoomInformation());
+            return;
+        }
+
+        if (room.passwordHash !== hash) {
+            res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
+            return;
+        }
+
+        req.room = room;
     }
 
-    if (!room.hasPassword) {
-        res.json(room.getRoomData());
-        return;
-    }
+    next();
+})
 
-    if (room.hasPassword && (passwordHash === null || passwordHash === undefined)) {
-        res.json(room.getRoomInformation());
-        return;
-    }
+app.get("/api/room/:id", (req, res) => {
+    // const id = req.params.id;
+    // const { id } = req.query;
+    // const { passwordHash } = req.body;
+    // const room = rooms.getRoom(id);
 
-    if (room.passwordHash !== passwordHash) {
-        res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
-        return;
-    }
-    
+    // if (!room) {
+    //     res.status(404).send("Not found");
+    //     return;
+    // }
+
+    // if (!room.hasPassword) {
+    //     res.json(room.getRoomData());
+    //     return;
+    // }
+
+    // if (room.hasPassword && (passwordHash === null || passwordHash === undefined)) {
+    //     res.json(room.getRoomInformation());
+    //     return;
+    // }
+
+    // if (room.passwordHash !== passwordHash) {
+    //     res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
+    //     return;
+    // }
+    const room = req.room;
     res.json(room.getRoomData());
 });
 
@@ -115,7 +155,7 @@ app.post("/api/room", (req, res) => {
     const room = rooms.createRoom(name, passwordHash, isPrivate);
     console.log(room);
 
-    res.json({ id: room.id });
+    res.json({ id: room.id, ownerId: room.ownerId });
 });
 
 app.get("/api/titles", async (req, res) => {
