@@ -138,6 +138,17 @@ input[type="password"] {
   padding: 5px 25px;
 }
 
+textarea {
+  display: inline-block;
+  font-size: 0.8em;
+  color: white;
+  background: transparent;
+  outline: solid 1px rgb(128, 128, 128);
+  border-radius: 25px;
+  border: 0px;
+  padding: 5px 25px;
+}
+
 input[type="range"] {
   appearance: none;
   border-radius: 25px;
