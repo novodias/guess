@@ -86,7 +86,7 @@ class Room {
 
             "submit": () => {
                 const id = body.id;
-                const title_id = body.title_id;
+                const title_id = body.title.id;
 
                 // todo: do the rest of the game lol
                 // gonna need to verify title_id answer with the randomly selected
@@ -138,7 +138,7 @@ class Room {
 
         player.onchange(body => {
             // broadcast changes to all;
-            this.broadcast(body);
+            this.broadcast({type: "change", body});
         })
 
         this.players.set(player.id, player);

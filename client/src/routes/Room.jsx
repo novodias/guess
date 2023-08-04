@@ -9,7 +9,7 @@ import { LogoutRounded, MessageRounded } from '@mui/icons-material';
 // import YoutubePlayer from '../components/YoutubePlayer';
 // import { Status } from '../components/room/Guest';
 
-function crown() {
+function Crown() {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
@@ -17,11 +17,82 @@ function crown() {
     );
 }
 
+function OwnerButton({ owner, showKickBtn, setShowKickBtn }) {
+    if (!owner) {
+        return null;
+    }
+
+    return (
+        <div className='row'>
+            <input type='checkbox' defaultChecked={false} id='checkbox-show-kick-btn' value={showKickBtn}
+                onChange={(e) => setShowKickBtn(e.target.checked)}/>
+            <label htmlFor='checkbox-show-kick-btn'>Show kick button</label>
+        </div>
+    )
+}
+
+function Difficulty({ value, difficultyColor }) {
+
+    const style = { backgroundColor: difficultyColor || null };
+
+    return (
+        <div className='difficulty-container row'>
+            <h2>DIFFICULTY</h2><span style={style}>{value}</span>
+        </div>
+    )
+}
+
+function Chat({ messages, onEnter }) {
+    const [text, setText] = useState('');
+
+    const _onKeyDown = (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+        }
+    }
+
+    const _onKeyUp = (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            if (!text || text === '' || text.startsWith('\n')) {
+                setText('');
+                return;
+            } else {
+                onEnter(text);
+                setText('');
+            }
+        }
+    }
+
+    return (
+        <>
+            <div id='chat' className='col'>
+                <ul className='remove-ul-li-style'>
+                    {
+                        messages.map((message, key) => {
+                            return <li key={key}>
+                                <div className='chat-message'>
+                                    <span><h2>{message.nickname}</h2> {message.text}</span>
+                                </div>
+                            </li>
+                        })
+                    }
+                </ul>
+                <div id='anchor'></div>
+            </div>
+            <div className='chat-textbox-container'>
+                <textarea autoComplete='false' maxLength={200} value={text}
+                    onInput={(e) => setText(e.target.value)}
+                    onKeyUp={_onKeyUp} onKeyDown={_onKeyDown}></textarea>
+                <span><MessageRounded /></span>
+            </div>
+        </>
+    );
+}
+
 function RoomPage() {
     const room = useLoaderData();
     let navigate = useNavigate();
 
-    // this can cause a crash on the server.
     let nickname = sessionStorage.getItem("nickname");
     nickname = nickname === null ? "Guest" : nickname;
 
@@ -29,7 +100,6 @@ function RoomPage() {
     const [owner, setOwner] = useState('');
     const [guests, setGuests] = useState([]);
     const [chat, setChat] = useState([]);
-    const [text, setText] = useState('');
     const [showKickBtn, setShowKickBtn] = useState(false);
     
     // const [roomId, setRoomId] = useState(room.id);
@@ -42,27 +112,41 @@ function RoomPage() {
         onMessage: (e) => {
             const message = JSON.parse(e.data);
             console.log(message);
-
+            
+            const body = message.body;
             if (message.type === "players") {
-                const players = message.body;
+                const players = body;
                 setGuests(players);
             }
 
             if (message.type === "exited") {
-                const { id } = message.body;
+                const { id } = body;
                 // const newGuests = guests.filter(g => g.id !== id);
                 setGuests(array => array.filter(g => g.id !== id));
             }
 
             if (message.type === "yourid") {
-                const { id } = message.body;
+                const { id } = body;
                 setId(id);
             }
 
             if (message.type === "chat") {
                 const newChat = chat;
-                newChat.push(message.body);
+                newChat.push(body);
                 setChat(newChat);
+            }
+
+            if (message.type === "change") {
+                const updateGuests = guests.map(g => {
+                    if (g.id === body.id) {
+                        g.points = body.points;
+                        return g;
+                    } else {
+                        return g;
+                    }
+                })
+                
+                setGuests(updateGuests);
             }
         },
         onClose: (e) => {
@@ -71,6 +155,8 @@ function RoomPage() {
             }
 
             console.log("close");
+            
+            // show a popup saying that lost connection?
         },
         shouldReconnect: () => false,
         share: true,
@@ -84,19 +170,17 @@ function RoomPage() {
         sendJsonMessage({ type: "kick", body: { owner, id: personId }});
     }
 
-    const SendChatMessage = (e) => {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            if (!text || text === '' || text.startsWith('\n')) {
-                setText('');
-                return;
-            } else {
-                sendJsonMessage({ type: "chat", body: { text, nickname }})
-                setText('');
-            }
-        }
+    const SendChatMessage = (text) => {
+        sendJsonMessage({ type: "chat", body: { text, nickname } });
     }
 
-    // todo: implement kick button client/server
+    const SubmitAnswer = (title) => {
+        sendJsonMessage({ type: "submit", body: { id, title } });
+
+        // todo: make input readonly after submitting answer
+        // round end, restore input
+    }
+
     function guest(v, i) {
         const btn_kick = showKickBtn && owner;
         return (
@@ -107,24 +191,10 @@ function RoomPage() {
                     </button>
                 </div>}
                 <div className='crown'>
-                    {i === 0 ? crown() : null}
+                    {i === 0 ? <Crown /> : null}
                 </div>
                 <Guest {...v} />
             </li>
-        )
-    }
-
-    const ownerBtn = () => {
-        if (!owner) {
-            return null;
-        }
-
-        return (
-            <div className='row'>
-                <input type='checkbox' defaultChecked={false} id='checkbox-show-kick-btn' value={showKickBtn}
-                    onChange={(e) => setShowKickBtn(e.target.checked)}/>
-                <label htmlFor='checkbox-show-kick-btn'>Show kick button</label>
-            </div>
         )
     }
 
@@ -152,40 +222,18 @@ function RoomPage() {
                 <ul>
                     {guests.map((v, i) => guest(v, i))}
                 </ul>
-                {ownerBtn()}
+                <OwnerButton owner showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
+                {/* Maybe add a button to start here? */}
             </div>
             <div className='room-container col'>
-                <div className='timer'></div>
-                <div className='difficulty-container row'>
-                    <h2>DIFFICULTY</h2><span>???</span>
-                </div>
-                <InputTitles onDropdownClick={(title) => console.log(title)} />
-                {/* <input id='room-input-guess' type="text" placeholder='Video ID...'
-                    value={this.state.videoIdInput} onInput={this._onInput} onKeyUp={this._onKeyUp} /> */}
+                <div className='timer timer-start'></div>
+                <Difficulty value={'???'} />
+                <InputTitles onDropdownClick={SubmitAnswer} />
                 {/* <YoutubePlayer videoId={this.state.videoId} /> */}
             </div>
             <div className='col container chat-container'>
                 <BubbleCopyLink id={room.id} />
-                <div id='chat' className='col'>
-                    <ul className='remove-ul-li-style'>
-                        {
-                            chat.map((message, key) => {
-                                return <li key={key}>
-                                    <div className='chat-message'>
-                                        <span><h2>{message.nickname}</h2> {message.text}</span>
-                                    </div>
-                                </li>
-                            })
-                        }
-                    </ul>
-                    <div id='anchor'></div>
-                </div>
-                <div className='chat-textbox-container'>
-                    <textarea autoComplete='false' maxLength={200} value={text}
-                        onInput={(e) => setText(e.target.value)}
-                        onKeyUp={SendChatMessage}></textarea>
-                    <span><MessageRounded /></span>
-                </div>
+                <Chat messages={chat} onEnter={SendChatMessage} />
             </div>
         </>
     );
