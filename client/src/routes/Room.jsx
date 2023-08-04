@@ -246,15 +246,16 @@ export async function RoomLoader({ params }) {
     const res = await fetch(`${process.env.REACT_APP_API}/room/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
 
     if (!res.ok) {
-        if (res.status !== 400) {
-            throw new Error(res.status);
+        // Wrong password
+        if (res.status === 400) {    
+            return await res.json();
         }
-
+        
         if (res.status === 404) {
             throw new Response("Not Found", { status: 404 });
         }
         
-        return await res.json();
+        throw new Error(res.status);
     }
     
     
