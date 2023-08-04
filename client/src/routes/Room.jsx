@@ -250,12 +250,13 @@ export async function RoomLoader({ params }) {
             throw new Error(res.status);
         }
 
+        if (res.status === 404) {
+            throw new Response("Not Found", { status: 404 });
+        }
+        
         return await res.json();
     }
     
-    if (res.status === 404) {
-        throw new Response("Not Found", { status: 404 });
-    }
     
     return await res.json();
 }
