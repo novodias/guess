@@ -5,8 +5,9 @@ import { CopyAllRounded, Visibility } from '@mui/icons-material';
 export default function BubbleCopyLink({ id }) {
     const [visible, setVisible] = useState(true);
 
-    function _onClickCopyCode() {
-        navigator.clipboard.writeText("http://localhost:3000/room/" + id);
+    function CopyCode() {
+        // navigator.clipboard.writeText("http://localhost:3000/room/" + id);
+        navigator.clipboard.writeText(process.env.REACT_APP_URL + "/room/" + id);
     }
 
     return (
@@ -15,7 +16,7 @@ export default function BubbleCopyLink({ id }) {
                 <span className={visible ? 'hide-blur' : ''}>
                     {id}
                 </span>
-                <button onClick={_onClickCopyCode}>
+                <button onClick={CopyCode}>
                     <CopyAllRounded htmlColor='white' />
                 </button>
                 <button onClick={() => setVisible(!visible)}>
