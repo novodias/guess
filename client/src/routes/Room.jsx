@@ -222,7 +222,7 @@ function RoomPage() {
                 <ul>
                     {guests.map((v, i) => guest(v, i))}
                 </ul>
-                <OwnerButton owner showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
+                <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
                 {/* Maybe add a button to start here? */}
             </div>
             <div className='room-container col'>
