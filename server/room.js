@@ -79,13 +79,15 @@ class Room {
         this.rounds += 1;
         this.status = RoomStatus.PREPARING;
         this._selectRandomSong();
+        const start_at = random.intFromInterval(30, this.selected.song_duration - 30);
 
         const prepare = {
             type: "prepare",
             body: {
                 room_status: this.status,
                 round: this.rounds,
-                maxRounds: this.maxRounds,
+                youtube_id: this.selected.youtube_id,
+                start_at,
             }
         };
 
