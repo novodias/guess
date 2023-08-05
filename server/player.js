@@ -18,6 +18,12 @@ const webSocket = require('ws');
 //     return player;
 // }
 
+const PlayerStatus = Object.freeze({
+    PENDING: 0,
+    CORRECT: 1,
+    WRONG: 2,
+});
+
 class Player {
 
     /**
@@ -51,6 +57,10 @@ class Player {
         }
     }
 
+    /**
+     * 
+     * @returns {{id, room_id, nickname, points, status}}
+     */
     getPlayerData() {
         return {
             id: this.id,
@@ -71,6 +81,13 @@ class Player {
         this.status = status;
 
         this.emit("onchange", { id: this.id, status: this.status });
+    }
+
+    set(points, status) {
+        this.points = points;
+        this.status = status;
+
+        this.emit("onchange", { id: this.id, points: this.points, status: this.status });
     }
 
     onchange(callback) {
@@ -97,4 +114,4 @@ class Player {
     }
 }
 
-module.exports = Player;
+module.exports = { Player, PlayerStatus };
