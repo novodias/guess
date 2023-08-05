@@ -2,7 +2,8 @@ const webSocket = require('ws');
 const http = require('http');
 const Room = require('./room');
 const Player = require('./player');
-const { GuessDb } = require('./db');
+const { GuessDb, Song } = require('./db');
+const random = require('./random');
 
 // const _messageHandler = {
 //     /**
@@ -40,20 +41,16 @@ const { GuessDb } = require('./db');
 //     }
 // }
 
-function randomIntFromInterval(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
 const generateRoomCode = () => {
     let initialCode = "";
     let finalCode = "";
     
     for (let i = 0; i < 3; i++) {
-        initialCode += String.fromCharCode(randomIntFromInterval(65, 90));
+        initialCode += String.fromCharCode(random.intFromInterval(65, 90));
     }
 
     for (let i = 0; i < 5; i++) {
-        finalCode += String.fromCharCode(randomIntFromInterval(48, 57));
+        finalCode += String.fromCharCode(random.intFromInterval(48, 57));
     }
 
     return initialCode + finalCode;
@@ -88,11 +85,12 @@ class RoomsCluster {
      * @param {String} name 
      * @param {String} passwordHash 
      * @param {Boolean} isPrivate 
-     * @returns 
+     * @param {Array<Song>} songs 
+     * @returns {Room}
      */
-    createRoom(name, passwordHash, isPrivate) {
+    createRoom(name, passwordHash, isPrivate, songs) {
         const id = generateRoomCode();
-        const room = new Room(id, name, passwordHash, isPrivate);
+        const room = new Room(id, name, passwordHash, isPrivate, songs);
         
         room.onempty(id => {
             console.log(`[Rooms] Deleted ${id}`);

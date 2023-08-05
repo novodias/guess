@@ -1,35 +1,148 @@
 // const { WebSocket } = require('ws');
-const Player = require("./player");
+const { Player, PlayerStatus } = require("./player");
+const { Song } = require('./db');
+const random = require('./random');
 const uuid = require('uuid');
 
+
+const RoomStatus = Object.freeze({
+    WAITING: 'waiting',
+    PREPARING: 'preparing',
+    STARTED: 'started',
+    ENDED: 'ended'
+});
+
 class Room {
+
     /**
      * 
      * @param {String} id
      * @param {String} name 
      * @param {String} passwordHash
      * @param {boolean} isPrivate
+     * @param {Array<{id, title_id, type, song_name, song_duration, youtube_id}>} songs
      */
-    constructor(id, name, passwordHash, isPrivate) {
+    constructor(id, name, passwordHash, isPrivate, songs) {
         this.id = id;
         this.name = name;
         this.isPrivate = isPrivate;
         this.passwordHash = passwordHash || null;
         this.hasPassword = passwordHash !== null;
         this.ownerId = uuid.v4();
-        
-        this.players = new Map();
         this.listeners = {};
+        
+        // GAME PROPERTIES
+        this.status = RoomStatus.WAITING; // wait owner to start
+        this.players = new Map();
+        
+        this.rounds = 0;
+        this.roundTime = 30; // make it a option on frontend
+        this.roundPrepare = 5; // make it a option on frontend
+        this.maxRounds = 10; // make it a option on frontend
 
-        // todo: add a timer to start the game
-        // todo: get random songs
-        // todo: kicked players (don't allow back in)
+        // songs
+        this.songs = songs; // has 10 here - use maxRounds to get the right amount
+        this.selected = null; // selects on prepareRound
+        
+        // timer
+        this.timer = null;
+        this.timerFunction = this._prepareRound;
+
+        // todo: don't allow clients to connect if status is not 'waiting';
+        // todo: kicked players (don't allow back in);
+    }
+
+    _selectRandomSong() {
+        const rnd = random.intFromInterval(0, songs.length - 1);
+        this.selected = songs[rnd];
+        this.songs = this.songs.filter((song, idx) => idx !== rnd);
+    }
+
+    _clearTimer() {
+        if (timer === null) {
+            return;
+        }
+
+        clearTimeout(timer);
+    }
+
+    _startTimer(seconds) {
+        this.timer = setTimeout(this.timerFunction, 1000 * seconds);
+    }
+
+    _prepareRound() {
+        if (this.rounds === this.maxRounds) {
+            this._endGame();
+            return;
+        }
+    
+        this.rounds += 1;
+        this.status = RoomStatus.PREPARING;
+        this._selectRandomSong();
+
+        const prepare = {
+            type: "prepare",
+            body: {
+                room_status: this.status,
+                round: this.rounds,
+                maxRounds: this.maxRounds,
+            }
+        };
+
+        this.broadcast(prepare);
+        this.timerFunction = this._startRound;
+
+        // roundPrepare default = 5
+        this._startTimer(this.roundPrepare);
+    }
+
+    _startRound() {
+        this.players.forEach(ply => {
+            ply.status = PlayerStatus.Pending;
+        });
+
+        this.status = RoomStatus.STARTED;
+
+        const round = {
+            type: "round",
+            body: {
+                room_status: this.status,
+                players: this.getPlayers()
+            }
+        };
+
+        this.broadcast(round);
+        this.timerFunction = this._prepareRound;
+
+        // roundTime default = 30
+        this._startTimer(this.roundTime);
+    }
+
+    _endGame() {
+        const winner = this.getPlayers()
+            .sort((v1, v2) => v2.points - v1.points)[0];
+
+        this.status = RoomStatus.ENDED;
+        
+        const end = {
+            type: "end",
+            body: {
+                winner,
+                room_status: this.status,
+            }
+        };
+
+        this.broadcast(end);
     }
 
     getSize() {
         return this.players.size;
     }
 
+    /**
+     * 
+     * @returns {Array<{id, room_id, nickname, points, status}>}
+     */
     getPlayers() {
         return Array
             .from(this.players)
@@ -38,11 +151,25 @@ class Room {
             });
     }
 
+    /**
+     * @param {Number} status 
+     * @returns {Array<Player>}
+     */
+    _getPlayersByStatus(status) {
+        return Array
+            .from(this.players)
+            .map(([id, player]) => {
+                if (player.status === status) {
+                    return player;
+                }
+            });
+    }
+
     getRoomInformation() {
         return {
             id: this.id,
             name: this.name,
-            requirePassword: this.passwordHash !== null,
+            requirePassword: this.hasPassword,
             isPrivate: this.isPrivate,
         };
     }
@@ -73,6 +200,20 @@ class Room {
         console.log(message);
         
         const handler = {
+            "start": () => {
+                const isOwner = body.owner === this.ownerId;
+
+                if (!isOwner) {
+                    return;
+                }
+
+                if (this.status !== RoomStatus.WAITING) {
+                    return;
+                }
+
+                this._prepareRound();
+            },
+
             "kick": () => {
                 const isOwner = body.owner === this.ownerId;
 
@@ -87,14 +228,31 @@ class Room {
             "submit": () => {
                 const id = body.id;
                 const title_id = body.title.id;
+                const pending = this._getPlayersByStatus(PlayerStatus.PENDING);
 
-                // todo: do the rest of the game lol
-                // gonna need to verify title_id answer with the randomly selected
+                // if player its not with status pending, ignore
+                if (!pending.find(p => p.id === id)) {
+                    return;
+                }
 
                 const player = this.players.get(id);
 
-                // the player class emits a change event and broadcasts to all
-                player.setPoints(player.points + 15);
+                if (!(this.selected instanceof {id, title_id, type, song_name, song_duration, youtube_id})) {
+                    throw new Error("Selected song is null");
+                }
+
+                const ratio = pending.length / this.players.size;
+                let status = this.selected.title_id === title_id ? PlayerStatus.CORRECT : PlayerStatus.WRONG;
+                let points = status === PlayerStatus.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
+                
+                // the player class emits a onchange event and broadcasts to all
+                player.set(points, status);
+
+                // if pending is 1, that means it is the that just submitted - prepare new round
+                if (pending.length === 1) {
+                    this._clearTimer();
+                    this._prepareRound();
+                }
             },
 
             "chat": () => {
@@ -179,14 +337,6 @@ class Room {
             return;
         }
 
-        // this.players.forEach(player => {
-        //     if (!ignore || player.id !== ignore.id) {
-        //         if (player instanceof Player) {
-        //             player.send(object);
-        //         }
-        //     }
-        // })
-
         for (const [id, player] of this.players) {
             if (ignore && player.id === ignore.id) {
                 continue;
@@ -255,11 +405,6 @@ class Room {
     removeEventListener(method) {
         delete this.listeners[method];
     }
-
-    // empty = null
-    // onEmpty(callback) {
-    //     empty = callback;
-    // }
 }
 
 module.exports = Room;

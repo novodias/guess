@@ -116,35 +116,11 @@ app.use("/api/room/:id", (req, res, next) => {
 })
 
 app.get("/api/room/:id", (req, res) => {
-    // const id = req.params.id;
-    // const { id } = req.query;
-    // const { passwordHash } = req.body;
-    // const room = rooms.getRoom(id);
-
-    // if (!room) {
-    //     res.status(404).send("Not found");
-    //     return;
-    // }
-
-    // if (!room.hasPassword) {
-    //     res.json(room.getRoomData());
-    //     return;
-    // }
-
-    // if (room.hasPassword && (passwordHash === null || passwordHash === undefined)) {
-    //     res.json(room.getRoomInformation());
-    //     return;
-    // }
-
-    // if (room.passwordHash !== passwordHash) {
-    //     res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
-    //     return;
-    // }
     const room = req.room;
     res.json(room.getRoomData());
 });
 
-app.post("/api/room", (req, res) => {
+app.post("/api/room", async (req, res) => {
     // const content_type = req.get("Content-Type");
     // if (content_type && content_type !== "application/json") {
     //     res.status(406).send("Not acceptable");
@@ -152,7 +128,8 @@ app.post("/api/room", (req, res) => {
 
     const { name, passwordHash, isPrivate } = req.body;
 
-    const room = rooms.createRoom(name, passwordHash, isPrivate);
+    const songs = await db.get_songs_random(10);
+    const room = rooms.createRoom(name, passwordHash, isPrivate, songs);
     console.log(room);
 
     res.json({ id: room.id, ownerId: room.ownerId });
