@@ -64,7 +64,7 @@ class Player {
     getPlayerData() {
         return {
             id: this.id,
-            room_id: this.room_id,
+            // room_id: this.room_id,
             nickname: this.nickname,
             points: this.points,
             status: this.status
