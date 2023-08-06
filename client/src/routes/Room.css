@@ -4,8 +4,6 @@
     background-color: var(--color-three);
     border-radius: 25px;
     overflow: hidden;
-    /* display: flex;
-    flex-direction: column; */
 }
 
 #guests-container > div {
@@ -13,76 +11,55 @@
     background-color: var(--color-one);
 }
 
-#guests-container ul {
+#scoreboard {
     list-style-type: none;
     margin: 0;
     padding: 0;
     flex-grow: 1;
 }
 
-#guests-container ul li {
+#scoreboard li {
     background-color: rgb(20, 20, 20);
     justify-content: center;
     align-items: center;
     align-content: center;
 }
 
-#guests-container .btn-kick {
-    /* display: none; */
+#scoreboard .btn-kick {
     width: 36px;
     height: 63px;
 }
 
-#guests-container button {
+#scoreboard button {
     border: 0;
     padding: 0;
-    /* background: none; */
     width: 36px;
     height: 63px;
     cursor: pointer;
-    /* transform-style: preserve-3d; */
-
     background-color: rgb(158, 26, 53);
     transition: 0.2s;
-
-    /* display: grid;
-    place-content: center; */
 }
 
-#guests-container button:hover {
+#scoreboard button:hover {
     background-color: rgb(119, 19, 39);
 }
 
-#guests-container .crown {
+#scoreboard .crown {
     width: 36px;
 }
 
-#guests-container .crown svg {
+#scoreboard .crown svg {
     color: gold;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
 }
 
-/* #guests-container button::before {
-    content: "";
-    position: absolute;
-    transform: translateZ(-1px);
-    width: 100%;
-    height: 100%;
-    background-color: rgb(158, 26, 53);
-    transition: 0.2s;
-}
-
-#guests-container button:hover::before {
-    background-color: rgb(119, 19, 39);
-} */
-
-#guests-container button svg {
+#scoreboard button svg {
     transition: transform 0.2s;
 }
 
-#guests-container button:hover svg {
+#scoreboard button:hover svg {
     transform: scale(1.1);
 }
 
@@ -136,6 +113,7 @@
 .timer {
     position: absolute;
     height: 24px;
+    width: 100%;
     top: 0;
     background-color: rgba(255, 255, 255, 0.5);
     filter: drop-shadow(0 0 0.75rem rgba(255, 255, 255, 0.5));
@@ -305,8 +283,6 @@
 
 #chat li {
     padding: 10px;
-    /* overflow-anchor: none; */
-    /* border-bottom: 1px solid gray; */
 }
 
 #chat ul {

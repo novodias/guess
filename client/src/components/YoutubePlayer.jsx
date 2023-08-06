@@ -19,8 +19,15 @@ export default class YoutubePlayer extends Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.videoId !== this.props.videoId) {
-            this.loadVideoById(this.props.videoId);
+            this.setState({ videoId: this.props.videoId });
+        } else {
+            if (this.state.video !== null) {
+                if (this.props.play === true) {
+                    this.state.video.playVideo();
+                }
+            }
         }
+
     }
 
     _onReady = (event) => {
@@ -34,7 +41,7 @@ export default class YoutubePlayer extends Component {
     }
 
     loadVideoById = (id) => {
-        this.state.video.loadVideoById(id);
+        this.state.video.loadVideoById(id, this.props.startAt, "360p");
     }
 
     _onStateChange = (event) => {
@@ -71,8 +78,8 @@ export default class YoutubePlayer extends Component {
                 height: '390',
                 width: '640',
                 playerVars: {
-                    autoplay: 1,
-                    controls: 1,
+                    autoplay: 0,
+                    controls: 0,
                 },
             };
 

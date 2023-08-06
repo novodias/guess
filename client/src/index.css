@@ -21,6 +21,9 @@
   --color-three: rgb(25, 25, 25);
   --color-two: rgb(50, 50, 50);
   --color-four: rgb(75, 75, 75);
+  --bg-green: rgba(0, 255, 0, 0.3);
+  --bg-green-hover: rgba(0, 255, 0, 0.5);
+  --bg-crimsom: rgb(158, 26, 53);
 }
 
 * {
@@ -228,12 +231,20 @@ input[type="checkbox"]:checked::before {
   border-radius: 25px;
   transition: 0.2s;
   border: 0px;
+  cursor: pointer;
 }
 
 .btn:hover {
   color: rgb(240, 240, 240);
   background-color: rgba(128, 128, 128, 0.5);
-  cursor: pointer;
+}
+
+.btn-green {
+  background-color: var(--bg-green);
+}
+
+.btn-green:hover {
+  background-color: var(--bg-green-hover);
 }
 
 .remove-ul-li-style {

@@ -1,12 +1,11 @@
 import './Room.css';
 import React, { useEffect, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
-import Guest from '../components/room/Guest';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import BubbleCopyLink from '../components/room/CopyLink';
+import { Chat, CopyLink, Difficulty, Guest, OwnerButton } from '../components/room/Export';
 import InputTitles from '../components/InputTitles';
-import { LogoutRounded, MessageRounded } from '@mui/icons-material';
-// import YoutubePlayer from '../components/YoutubePlayer';
+import { LogoutRounded } from '@mui/icons-material';
+import YoutubePlayer from '../components/YoutubePlayer';
 // import { Status } from '../components/room/Guest';
 
 function Crown() {
@@ -14,78 +13,6 @@ function Crown() {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
             <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
         </svg>
-    );
-}
-
-function OwnerButton({ owner, showKickBtn, setShowKickBtn }) {
-    if (!owner) {
-        return null;
-    }
-
-    return (
-        <div className='row'>
-            <input type='checkbox' defaultChecked={false} id='checkbox-show-kick-btn' value={showKickBtn}
-                onChange={(e) => setShowKickBtn(e.target.checked)}/>
-            <label htmlFor='checkbox-show-kick-btn'>Show kick button</label>
-        </div>
-    )
-}
-
-function Difficulty({ value, difficultyColor }) {
-
-    const style = { backgroundColor: difficultyColor || null };
-
-    return (
-        <div className='difficulty-container row'>
-            <h2>DIFFICULTY</h2><span style={style}>{value}</span>
-        </div>
-    )
-}
-
-function Chat({ messages, onEnter }) {
-    const [text, setText] = useState('');
-
-    const _onKeyDown = (e) => {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault();
-        }
-    }
-
-    const _onKeyUp = (e) => {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            if (!text || text === '' || text.startsWith('\n')) {
-                setText('');
-                return;
-            } else {
-                onEnter(text);
-                setText('');
-            }
-        }
-    }
-
-    return (
-        <>
-            <div id='chat' className='col'>
-                <ul className='remove-ul-li-style'>
-                    {
-                        messages.map((message, key) => {
-                            return <li key={key}>
-                                <div className='chat-message'>
-                                    <span><h2>{message.nickname}</h2> {message.text}</span>
-                                </div>
-                            </li>
-                        })
-                    }
-                </ul>
-                <div id='anchor'></div>
-            </div>
-            <div className='chat-textbox-container'>
-                <textarea autoComplete='false' maxLength={200} value={text}
-                    onInput={(e) => setText(e.target.value)}
-                    onKeyUp={_onKeyUp} onKeyDown={_onKeyDown}></textarea>
-                <span><MessageRounded /></span>
-            </div>
-        </>
     );
 }
 
@@ -101,9 +28,12 @@ function RoomPage() {
     const [guests, setGuests] = useState([]);
     const [chat, setChat] = useState([]);
     const [showKickBtn, setShowKickBtn] = useState(false);
+    const [readOnly, setReadOnly] = useState(false);
+    const [video, setVideo] = useState({});
     
-    // const [roomId, setRoomId] = useState(room.id);
-    // const [videoId, setVideoId] = useState('');
+    const [timerClass, setTimerClass] = useState('');
+    const StartTimer = () => setTimerClass("timer-start");
+    const RevertTimer = () => setTimerClass("timer-start timer-goback");
 
     const { sendJsonMessage } = useWebSocket(process.env.REACT_APP_WS, {
         onOpen: () => {
@@ -121,7 +51,6 @@ function RoomPage() {
 
             if (message.type === "exited") {
                 const { id } = body;
-                // const newGuests = guests.filter(g => g.id !== id);
                 setGuests(array => array.filter(g => g.id !== id));
             }
 
@@ -137,9 +66,17 @@ function RoomPage() {
             }
 
             if (message.type === "change") {
+                const { playerId, points, status } = body;
                 const updateGuests = guests.map(g => {
-                    if (g.id === body.id) {
-                        g.points = body.points;
+                    if (g.id === playerId) {
+                        if (points) {
+                            g.points = points;
+                        }
+
+                        if (status) {
+                            g.status = status;
+                        }
+
                         return g;
                     } else {
                         return g;
@@ -148,6 +85,31 @@ function RoomPage() {
                 
                 setGuests(updateGuests);
             }
+
+            if (message.type === "prepare") {
+                const { /* room_status, round, */ youtube_id, start_at } = body;
+                
+                RevertTimer();
+                setVideo({
+                    youtube_id,
+                    start_at,
+                    play: false,
+                });
+
+                // video.youtube_id = youtube_id;
+                // video.start_at = start_at;
+                // video.play = false;
+            }
+
+            if (message.type === "round") {
+                const { /* room_status, */ players } = body;
+                
+                StartTimer();
+                setReadOnly(false);
+                setGuests(players);
+                video.play = true;
+            }
+
         },
         onClose: (e) => {
             if (e.code === 3000) {
@@ -176,25 +138,39 @@ function RoomPage() {
 
     const SubmitAnswer = (title) => {
         sendJsonMessage({ type: "submit", body: { id, title } });
-
-        // todo: make input readonly after submitting answer
-        // round end, restore input
+        setReadOnly(true);
     }
 
-    function guest(v, i) {
+    const StartMatch = () => {
+        sendJsonMessage({ type: "start", body: { owner } });
+    }
+
+    function GuestContainer({v, inFirstPlace}) {
         const btn_kick = showKickBtn && owner;
         return (
-            <li key={i} className='row'>
+            <li className='row'>
                 {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
                     <button onClick={() => KickPerson(v.id)}>
                         <LogoutRounded htmlColor='white' />
                     </button>
                 </div>}
                 <div className='crown'>
-                    {i === 0 ? <Crown /> : null}
+                    {inFirstPlace ? <Crown /> : null}
                 </div>
                 <Guest {...v} />
             </li>
+        )
+    }
+
+    function Scoreboard() {
+        return (
+            <ul id='scoreboard'>
+                {
+                    guests
+                        .sort((v1, v2) => v2.points - v1.points)
+                        .map((v, i) => <GuestContainer key={i} v={v} inFirstPlace={i === 0} />)
+                }
+            </ul>
         )
     }
 
@@ -219,20 +195,18 @@ function RoomPage() {
     return (
         <>
             <div id='guests-container' className='col'>
-                <ul>
-                    {guests.map((v, i) => guest(v, i))}
-                </ul>
+                <Scoreboard />
                 <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
-                {/* Maybe add a button to start here? */}
+                <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button>
             </div>
             <div className='room-container col'>
-                <div className='timer timer-start'></div>
+                <div className={`timer ${timerClass}`}></div>
                 <Difficulty value={'???'} />
-                <InputTitles onDropdownClick={SubmitAnswer} />
-                {/* <YoutubePlayer videoId={this.state.videoId} /> */}
+                <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
+                <YoutubePlayer videoId={video.youtube_id} startAt={video.start_at} play={video.play} />
             </div>
             <div className='col container chat-container'>
-                <BubbleCopyLink id={room.id} />
+                <CopyLink id={room.id} />
                 <Chat messages={chat} onEnter={SendChatMessage} />
             </div>
         </>
