@@ -1,7 +1,7 @@
 import React, { useDeferredValue, useState } from 'react';
 import SearchResults from './SearchResults';
 
-export default function InputTitles({ onDropdownClick, onKeyUp }) {    
+export default function InputTitles({ onDropdownClick, onKeyUp, readOnly }) {    
     const [query, setQuery] = useState('');
     const deferredQuery = useDeferredValue(query);
 
@@ -34,7 +34,7 @@ export default function InputTitles({ onDropdownClick, onKeyUp }) {
 
     return (
         <div className='dropdown-input-container'>
-            <input value={query} onChange={_onTitleInput} onKeyUp={onKeyUp}
+            <input readOnly={readOnly} value={query} onChange={_onTitleInput} onKeyUp={onKeyUp}
                 autoComplete="off" type="text" id="title-input"
                 placeholder='Ex.: Portal 2' name='title' />
             <SearchResults query={deferredQuery} focus={titleFocus} onDropdownClick={_onDropdownClick} />
