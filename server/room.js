@@ -53,17 +53,17 @@ class Room {
     }
 
     _selectRandomSong() {
-        const rnd = random.intFromInterval(0, songs.length - 1);
-        this.selected = songs[rnd];
+        const rnd = random.intFromInterval(0, this.songs.length - 1);
+        this.selected = this.songs[rnd];
         this.songs = this.songs.filter((song, idx) => idx !== rnd);
     }
 
     _clearTimer() {
-        if (timer === null) {
+        if (this.timer === null) {
             return;
         }
 
-        clearTimeout(timer);
+        clearTimeout(this.timer);
     }
 
     _startTimer(seconds) {
@@ -92,7 +92,7 @@ class Room {
         };
 
         this.broadcast(prepare);
-        this.timerFunction = this._startRound;
+        this.timerFunction = this._startRound.bind(this);
 
         // roundPrepare default = 5
         this._startTimer(this.roundPrepare);
@@ -100,7 +100,7 @@ class Room {
 
     _startRound() {
         this.players.forEach(ply => {
-            ply.status = PlayerStatus.Pending;
+            ply.status = PlayerStatus.PENDING;
         });
 
         this.status = RoomStatus.STARTED;
@@ -114,7 +114,7 @@ class Room {
         };
 
         this.broadcast(round);
-        this.timerFunction = this._prepareRound;
+        this.timerFunction = this._prepareRound.bind(this);
 
         // roundTime default = 30
         this._startTimer(this.roundTime);
@@ -160,10 +160,8 @@ class Room {
     _getPlayersByStatus(status) {
         return Array
             .from(this.players)
-            .map(([id, player]) => {
-                if (player.status === status) {
-                    return player;
-                }
+            .filter(([id, player]) => {
+                return player.status === status
             });
     }
 
@@ -233,28 +231,26 @@ class Room {
                 const pending = this._getPlayersByStatus(PlayerStatus.PENDING);
 
                 // if player its not with status pending, ignore
-                if (!pending.find(p => p.id === id)) {
-                    return;
-                }
+                // if (!pending.find(p => p.id === id)) {
+                //     return;
+                // }
 
                 const player = this.players.get(id);
-
-                if (!(this.selected instanceof {id, title_id, type, song_name, song_duration, youtube_id})) {
-                    throw new Error("Selected song is null");
-                }
 
                 const ratio = pending.length / this.players.size;
                 let status = this.selected.title_id === title_id ? PlayerStatus.CORRECT : PlayerStatus.WRONG;
                 let points = status === PlayerStatus.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
                 
+                console.log('teste');
                 // the player class emits a onchange event and broadcasts to all
                 player.set(points, status);
 
-                // if pending is 1, that means it is the that just submitted - prepare new round
-                if (pending.length === 1) {
-                    this._clearTimer();
-                    this._prepareRound();
-                }
+                // if pending is 1, that means it is the last that just submitted - prepare new round
+                // disable this for now.
+                // if (pending.length === 1) {
+                //     this._clearTimer();
+                //     this._prepareRound();
+                // }
             },
 
             "chat": () => {
@@ -266,7 +262,7 @@ class Room {
             }
         }
 
-        handler[type]();
+        handler[type].bind(this).call();
     }
 
     /**
@@ -298,7 +294,8 @@ class Room {
 
         player.onchange(body => {
             // broadcast changes to all;
-            this.broadcast({type: "change", body});
+            console.log('onchange:', body);
+            this.broadcast({ type: "change", body });
         })
 
         this.players.set(player.id, player);
