@@ -1,7 +1,7 @@
 const webSocket = require('ws');
 const http = require('http');
 const Room = require('./room');
-const Player = require('./player');
+const { Player, PlayerStatus } = require('./player');
 const { GuessDb, Song } = require('./db');
 const random = require('./random');
 
@@ -174,7 +174,7 @@ class RoomsCluster {
             }
 
             const id = room.getSize();
-            const player = new Player(ws, id, room.id, body.nickname, 0, 0);
+            const player = new Player(ws, id, room.id, body.nickname, 0, PlayerStatus.PENDING);
 
             // remove the callback here
             ws.emit('remove', ws);
