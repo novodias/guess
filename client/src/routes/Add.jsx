@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import './Create.css';
+import './Add.css';
 import Dropdown from '../components/Dropdown';
 import Alert from '../components/Alert';
 import { MovieRounded, MusicNoteRounded } from '@mui/icons-material';
 
-export default function CreatePage() {
+export default function AddPage() {
 
     const types = ['Animes', 'Games', 'Movies', 'Series', 'Musics'];
 
@@ -24,7 +24,7 @@ export default function CreatePage() {
     const getTitlesAsync = async (name, type) => {
         console.log("Fetching titles...");
         try {
-            const response = await fetch(`${process.env.REACT_APP_API}/titles?name=${name || ''}${(name && type) ? '&type=' + type : ''}`);
+            const response = await fetch(`/api/titles?name=${name || ''}${(name && type) ? '&type=' + type : ''}`);
             const data = await response.json();
             setTitles(data);
         } catch (error) {
@@ -142,7 +142,7 @@ export default function CreatePage() {
         }
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API}/create`, {
+            const response = await fetch(`/api/create`, {
                 method: 'POST',
                 mode: 'cors',
                 cache: "no-cache",
@@ -180,7 +180,7 @@ export default function CreatePage() {
         }
     }
 
-    function titleContainer() {
+    function TitleContainer() {
         return (
             <div className='container forms-container titles-container'>
                 <h2><MovieRounded /> Select a title</h2>
@@ -216,7 +216,7 @@ export default function CreatePage() {
         );
     }
 
-    function songContainer() {
+    function SongContainer() {
         return (
             <div className='container forms-container songs-container'>
                 <h2><MusicNoteRounded /> Add a new song</h2>
@@ -242,8 +242,8 @@ export default function CreatePage() {
         <div>
             <form onSubmit={_onFormSubmit}>
                 <div id='create-container'>
-                    {titleContainer()}
-                    {songContainer()}
+                    <TitleContainer />
+                    <SongContainer />
                     {success && <Alert message={success.message} type={success.type} />}
                 </div>
             </form>
