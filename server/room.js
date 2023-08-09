@@ -241,7 +241,6 @@ class Room {
                 let status = this.selected.title_id === title_id ? PlayerStatus.CORRECT : PlayerStatus.WRONG;
                 let points = status === PlayerStatus.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
                 
-                console.log('teste');
                 // the player class emits a onchange event and broadcasts to all
                 player.set(points, status);
 
@@ -262,7 +261,7 @@ class Room {
             }
         }
 
-        handler[type].bind(this).call();
+        handler[type]();
     }
 
     /**
@@ -294,7 +293,7 @@ class Room {
 
         player.onchange(body => {
             // broadcast changes to all;
-            console.log('onchange:', body);
+            // console.log('onchange:', body);
             this.broadcast({ type: "change", body });
         })
 
