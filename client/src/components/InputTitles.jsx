@@ -34,7 +34,8 @@ export default function InputTitles({ onDropdownClick, onKeyUp, readOnly }) {
 
     return (
         <div className='dropdown-input-container'>
-            <input readOnly={readOnly} value={query} onChange={_onTitleInput} onKeyUp={onKeyUp}
+            <input readOnly={readOnly} style={{ color: readOnly ? 'rgba(255, 255, 255, 0.1)' : 'white' }}
+                value={query} onChange={_onTitleInput} onKeyUp={onKeyUp}
                 autoComplete="off" type="text" id="title-input"
                 placeholder='Ex.: Portal 2' name='title' />
             <SearchResults query={deferredQuery} focus={titleFocus} onDropdownClick={_onDropdownClick} />
