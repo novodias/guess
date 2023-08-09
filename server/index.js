@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` });
 
 const PORT = process.env.PORT || 3001;
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
@@ -7,21 +7,53 @@ const express       = require('express');
 const cors          = require('cors');
 const bodyParser    = require('body-parser');
 const RoomsCluster  = require('./wss');
-const database      = require('./db');
+const { GuessDb, Song }      = require('./db');
 const moment        = require('moment');
 const youtubeGet    = require('./youtube');
+const { readFileSync } = require('fs');
+const path = require('path');
+
+const db = new GuessDb();
 
 const app = express()
     .use(cors())
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: false }));
-const db = new database.GuessDb(process.env.PG_CONNECTION_STRING);
 
-const nullUndefined = (value) => {
-    return value === null || value === undefined;
+const buildPath = path.join(__dirname, "client", "build");
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(buildPath));
+
+    app.get("(/*)?", async (req, res, next) => {
+        res.sendFile(path.join(buildPath, 'index.html'));
+    });
 }
 
-app.post("/api/create", async (req, res) => {
+// app.use(function (request, response, next) {
+//     if (process.env.NODE_ENV != 'development' && !request.secure) {
+//         console.log("Redirected to https");
+//         return response.redirect("https://" + request.headers.host + request.url);
+//     }
+//     next();
+// });
+
+const api = express.Router();
+
+api.use((req, res, next) => {
+    req.db = db;
+    req.cluster = cluster;
+    next();
+});
+
+api.get("/", (req, res) => {
+    res.send("OK");
+});
+
+api.post("/error", (req, res) => {
+    console.log(req.body);
+});
+
+api.post("/create", async (req, res) => {
     const content_type = req.get("Content-Type");
     if (content_type && content_type !== "application/json") {
         res.status(406).send("Not acceptable");
@@ -69,7 +101,7 @@ app.post("/api/create", async (req, res) => {
         const duration = moment
             .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
             .asSeconds();
-        const song = new database.Song(titleFound.id, titleFound.type, song_name, duration, youtube_id);
+        const song = new Song(titleFound.id, titleFound.type, song_name, duration, youtube_id);
         const result = await db.add_song(song);
         
         console.log(result);
@@ -78,153 +110,43 @@ app.post("/api/create", async (req, res) => {
         res.status(404).send("Youtube video not found");
         console.log(error);
     }
-})
-
-app.use("/api/room/:id", (req, res, next) => {
-    if (req.method === 'GET') {
-        const id = req.params.id;
-        const { hash } = req.query;
-        const room = rooms.getRoom(id);
-        console.log(id, hash);
-
-        if (!room) {
-            res.status(404).send("Not found");
-            return;
-        }
-
-        if (!room.hasPassword) {
-            req.room = room;
-            next()
-            return;
-        }
-
-        // if (room.hasPassword && (hash === null || hash === undefined)) {
-        if (room.hasPassword && nullUndefined(hash)) {
-            res.json(room.getRoomInformation());
-            return;
-        }
-
-        if (room.passwordHash !== hash) {
-            res.status(400).json({ message: "Wrong password", ...room.getRoomInformation() })
-            return;
-        }
-
-        req.room = room;
-    }
-
-    next();
-})
-
-app.get("/api/room/:id", (req, res) => {
-    const room = req.room;
-    res.json(room.getRoomData());
 });
 
-app.post("/api/room", async (req, res) => {
-    // const content_type = req.get("Content-Type");
-    // if (content_type && content_type !== "application/json") {
-    //     res.status(406).send("Not acceptable");
-    // }
+const rooms = require('./routes/room');
+const songs = require('./routes/songs');
+const titles = require('./routes/titles');
 
-    const { name, passwordHash, isPrivate } = req.body;
+api.use("/rooms", rooms);
+api.use("/songs", songs);
+api.use("/titles", titles);
 
-    const songs = await db.get_songs_random(10);
-    const room = rooms.createRoom(name, passwordHash, isPrivate, songs);
-    console.log(room);
+app.use("/api", api);
 
-    res.json({ id: room.id, ownerId: room.ownerId });
-});
+let server;
 
-app.get("/api/titles", async (req, res) => {
-    const { name, type } = req.query;
+if (process.env.NODE_ENV === 'production') {
+    try {
+        const options = {
+            key: readFileSync(process.env.HTTPS_KEY),
+            cert: readFileSync(process.env.HTTPS_CERT)
+        };
     
-    try {
-        let result = await (type ?
-            db.get_titles_starts_with_and_type(name, type) :
-            db.get_titles_starts_with(name));
-        
-        res.json(result);
-    } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
-    }
-})
-
-app.post("/api/titles/create", async (req, res) => {
-    const { type, title } = req.body;
-
-    const content_type = req.get("Content-Type");
-    if (content_type && content_type !== "application/json") {
-        res.status(406).send("Not acceptable");
-    }
-
-    try {
-        const result = await db.add_title(type, title);
-        res.json(result);
-    } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
-    }
-})
-
-app.get("/api/songs", async (req, res) => {
-    const { name, type, title_id } = req.query;
-
-    // if (!name) {
-    //     res.status(406).send("Not acceptable - Query 'name' is empty.");
-    // }
-    // const nameFiltered = name.replaceAll('"', '').replaceAll("+", " ");
-    // console.log(nameFiltered);
-
-    try {
-        const result = await db.get_songs_starts_with({ name, type, title_id });
-        res.json(result);
-    } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
-    }
-})
-
-app.post("/api/songs/create", async (req, res) => {
-    const {
-        title_id,
-        type,
-        song_name,
-        youtube_id
-    } = req.body;
+        server = require('https').createServer(options, app);
     
-    const content_type = req.get("Content-Type");
-    if (content_type && content_type !== "application/json") {
-        res.status(406).send("Not acceptable");
-    }
-
-    // todo: verify visibility
-    try {
-        const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
-        
-        const duration = moment
-            .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
-            .asSeconds();
-        const song = new database.Song(title_id, type, song_name, duration, youtube_id);
-        const result = await db.add_song(song);
-        
-        res.json(result);
+        console.log("Https enabled");
     } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
+        console.error(error);
+        server = require('http').createServer(app);
+        console.log("Something went wrong, using Http instead.");
     }
-})
+} else {
+    server = require('http').createServer(app);
+}
 
-// temporary
-app.get("/api/songs/random", async (req, res) => {
-    const { total, type } = req.query;
-    const result = await db.get_songs_random(Number.parseInt(total), type);
-    res.json(result);
-})
-
-const server        = require('http').createServer(app);
-const rooms         = new RoomsCluster(server, PORT);
+// const server        = require('http').createServer(app);
+const cluster         = new RoomsCluster(server, PORT);
 
 server.listen(PORT, () => {
     console.log(`[Server] Listening on ${PORT}`);
 });
+
