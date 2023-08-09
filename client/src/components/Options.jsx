@@ -7,13 +7,10 @@ class OptionsBubble extends Component {
 
         this.state = {
             nickname: "",
-            // volume: 25,
+            display: "none",
+            timer: null
         };
     }
-
-    // setVolume = (event) => {
-    //     this.setState({ volume: event.target.value });
-    // }
 
     setNickname = (event) => {
         this.setState({ nickname: event.target.value });
@@ -21,11 +18,24 @@ class OptionsBubble extends Component {
 
     componentDidMount() {
         const nickname = sessionStorage.getItem("nickname");
+        this.setState({ nickname: nickname || "Guest" });
+    }
 
-        if (nickname === null) {
-            this.setState({ nickname: "Guest" });
-        } else {
-            this.setState({ nickname });
+    componentDidUpdate(prevProps) {
+        if (prevProps.hide !== this.props.hide) {
+            if (this.state.timer !== null) {
+                clearTimeout(this.state.timer);
+            }
+
+            if (this.props.hide) {
+                this.setState({
+                    timer: setTimeout(() => {
+                        this.setState({ display: "none" });
+                    }, 1000)
+                });
+            } else {
+                this.setState({ display: "flex" });
+            }
         }
     }
 
@@ -34,20 +44,22 @@ class OptionsBubble extends Component {
     }
 
     render() {
+        const display = this.state.display;
+
         return (
-            <div className='bubble'>
-                <h1>Options</h1>
-                <hr />
+            <div className={`bubble col ${this.props.hide ? 'hide' : 'spawn'}`} style={{ display: display }}>
+                <div className='bubble-title'>
+                    <h1>Settings</h1>
+                </div>
                 <div>
-                    <label htmlFor='options-nickname-input'>Nickname</label>
+                    <label htmlFor='options-nickname-input'>Name</label>
                     <input type="text" id='options-nickname-input' placeholder='Guest'
                         value={this.state.nickname} onInput={this.setNickname} />
                 </div>
-                {/* <div>
-                    <label htmlFor='options-volume-range'>Volume {this.state.volume}</label>
-                    <input type="range" max={100} min={0} step={1} onInput={this.setVolume}
-                        id='options-volume-range' value={this.state.volume} />
-                </div> */}
+                <div className='bubble-space'></div>
+                <div className='bubble-end'>
+                    <h3>The settings will be updated after closing.</h3>
+                </div>
             </div>
         );
     }
