@@ -7,7 +7,8 @@ export default function BubbleCopyLink({ id }) {
 
     function CopyCode() {
         // navigator.clipboard.writeText("http://localhost:3000/room/" + id);
-        navigator.clipboard.writeText(process.env.REACT_APP_URL + "/room/" + id);
+        // navigator.clipboard.writeText(process.env.REACT_APP_URL + "/room/" + id);
+        navigator.clipboard.writeText(window.location.hostname + "/room/" + id);
     }
 
     return (
