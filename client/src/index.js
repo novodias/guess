@@ -12,7 +12,7 @@ import HomePage from './routes/Home';
 import ErrorPage from './Error';
 import Navbar from './templates/Navbar';
 import RoomPage, { RoomLoader } from './routes/Room';
-import CreatePage from './routes/Create';
+import AddPage from './routes/Add';
 import PasswordPage from './routes/Password';
 
 const router = createBrowserRouter([
@@ -34,8 +34,8 @@ const router = createBrowserRouter([
         element: <PasswordPage />,
       },
       {
-        path: "create",
-        element: <CreatePage />,
+        path: "add",
+        element: <AddPage />,
       },
       {
         path: "*",
