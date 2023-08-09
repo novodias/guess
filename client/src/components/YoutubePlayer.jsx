@@ -22,12 +22,14 @@ export default class YoutubePlayer extends Component {
             this.setState({ videoId: this.props.videoId });
         } else {
             if (this.state.video !== null) {
+                
                 if (this.props.play === true) {
+                    // this.state.video.seekTo(this.props.startAt, false);
+                    this.updateVolume();
                     this.state.video.playVideo();
                 }
             }
         }
-
     }
 
     _onReady = (event) => {
@@ -80,6 +82,9 @@ export default class YoutubePlayer extends Component {
                 playerVars: {
                     autoplay: 0,
                     controls: 0,
+                    fs: 0,
+                    iv_load_policy: 3,
+                    start: this.props.startAt
                 },
             };
 
@@ -150,9 +155,9 @@ export default class YoutubePlayer extends Component {
         this.state.video.setVolume(this.state.volume);
     }
 
-    setStateVolume = (event) => {
-        this.setState({ volume: event.target.value });
-    }
+    // setStateVolume = (event) => {
+    //     this.setState({ volume: event.target.value });
+    // }
 
     setVolume = (event) => {
         this.setState({ volume: event.target.value });
