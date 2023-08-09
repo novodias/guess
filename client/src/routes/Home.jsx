@@ -43,22 +43,27 @@ const HomePage = () => {
         }
 
         const passwordHash = hasPass ? crypto.MD5(password).toString() : null;
-        const response = await fetch(process.env.REACT_APP_API + "/room", {
-            method: "POST",
-            body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
-            headers: {
-                "Content-Type": "application/json"
-            },
-        });
         
-        const { id, ownerId } = await response.json();
-        sessionStorage.setItem("RoomOwnerId", ownerId);
-
-        if (hasPass === true) {
-            sessionStorage.setItem("RoomPasswordHash", passwordHash);
+        try {
+            const response = await fetch(`/api/rooms`, {
+                method: "POST",
+                body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            });
+    
+            const { id, ownerId } = await response.json();
+            sessionStorage.setItem("RoomOwnerId", ownerId);
+    
+            if (hasPass === true) {
+                sessionStorage.setItem("RoomPasswordHash", passwordHash);
+            }
+    
+            navigate(`room/${id}`);
+        } catch (error) {
+            console.error(error);
         }
-
-        navigate(`room/${id}`);
     }
 
     return (

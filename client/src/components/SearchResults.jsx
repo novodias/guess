@@ -13,8 +13,9 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
     useEffect(() => {
         async function searchQueryAsync() {
             console.log("Fetching titles that starts with:", query);
+
             try {
-                const response = await fetch(`${process.env.REACT_APP_API}/titles?name=${query || ''}`);
+                const response = await fetch(`/api/titles?name=${query || ''}`);
                 const data = await response.json();
                 setList(data);
             } catch (error) {

@@ -1,4 +1,5 @@
 import './Room.css';
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
 import { useLoaderData, useNavigate } from 'react-router-dom';
@@ -15,6 +16,10 @@ function Crown() {
         </svg>
     );
 }
+
+const webSocketAddress = (process.env.NODE_ENV === 'development' ?
+    `ws://${window.location.hostname}:3001` :
+    `ws://${window.location.hostname}:3000`) + `/socket`;
 
 function RoomPage() {
     const room = useLoaderData();
@@ -35,13 +40,13 @@ function RoomPage() {
     const StartTimer = () => setTimerClass("timer-start");
     const RevertTimer = () => setTimerClass("timer-start timer-goback");
 
-    const { sendJsonMessage } = useWebSocket(process.env.REACT_APP_WS, {
+    const { sendJsonMessage } = useWebSocket(webSocketAddress, {
         onOpen: () => {
             console.log('connected');
         },
         onMessage: (e) => {
             const message = JSON.parse(e.data);
-            console.log(message);
+            // console.log(message);
             
             const body = message.body;
             if (message.type === "players") {
@@ -51,6 +56,13 @@ function RoomPage() {
 
             if (message.type === "exited") {
                 const { id } = body;
+                const player = guests.find(g => g.id === id);
+                setChat([...chat, {
+                    text: `${player.nickname} was kicked from the game.`, 
+                    nickname: "System",
+                    isSystem: true
+                }]);
+
                 setGuests(array => array.filter(g => g.id !== id));
             }
 
@@ -60,23 +72,15 @@ function RoomPage() {
             }
 
             if (message.type === "chat") {
-                const newChat = chat;
-                newChat.push(body);
-                setChat(newChat);
+                setChat([...chat, body]);
             }
 
             if (message.type === "change") {
                 const { playerId, points, status } = body;
                 const updateGuests = guests.map(g => {
                     if (g.id === playerId) {
-                        if (points) {
-                            g.points = points;
-                        }
-
-                        if (status) {
-                            g.status = status;
-                        }
-
+                        g.points = points;
+                        g.status = status;
                         return g;
                     } else {
                         return g;
@@ -95,10 +99,6 @@ function RoomPage() {
                     start_at,
                     play: false,
                 });
-
-                // video.youtube_id = youtube_id;
-                // video.start_at = start_at;
-                // video.play = false;
             }
 
             if (message.type === "round") {
@@ -110,6 +110,11 @@ function RoomPage() {
                 video.play = true;
             }
 
+            if (message.type === "end") {
+                video.play = false;
+                RevertTimer();
+            }
+
         },
         onClose: (e) => {
             if (e.code === 3000) {
@@ -119,6 +124,14 @@ function RoomPage() {
             console.log("close");
             
             // show a popup saying that lost connection?
+        },
+        onError: (e) => {
+            if (process.env.NODE_ENV === 'development') {
+                e.id = id
+                e.nickname = nickname;
+                e.date = new Date();
+                axios.post('api/error', e);
+            }
         },
         shouldReconnect: () => false,
         share: true,
@@ -217,7 +230,7 @@ export async function RoomLoader({ params }) {
     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
     passwordHash && sessionStorage.removeItem("RoomPasswordHash");
 
-    const res = await fetch(`${process.env.REACT_APP_API}/room/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
+    const res = await fetch(`/api/rooms/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
 
     if (!res.ok) {
         // Wrong password
@@ -231,7 +244,6 @@ export async function RoomLoader({ params }) {
         
         throw new Error(res.status);
     }
-    
     
     return await res.json();
 }
