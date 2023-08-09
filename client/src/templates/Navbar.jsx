@@ -7,13 +7,13 @@ import { Link } from 'react-router-dom';
 
 const Navbar = ({ showOptions, onClick }) => {
     
-    const createOptions = () => {
-        if (showOptions !== true) {
-            return null
-        }
+    // const createOptions = () => {
+    //     // if (showOptions !== true) {
+    //     //     return null
+    //     // }
 
-        return (<OptionsBubble />);
-    }
+    //     return ();
+    // }
     
     return (
         <>
@@ -23,17 +23,17 @@ const Navbar = ({ showOptions, onClick }) => {
                         <Link to="/" has-icon=""><HomeIcon /></Link>
                     </li>
                     <li>
-                        <Link to="/create">Create</Link>
+                        <Link to="/add">Add</Link>
                     </li>
-                    <li>
+                    {/* <li>
                         <Link to={"/room"}>Room</Link>
-                    </li>
-                    <li>
+                    </li> */}
+                    {/* <li>
                         <Link to={"/suggest"}>Suggest</Link>
-                    </li>
-                    <li>
+                    </li> */}
+                    {/* <li>
                         <Link to={"/error"}>Error</Link>
-                    </li>
+                    </li> */}
                     <li at-end="">
                         <button className='btn' has-icon="" onClick={onClick}>
                             <SettingsIcon />
@@ -41,7 +41,7 @@ const Navbar = ({ showOptions, onClick }) => {
                     </li>
                 </ul>
             </nav>
-            {createOptions()}
+            <OptionsBubble hide={!showOptions} />
         </>
     );
 }
