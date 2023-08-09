@@ -1,23 +1,5 @@
 const webSocket = require('ws');
 
-// function player(ws, id, room_id, nickname, points, status) {
-//     // id, room_id, ws, nickname, points, status,
-//     const player = {
-//         ws, id, room_id, nickname,
-//         points, status,
-//         setPoints(value) {
-//             this.points = value;
-//         },
-//         setStatus(value) {
-//             this.status = value;
-//         },
-//         closeWebSocket() {
-//             this.ws.close();
-//         }
-//     }
-//     return player;
-// }
-
 const PlayerStatus = Object.freeze({
     PENDING: 0,
     CORRECT: 1,
