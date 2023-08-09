@@ -30,7 +30,12 @@ export default function Chat({ messages, onEnter }) {
                         messages.map((message, key) => {
                             return <li key={key}>
                                 <div className='chat-message'>
-                                    <span><h2>{message.nickname}</h2> {message.text}</span>
+                                    <span>
+                                        <h2 style={message.isSystem && { color: "crimson" }}>
+                                            {message.nickname}
+                                        </h2>
+                                        {message.text}
+                                    </span>
                                 </div>
                             </li>
                         })
