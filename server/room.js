@@ -55,6 +55,7 @@ class Room {
     _selectRandomSong() {
         const rnd = random.intFromInterval(0, this.songs.length - 1);
         this.selected = this.songs[rnd];
+        console.log(`[Room/${this.id}] Selected random song:`, this.selected);
         this.songs = this.songs.filter((song, idx) => idx !== rnd);
     }
 
@@ -177,6 +178,7 @@ class Room {
     getRoomData() {
         return {
             id: this.id,
+            name: this.name,
             players: this.getPlayers(),
         };
     }
@@ -258,10 +260,18 @@ class Room {
                     type: "chat",
                     body: { text: body.text, nickname: player.nickname }
                 });
+            },
+
+            "joined": () => {
+                console.log("Someone tried to join");
             }
         }
 
-        handler[type]();
+        try {
+            handler[type]();
+        } catch (error) {
+            console.error(`type: ['${type}']`, error);
+        }
     }
 
     /**
