@@ -18,11 +18,15 @@
     position: relative;
     gap: 0;
     margin-top: 20px;
-    /* align-items: center; */
+    z-index: 100;
 }
 
 .title-wrapper {
     position: relative;
+}
+
+.title-wrapper .dropdown {
+    width: 350px;
 }
 
 .titles-form input, select {
@@ -68,11 +72,6 @@
 
 #title-input {
     width: 300px;
-}
-
-.title-input-focused {
-    display: block;
-    width: 94%;
 }
 
 .titles-form select {

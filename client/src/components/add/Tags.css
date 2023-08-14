@@ -1,0 +1,32 @@
+.tags-container {
+    z-index: 0;
+}
+
+.tags-input-container {
+    padding: 5px;
+    margin-top: 10px;
+}
+
+.tags-input-container input[type="text"] {
+    font-size: 1.2em;
+}
+
+.tags-wrapper {
+    margin-top: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tags-wrapper > span {
+    align-items: center;
+    padding: 5px;
+    background-color: var(--color-four);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.tags-wrapper > span:hover {
+    background-color: var(--bg-crimsom);
+    color: white;
+}
