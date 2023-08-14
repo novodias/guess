@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 // import reportWebVitals from './reportWebVitals';
-import {
-  createBrowserRouter,
-  Navigate,
-  Outlet,
-  RouterProvider,
-} from "react-router-dom"
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom"
 import HomePage from './routes/Home';
 import ErrorPage from './Error';
-import Navbar from './templates/Navbar';
-import RoomPage, { RoomLoader } from './routes/Room';
+import RoomPage from './routes/Room';
 import AddPage from './routes/Add';
 import PasswordPage from './routes/Password';
+import Layout from './Layout';
+import ProtectedRoom from './components/room/ProtectedRoom';
 
 const router = createBrowserRouter([
   {
@@ -26,8 +22,12 @@ const router = createBrowserRouter([
       },
       {
         path: "room/:id",
-        element: <RoomPage />, errorElement: <ErrorPage />,
-        loader: RoomLoader,
+        element: (
+          <ProtectedRoom>
+            <RoomPage />
+          </ProtectedRoom>),
+        errorElement: <ErrorPage />,
+        // loader: RoomLoader,
       },
       {
         path: "enter/:id",
@@ -44,29 +44,6 @@ const router = createBrowserRouter([
     ]
   },
 ]);
-
-function Layout() {
-  const [options, setOptions] = useState(false);
-
-  const toggleState = () => {
-    setOptions(!options);
-  }
-
-  const onClick = (event) => {
-    toggleState();
-  }
-  
-  return (
-    <>
-      <header>
-        <Navbar showOptions={options} onClick={onClick} />
-      </header>
-      <main>
-        <Outlet />
-      </main>
-    </>
-  )
-}
 
 function App() {
   sessionStorage.setItem("nickname", "Guest");
