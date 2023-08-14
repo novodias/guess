@@ -3,7 +3,7 @@ const http = require('http');
 const Room = require('./room');
 const { Player, PlayerStatus } = require('./player');
 const { GuessDb, Song } = require('./db');
-const random = require('./random');
+const random = require('./utils');
 
 // const _messageHandler = {
 //     /**
