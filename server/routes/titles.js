@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/create", async (req, res) => {
-    const { type, title } = req.body;
+    const { type, title, tags } = req.body;
     const db = req.db;
 
     const content_type = req.get("Content-Type");
@@ -27,7 +27,7 @@ router.post("/create", async (req, res) => {
     }
 
     try {
-        const result = await db.add_title(type, title);
+        const result = await db.add_title(type, title, tags);
         res.json(result);
     } catch (error) {
         res.status(404).send("Not found");
