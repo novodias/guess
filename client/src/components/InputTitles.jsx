@@ -1,15 +1,17 @@
 import React, { useDeferredValue, useState } from 'react';
 import SearchResults from './SearchResults';
+import './InputTitles.css';
 
-export default function InputTitles({ onDropdownClick, onKeyUp, readOnly }) {    
+export default function InputTitles({ onDropdownClick, onKeyUp, readOnly, onText }) {    
+    const [titleFocus, setTitleFocus] = useState('');
+    
     const [query, setQuery] = useState('');
     const deferredQuery = useDeferredValue(query);
-
-    const [titleFocus, setTitleFocus] = useState('');
 
     const _onTitleInput = (event) => {
         const text = event.target.value;
         setQuery(text);
+        onText && onText(text);
         
         if (text !== '') {
             _onTitleFocusIn();
@@ -20,7 +22,7 @@ export default function InputTitles({ onDropdownClick, onKeyUp, readOnly }) {
 
     function _onDropdownClick(title) {
         _onTitleFocusOut();
-        setQuery(title.title);
+        setQuery(title.name);
         onDropdownClick(title);
     }
 
@@ -38,7 +40,9 @@ export default function InputTitles({ onDropdownClick, onKeyUp, readOnly }) {
                 value={query} onChange={_onTitleInput} onKeyUp={onKeyUp}
                 autoComplete="off" type="text" id="title-input"
                 placeholder='Ex.: Portal 2' name='title' />
-            <SearchResults query={deferredQuery} focus={titleFocus} onDropdownClick={_onDropdownClick} />
+            <SearchResults query={deferredQuery}
+                focus={titleFocus}
+                onDropdownClick={_onDropdownClick} />
         </div>
     )
 }

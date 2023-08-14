@@ -1,0 +1,10 @@
+.title-input-focused {
+    display: block;
+    width: 94%;
+    animation: increase_height normal 2s ease-out;
+}
+
+@keyframes increase_height {
+    from { height: 0%; }
+    to { height: 100%;}
+}

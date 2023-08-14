@@ -3,16 +3,28 @@ import Dropdown from './Dropdown';
 import './SearchResults.css';
 
 export default function SearchResults({ query, focus, onDropdownClick }) {
-
     const [list, setList] = useState([]);
+    
+    // const filtered = list.filter(title => {
+    //     try {
+    //         return title.name.toLowerCase()
+    //             .startsWith(query.toLowerCase());
+    //     } catch (error) {
+            
+    //     }
+
+    //     return false;
+    // });
 
     const filtered = useMemo(() => {
-        return list.filter(val => val.title.toLowerCase().startsWith(query.toLowerCase()));
+        return list.filter(title => {
+            return title.name.toLowerCase().startsWith(query.toLowerCase());
+        });
     }, [query, list]);
 
     useEffect(() => {
         async function searchQueryAsync() {
-            console.log("Fetching titles that starts with:", query);
+            console.log("Loaded, fetching titles");
 
             try {
                 const response = await fetch(`/api/titles?name=${query || ''}`);
@@ -22,19 +34,18 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
                 console.error(error);
             }
         }
-        
+
         if (filtered.length === 0) {
             searchQueryAsync();
         }
-
-    }, [query, filtered.length]);
+    }, [query, filtered]);
 
     return (
         <Dropdown className={focus}>
             {filtered.map((title, key) => {
                 return (
                     <li onClick={() => onDropdownClick(title)} key={key} id={title.id}>
-                        {title.title}
+                        {title.name}
                     </li>
                 );
             })}
