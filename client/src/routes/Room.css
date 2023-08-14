@@ -232,7 +232,7 @@
     filter: blur(0.4rem);
 }
 
-.dropdown-input-container {
+.room-container > .dropdown-input-container {
     position: relative;
     width: 80%;
     /* align-items: center; */
@@ -245,16 +245,17 @@
     font-size: 1.5rem;
 }
 
-.dropdown {
+.room-container > .dropdown {
     position: absolute;
     background: none;
     min-height: 100%;
     width: 90%;
     left: 12.5px;
     top: 100%;
+    z-index: 999;
 }
 
-.dropdown ul {
+.room-container > .dropdown ul {
     background-color: var(--color-two);
     width: 100%;
 }
@@ -314,7 +315,7 @@
     left: 50%;
 }
 
-textarea {
+.chat-textbox-container > textarea {
     font-size: 1em;
     width: calc(100% - 10px);
     height: calc(100% - 10px);

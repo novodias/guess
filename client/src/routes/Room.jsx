@@ -1,12 +1,15 @@
 import './Room.css';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { SettingsContext } from '../context/SettingsProvider';
 import useWebSocket from 'react-use-websocket';
-import { useLoaderData, useNavigate } from 'react-router-dom';
+// import { useLoaderData, useNavigate } from 'react-router-dom';
 import { Chat, CopyLink, Difficulty, Guest, OwnerButton } from '../components/room/Export';
 import InputTitles from '../components/InputTitles';
 import { LogoutRounded } from '@mui/icons-material';
 import YoutubePlayer from '../components/YoutubePlayer';
+import { useRoomContext } from '../context/RoomProvider';
+// import { useParams } from 'react-router-dom';
 // import { Status } from '../components/room/Guest';
 
 function Crown() {
@@ -22,14 +25,16 @@ const webSocketAddress = (process.env.NODE_ENV === 'development' ?
     `ws://${window.location.hostname}:3000`) + `/socket`;
 
 function RoomPage() {
-    const room = useLoaderData();
-    let navigate = useNavigate();
+    // const room = useLoaderData();
+    // let navigate = useNavigate();
+    // let nickname = sessionStorage.getItem("nickname");
+    // nickname = nickname === null ? "Guest" : nickname;
+    // const [owner, setOwner] = useState('');
 
-    let nickname = sessionStorage.getItem("nickname");
-    nickname = nickname === null ? "Guest" : nickname;
+    const { username } = useContext(SettingsContext);
+    const { owner, roomId } = useRoomContext();
 
-    const [id, setId] = useState(null);
-    const [owner, setOwner] = useState('');
+    const [playerId, setPlayerId] = useState(null);
     const [guests, setGuests] = useState([]);
     const [chat, setChat] = useState([]);
     const [showKickBtn, setShowKickBtn] = useState(false);
@@ -68,7 +73,7 @@ function RoomPage() {
 
             if (message.type === "yourid") {
                 const { id } = body;
-                setId(id);
+                setPlayerId(id);
             }
 
             if (message.type === "chat") {
@@ -117,18 +122,14 @@ function RoomPage() {
 
         },
         onClose: (e) => {
-            if (e.code === 3000) {
-                console.log(e.reason);
-            }
-
-            console.log("close");
+            console.log("close:", e.reason);
             
             // show a popup saying that lost connection?
         },
         onError: (e) => {
             if (process.env.NODE_ENV === 'development') {
-                e.id = id
-                e.nickname = nickname;
+                e.id = playerId;
+                e.nickname = username;
                 e.date = new Date();
                 axios.post('api/error', e);
             }
@@ -138,7 +139,7 @@ function RoomPage() {
     }, true);
 
     const KickPerson = (personId) => {
-        if (id === personId) {
+        if (playerId === personId) {
             return;
         }
 
@@ -146,11 +147,11 @@ function RoomPage() {
     }
 
     const SendChatMessage = (text) => {
-        sendJsonMessage({ type: "chat", body: { text, nickname } });
+        sendJsonMessage({ type: "chat", body: { text, nickname: username } });
     }
 
     const SubmitAnswer = (title) => {
-        sendJsonMessage({ type: "submit", body: { id, title } });
+        sendJsonMessage({ type: "submit", body: { playerId, title } });
         setReadOnly(true);
     }
 
@@ -162,7 +163,7 @@ function RoomPage() {
         const btn_kick = showKickBtn && owner;
         return (
             <li className='row'>
-                {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
+                {owner && playerId !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
                     <button onClick={() => KickPerson(v.id)}>
                         <LogoutRounded htmlColor='white' />
                     </button>
@@ -188,22 +189,26 @@ function RoomPage() {
     }
 
     useEffect(() => {
-        const ownerId = sessionStorage.getItem("RoomOwnerId");
-        
-        ownerId && setOwner(ownerId);
-        ownerId && sessionStorage.removeItem("RoomOwnerId");
+        // const ownerId = sessionStorage.getItem("RoomOwnerId");
+        // ownerId && setOwner(ownerId);
+        // ownerId && sessionStorage.removeItem("RoomOwnerId");
 
-        if (room.requirePassword) {
-            navigate(`/enter/${room.id}`, { state: room });
-        } else {
-            window.history.replaceState(null, "Room", "/room");
+        // if (room.requirePassword) {
+        //     navigate(`/enter/${room.id}`, { state: room });
+        // } else {
+        //     window.history.replaceState(null, "Room", "/room");
+        //     // this prevents sending joined to websocket again
+        //     if (id === null) {
+        //         sendJsonMessage({ type: "joined", body: { nickname: username, room_id: room.id } });
+        //     }
+        // }
 
-            // this prevents sending joined to websocket again
-            if (id === null) {
-                sendJsonMessage({ type: "joined", body: { nickname, room_id: room.id } });
-            }
+        window.history.replaceState(null, "Room", "/room");
+        // this prevents sending joined to websocket again
+        if (playerId === null) {
+            sendJsonMessage({ type: "joined", body: { nickname: username, room_id: roomId } });
         }
-    }, [navigate, sendJsonMessage, room, id, nickname]);
+    }, [sendJsonMessage, roomId, playerId, username]);
 
     return (
         <>
@@ -219,7 +224,7 @@ function RoomPage() {
                 <YoutubePlayer videoId={video.youtube_id} startAt={video.start_at} play={video.play} />
             </div>
             <div className='col container chat-container'>
-                <CopyLink id={room.id} />
+                <CopyLink id={roomId} />
                 <Chat messages={chat} onEnter={SendChatMessage} />
             </div>
         </>
