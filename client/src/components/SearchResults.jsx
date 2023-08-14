@@ -2,23 +2,29 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Dropdown from './Dropdown';
 import './SearchResults.css';
 
+/**
+ * 
+ * @param {String} v1 
+ * @param {String} v2 
+ */
+function compareString(v1, v2) {
+    return v1.toLowerCase().startsWith(v2.toLowerCase());
+}
+
+function compareTags(array, value) {
+    if (array) {
+        return array.some(v => compareString(v, value));
+    }
+
+    return false;
+}
+
 export default function SearchResults({ query, focus, onDropdownClick }) {
     const [list, setList] = useState([]);
-    
-    // const filtered = list.filter(title => {
-    //     try {
-    //         return title.name.toLowerCase()
-    //             .startsWith(query.toLowerCase());
-    //     } catch (error) {
-            
-    //     }
-
-    //     return false;
-    // });
 
     const filtered = useMemo(() => {
         return list.filter(title => {
-            return title.name.toLowerCase().startsWith(query.toLowerCase());
+            return compareString(title.name, query) || compareTags(title.tags, query);
         });
     }, [query, list]);
 
