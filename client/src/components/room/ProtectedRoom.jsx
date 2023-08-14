@@ -109,7 +109,14 @@ export default function ProtectedRoom({ children }) {
     }, [loadRoomAsyncCallback, loading, location.state]);
 
     if (loading) {
-        return <Spinner sx={128} sy={128} />
+        return (
+            <div className='row' style={{
+                width: '100%', height: '100vh',
+                alignItems: 'center', justifyContent: 'center'
+            }}>
+                <Spinner sx={128} sy={128} />
+            </div>
+        )
     } 
     
     if (auth) {
