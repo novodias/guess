@@ -62,7 +62,8 @@ api.post("/create", async (req, res) => {
         song_name, youtube_id } = req.body;
 
     if (title_id === null || title_id === undefined ||
-        !title || !type || !song_name || !youtube_id) {
+        !title_name || !title_type || !title_tags ||
+        !song_name || !youtube_id) {
         console.log(req.body);
         res.status(400).send("Request body invalid");
         return;
@@ -70,11 +71,16 @@ api.post("/create", async (req, res) => {
     
     let titleFound;
     if (title_id === 0) {
-        console.log("[Db/Titles] Title doesn't exist, creating", title);
-        titleFound = (await db.add_title(type, title, tags))[0];
+        console.log("[Db/Titles] Title doesn't exist, creating", title_name);
+        titleFound = (await db.add_title(title_type, title_name, title_tags))[0];
         
     } else {
         titleFound = (await db.get_title_by_id(title_id))[0];
+    }
+
+    if (!compareArrays(titleFound, title_tags)) {
+        console.log("[Db/Titles] Tags are diferent, updating title");
+        await db.update_title_tags(titleFound.id, title_tags);
     }
 
     const songYoutubeIdFound = await db.get_song_by_youtube_id(youtube_id);
@@ -115,6 +121,7 @@ api.post("/create", async (req, res) => {
 const rooms = require('./routes/room');
 const songs = require('./routes/songs');
 const titles = require('./routes/titles');
+const { compareArrays } = require('./utils');
 
 api.use("/rooms", rooms);
 api.use("/songs", songs);
