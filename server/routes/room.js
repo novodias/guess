@@ -10,25 +10,29 @@ router.use("/:id", (req, res, next) => {
         const id = req.params.id;
         const { hash } = req.query;
         const room = req.cluster.getRoom(id);
-        console.log(id, hash);
+        // console.log(id, hash);
 
         if (!room) {
             res.status(404).send("Not found");
+            console.log("[Rooms] Couldn't found room", id);
             return;
         }
 
         if (!room.hasPassword) {
             req.room = room;
+            console.log(`[Rooms/${room.id}] Room found, password not needed`);
             next()
             return;
         }
 
         if (room.hasPassword && nullUndefined(hash)) {
             res.json(room.getRoomInformation());
+            console.log(`[Rooms/${room.id}] Room found, password NEEDED`);
             return;
         }
 
         if (room.passwordHash !== hash) {
+            console.log(`[Rooms/${room.id}] Room found, wrong authentication`);
             res.status(400).json({
                 message: "Wrong password",
                 ...room.getRoomInformation()
