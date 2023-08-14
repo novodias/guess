@@ -36,10 +36,10 @@ class GuessDb {
         });
     }
     
-    async add_title(type, title, tags) {
+    async add_title(type, name, tags) {
         const query = {
-            text: 'INSERT INTO titles(type, title, tags) VALUES($1, $2, $3) RETURNING *',
-            values: [type, title, tags],
+            text: 'INSERT INTO titles(type, name, tags) VALUES($1, $2, $3) RETURNING *',
+            values: [type, name, tags],
         };
 
         let result = null;
@@ -113,6 +113,22 @@ class GuessDb {
         }
     }
 
+    async update_title_tags(id, tags) {
+        const client = await this.pool.connect();
+        try {
+            const query = {
+                text: 'UPDATE titles SET tags = $1 WHERE id = $2',
+                values: [tags, id],
+            };
+            
+            await client.query(query);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            client.release();
+        }
+    }
+
     async get_title_by_id(id) {
         const query = {
             text: `SELECT * FROM titles WHERE id = $1`,
@@ -141,7 +157,7 @@ class GuessDb {
     async get_titles_starts_with(name) {
         name += '%';
         const query = {
-            text: `SELECT * FROM titles WHERE name ILIKE $1 ORDER BY name LIMIT 100`,
+            text: `SELECT * FROM titles WHERE name ILIKE $1 OR $1 ILIKE ANY(tags) ORDER BY name LIMIT 100`,
             values: [name]
         };
 
