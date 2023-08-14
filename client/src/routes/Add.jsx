@@ -115,7 +115,7 @@ export default function AddPage() {
                     <TitleContainer id={id} onDropdownClick={_onDropdownClick}
                         setSearchQuery={setSearchQuery} setTag={setTag}
                         type={type} />
-                    <TagsContainer tagsFound={tags || []} />
+                    <TagsContainer tags={tags} setTags={setTags} />
                     <SongContainer songName={songName} youtubeId={youtubeId}
                         setSongName={setSongName} setYoutubeId={matchYoutubeId} />
                     {success && <Alert message={success.message} type={success.type} />}

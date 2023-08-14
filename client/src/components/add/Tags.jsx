@@ -1,17 +1,10 @@
 import './Tags.css'
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AddBoxRounded, CloseRounded } from '@mui/icons-material';
 
-export default function TagsContainer({ tagsFound }) {
-    const [tags, setTags] = useState([]);
+export default function TagsContainer({ tags, setTags }) {
     const [tagText, setTagText] = useState('');
     const inputRef = useRef(null);
-    
-    useEffect(() => {
-        if (tagsFound !== undefined || tagsFound.length !== 0) {
-            setTags(tagsFound);
-        }
-    }, [setTags, tagsFound]);
 
     const AddTag = (value) => {
         setTags([...tags, value]);
@@ -80,7 +73,7 @@ export default function TagsContainer({ tagsFound }) {
     return (
         <div className='tags-container container col'>
             <h2><AddBoxRounded /> Tags</h2>
-            <h3>If not found, the title will be created with the song.</h3>
+            <h3>Tags can be helpful to find a title.</h3>
             <div className='tags-input-container col' onClick={_focusInput}>
                 <input type='text' value={tagText} ref={inputRef}
                     onChange={_onChange} onKeyUp={_onKeyUp} onKeyDown={_onKeyDown} />
