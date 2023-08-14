@@ -151,7 +151,7 @@ function RoomPage() {
     }
 
     const SubmitAnswer = (title) => {
-        sendJsonMessage({ type: "submit", body: { playerId, title } });
+        sendJsonMessage({ type: "submit", body: { playerId, title: { id: title.id } } });
         setReadOnly(true);
     }
 
