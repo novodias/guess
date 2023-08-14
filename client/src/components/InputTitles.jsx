@@ -13,7 +13,7 @@ export default function InputTitles({ onDropdownClick, onKeyUp, readOnly, onText
         setQuery(text);
         onText && onText(text);
         
-        if (text !== '') {
+        if (text) {
             _onTitleFocusIn();
         } else {
             _onTitleFocusOut();
