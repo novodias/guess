@@ -1,5 +1,7 @@
-async function videoRequest(id, API_KEY) {
-    const url = `https://www.googleapis.com/youtube/v3/videos?id=${id}&key=${API_KEY}
+const KEY = process.env.YOUTUBE_API_KEY; 
+
+async function videoRequest(id) {
+    const url = `https://www.googleapis.com/youtube/v3/videos?id=${id}&key=${KEY}
     &part=contentDetails`;
 
     let data;

@@ -36,10 +36,10 @@ class GuessDb {
         });
     }
     
-    async add_title(type, title) {
+    async add_title(type, title, tags) {
         const query = {
-            text: 'INSERT INTO titles(type, title) VALUES($1, $2) RETURNING *',
-            values: [type, title],
+            text: 'INSERT INTO titles(type, title, tags) VALUES($1, $2, $3) RETURNING *',
+            values: [type, title, tags],
         };
 
         let result = null;
@@ -141,7 +141,7 @@ class GuessDb {
     async get_titles_starts_with(name) {
         name += '%';
         const query = {
-            text: `SELECT * FROM titles WHERE title ILIKE $1 ORDER BY title LIMIT 100`,
+            text: `SELECT * FROM titles WHERE name ILIKE $1 ORDER BY name LIMIT 100`,
             values: [name]
         };
 
@@ -162,7 +162,7 @@ class GuessDb {
     async get_titles_starts_with_and_type(name, type) {
         name += '%';
         const query = {
-            text: `SELECT * FROM titles WHERE title ILIKE $1 AND type = $2 ORDER BY title LIMIT 100`,
+            text: `SELECT * FROM titles WHERE name ILIKE $1 AND type = $2 ORDER BY name LIMIT 100`,
             values: [name, type]
         };
 

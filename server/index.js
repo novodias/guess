@@ -1,17 +1,16 @@
 require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` });
 
 const PORT = process.env.PORT || 3001;
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
-const express       = require('express');
-const cors          = require('cors');
-const bodyParser    = require('body-parser');
-const RoomsCluster  = require('./wss');
-const { GuessDb, Song }      = require('./db');
-const moment        = require('moment');
-const youtubeGet    = require('./youtube');
-const { readFileSync } = require('fs');
-const path = require('path');
+const express               = require('express');
+const cors                  = require('cors');
+const bodyParser            = require('body-parser');
+const RoomsCluster          = require('./wss');
+const { GuessDb, Song }     = require('./db');
+const moment                = require('moment');
+const youtubeGet            = require('./youtube');
+const { readFileSync }      = require('fs');
+const path                  = require('path');
 
 const db = new GuessDb();
 
@@ -59,7 +58,8 @@ api.post("/create", async (req, res) => {
         res.status(406).send("Not acceptable");
     }
     
-    const { title_id, title, type, song_name, youtube_id } = req.body;
+    const { title_id, title_name, title_type, title_tags,
+        song_name, youtube_id } = req.body;
 
     if (title_id === null || title_id === undefined ||
         !title || !type || !song_name || !youtube_id) {
@@ -71,7 +71,7 @@ api.post("/create", async (req, res) => {
     let titleFound;
     if (title_id === 0) {
         console.log("[Db/Titles] Title doesn't exist, creating", title);
-        titleFound = (await db.add_title(type, title))[0];
+        titleFound = (await db.add_title(type, title, tags))[0];
         
     } else {
         titleFound = (await db.get_title_by_id(title_id))[0];
@@ -96,7 +96,7 @@ api.post("/create", async (req, res) => {
     }
 
     try {
-        const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
+        const video = await youtubeGet(youtube_id);
         
         const duration = moment
             .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
@@ -144,7 +144,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // const server        = require('http').createServer(app);
-const cluster         = new RoomsCluster(server, PORT);
+const cluster = new RoomsCluster(server, PORT);
 
 server.listen(PORT, () => {
     console.log(`[Server] Listening on ${PORT}`);
