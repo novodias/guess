@@ -1,9 +1,13 @@
 import './Home.css';
 import crypto from 'crypto-js';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SettingsContext } from '../context/SettingsProvider';
+import { RoomDispatchContext } from '../context/RoomProvider';
 
 const HomePage = () => {
+    const { username } = useContext(SettingsContext);
+    const { setOwner } = useContext(RoomDispatchContext);
 
     // join
     const [room, setRoom] = useState('');
@@ -11,7 +15,7 @@ const HomePage = () => {
     // create
     const [name, setName] = useState('');
     const [hasPass, setHasPass] = useState(false);
-    const [password, setPassword] = useState('');
+    const [localPassword, setLocalPassword] = useState('');
 
     let navigate = useNavigate();
 
@@ -37,12 +41,12 @@ const HomePage = () => {
     const createRoom = async () => {
         let roomName;
         if (!name || name === '') {
-            roomName = `${sessionStorage.getItem('nickname')}'s room`;
+            roomName = `${username}'s room`;
         } else {
             roomName = name;
         }
 
-        const passwordHash = hasPass ? crypto.MD5(password).toString() : null;
+        const passwordHash = hasPass ? crypto.MD5(localPassword).toString() : null;
         
         try {
             const response = await fetch(`/api/rooms`, {
@@ -54,13 +58,8 @@ const HomePage = () => {
             });
     
             const { id, ownerId } = await response.json();
-            sessionStorage.setItem("RoomOwnerId", ownerId);
-    
-            if (hasPass === true) {
-                sessionStorage.setItem("RoomPasswordHash", passwordHash);
-            }
-    
-            navigate(`room/${id}`);
+            setOwner(ownerId);
+            navigate(`room/${id}`, { state: { passwordHash }});
         } catch (error) {
             console.error(error);
         }
@@ -82,7 +81,7 @@ const HomePage = () => {
                 <h2>Create a room</h2>
                 <label htmlFor="create-room-input">Name</label>
                 <h3>Insert the room's name below</h3>
-                <input type='text' id='create-room-input' placeholder={`${sessionStorage.getItem("nickname")}'s room`}
+                <input type='text' id='create-room-input' placeholder={`${username}'s room`}
                     value={name} onInput={(e) => setName(e.target.value)} autoComplete='off' />
                 
                 <div className='row' style={{ marginTop: '20px', alignItems: 'center' }}>
@@ -95,7 +94,7 @@ const HomePage = () => {
                     <label htmlFor="create-room-password-input">Password</label>
                     <h3>Insert the room's password below</h3>
                     <input type='password' id='create-room-password-input' autoComplete='off'
-                        value={password} onInput={(e) => setPassword(e.target.value)} />
+                        value={localPassword} onInput={(e) => setLocalPassword(e.target.value)} />
                 </>}
                 
                 <button className='btn' onClick={createRoom}>Create</button>
