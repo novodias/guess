@@ -79,7 +79,6 @@ main {
   padding: 25px;
   animation: forwards 0.4s ease-in-out go-down;
   transform: translateY(-20px);
-  
 }
 
 @keyframes go-down {
@@ -257,41 +256,6 @@ input[type="checkbox"]:checked::before {
   list-style: none;
   margin: 0;
   padding: 0;
-}
-
-.dropdown {
-  display: none;
-  position: absolute;
-  width: 350px;
-  /* max-height: 500px; */
-  animation: increase_height forwards 2s ease-out;
-  z-index: 100;
-}
-
-.dropdown ul {
-  background-color: var(--color-three);
-  border-bottom-right-radius: 8px;
-  border-bottom-left-radius: 8px;
-  /* overflow: hidden; */
-  overflow-y: auto;
-  max-height: 250px;
-  border: 0;
-  font-size: 1.0em;
-}
-
-.dropdown ul li {
-  padding: 10px;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-.dropdown ul li:hover {
-  background-color: var(--color-four);
-}
-
-@keyframes increase_height {
-  from { height: 0%; }
-  to { height: 100%;}
 }
 
 .alert {

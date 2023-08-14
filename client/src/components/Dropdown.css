@@ -1,0 +1,29 @@
+.dropdown {
+    display: none;
+    position: absolute;
+    width: 350px;
+    z-index: 100;
+    /* max-height: 250px; */
+}
+
+.dropdown ul {
+    position: relative;
+    background-color: var(--color-two);
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    overflow-y: auto;
+    max-height: 250px;
+    border: 0;
+    font-size: 1.0em;
+}
+
+.dropdown ul li {
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.1s;
+    text-align: left;
+}
+
+.dropdown ul li:hover {
+    background-color: var(--color-four);
+}
