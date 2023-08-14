@@ -1,7 +1,7 @@
 // const { WebSocket } = require('ws');
 const { Player, PlayerStatus } = require("./player");
 const { Song } = require('./db');
-const random = require('./random');
+const random = require('./utils');
 const uuid = require('uuid');
 
 
@@ -228,7 +228,7 @@ class Room {
             },
 
             "submit": () => {
-                const id = body.id;
+                const id = body.playerId;
                 const title_id = body.title.id;
                 const pending = this._getPlayersByStatus(PlayerStatus.PENDING);
 
@@ -270,7 +270,7 @@ class Room {
         try {
             handler[type]();
         } catch (error) {
-            console.error(`type: ['${type}']`, error);
+            console.error(`type: ['${type}'] throwed an error:\n`, error);
         }
     }
 
@@ -383,6 +383,7 @@ class Room {
         const size = this.getSize();
         if (size === 0 && typeof this.listeners["empty"] === 'function') {
             // emits empty and then the cluster deletes the room
+            this._clearTimer();
             this.emit("empty", this.id);
         } else {
             // broadcast player that exited
