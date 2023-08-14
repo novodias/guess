@@ -163,13 +163,13 @@ class RoomsCluster {
 
             const room = this.getRoom(body.room_id);
             if (room === undefined) {
-                // const notFound = {
-                //     type: "error",
-                //     statusCode: 404,
-                //     message: "Room not found"
-                // };
+                const notFound = {
+                    type: "error",
+                    statusCode: 404,
+                    message: `Room ${body.room_id} not found`
+                };
 
-                ws.close();
+                ws.close(3404, JSON.stringify(notFound));
                 return;
             }
 
