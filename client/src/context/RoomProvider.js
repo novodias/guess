@@ -1,6 +1,7 @@
-import axios from 'axios';
+// import axios from 'axios';
 import React, { createContext, useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { getRoomAsync } from '../api/export';
 
 const RoomContext = createContext(undefined);
 const RoomDispatchContext = createContext(undefined);
@@ -12,11 +13,13 @@ function RoomProvider({ children }) {
     const { id } = useParams();
 
     const getRoom = async (password) => {
-        return new Promise((resolve, reject) => {
-            axios.get(`/api/rooms/${id}${password !== null ? `?hash=${password}` : ''}`)
-                .then((data) => resolve(data))
-                .catch((reason) => reject(reason));
-        });
+        // return new Promise((resolve, reject) => {
+        //     axios.get(`/api/rooms/${id}${password !== null ? `?hash=${password}` : ''}`)
+        //         .then((data) => resolve(data))
+        //         .catch((reason) => reject(reason));
+        // });
+        setRoomId(id);
+        return await getRoomAsync(id, password);
     }
 
     return (

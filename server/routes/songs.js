@@ -3,7 +3,7 @@ const moment  = require('moment');
 const router  = express.Router();
 
 router.get("/", async (req, res) => {
-    const { name, type, title_id } = req.query;
+    const { name, type, id } = req.query;
 
     // if (!name) {
     //     res.status(406).send("Not acceptable - Query 'name' is empty.");
@@ -12,7 +12,7 @@ router.get("/", async (req, res) => {
     // console.log(nameFiltered);
 
     try {
-        const result = await db.get_songs_starts_with({ name, type, title_id });
+        const result = await db.get_songs_starts_with({ name, type, id });
         res.json(result);
     } catch (error) {
         res.status(404).send("Not found");

@@ -4,6 +4,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SettingsContext } from '../context/SettingsProvider';
 import { RoomDispatchContext } from '../context/RoomProvider';
+import { createRoomAsync } from '../api/export';
 
 const HomePage = () => {
     const { username } = useContext(SettingsContext);
@@ -38,7 +39,7 @@ const HomePage = () => {
         setHasPass(checked);
     }
 
-    const createRoom = async () => {
+    const setupRoom = async () => {
         let roomName;
         if (!name || name === '') {
             roomName = `${username}'s room`;
@@ -49,15 +50,16 @@ const HomePage = () => {
         const passwordHash = hasPass ? crypto.MD5(localPassword).toString() : null;
         
         try {
-            const response = await fetch(`/api/rooms`, {
-                method: "POST",
-                body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
-                headers: {
-                    "Content-Type": "application/json"
-                },
-            });
-    
-            const { id, ownerId } = await response.json();
+            // const response = await fetch(`/api/rooms`, {
+            //     method: "POST",
+            //     body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     },
+            // });
+            // const { id, ownerId } = await response.json();
+            const { id, ownerId } = await createRoomAsync(roomName, false, passwordHash);
+
             setOwner(ownerId);
             navigate(`room/${id}`, { state: { passwordHash }});
         } catch (error) {
@@ -97,7 +99,7 @@ const HomePage = () => {
                         value={localPassword} onInput={(e) => setLocalPassword(e.target.value)} />
                 </>}
                 
-                <button className='btn' onClick={createRoom}>Create</button>
+                <button className='btn' onClick={setupRoom}>Create</button>
             </div>
         </div>
     );

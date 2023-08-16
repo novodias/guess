@@ -29,7 +29,7 @@ class GuessDb {
             }
 
             if (this.beat.lastbeat !== now.getMinutes()) {
-                console.log(`[Db/Heartbeat] ${(this.beat.count / 60).toFixed(2)} connections per minute`);
+                console.log(`[Db/Heartbeat] ${this.beat.count} connections per minute`);
                 this.beat.count = 0;
                 this.beat.lastbeat = now.getMinutes();
             }

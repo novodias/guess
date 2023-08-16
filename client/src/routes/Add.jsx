@@ -4,6 +4,7 @@ import Alert from '../components/Alert';
 import TagsContainer from '../components/add/Tags'
 import TitleContainer from '../components/add/Title'
 import SongContainer from '../components/add/Song'
+import { createAsync } from '../api/export';
 
 export default function AddPage() {
     const [id, setId] = useState(0);
@@ -45,7 +46,7 @@ export default function AddPage() {
 
         /**
          * 
-         * @param {Response} response 
+         * @param {import('axios').AxiosResponse} response 
          */
         const verifyError = (response) => {
             const status = response.status.toString();
@@ -56,25 +57,29 @@ export default function AddPage() {
         }
 
         try {
-            const response = await fetch(`/api/create`, {
-                method: 'POST',
-                mode: 'cors',
-                cache: "no-cache",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title_id: id,
-                    title_name: name,
-                    title_type: type,
-                    title_tags: tags,
-                    song_name: songName,
-                    youtube_id: youtubeId
-                }),
-            });
+            // const response = await fetch(`/api/create`, {
+            //     method: 'POST',
+            //     mode: 'cors',
+            //     cache: "no-cache",
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     },
+            //     body: JSON.stringify({
+            //         title_id: id,
+            //         title_name: name,
+            //         title_type: type,
+            //         title_tags: tags,
+            //         song_name: songName,
+            //         youtube_id: youtubeId
+            //     }),
+            // });
+            const response = await createAsync(
+                { id, name, type, tags },
+                songName, youtubeId
+            );
 
             if (verifyError(response)) {
-                throw new Error(await response.text());
+                throw new Error(response.statusText);
             }
 
             setSuccess({type: 'success', message: "The song was successfully created!"})

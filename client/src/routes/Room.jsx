@@ -1,15 +1,15 @@
-import './Room.css';
-import axios from 'axios';
 import React, { useEffect, useState, useContext } from 'react';
-import { SettingsContext } from '../context/SettingsProvider';
 import useWebSocket from 'react-use-websocket';
-// import { useLoaderData, useNavigate } from 'react-router-dom';
+
+import './Room.css';
+import { SettingsContext } from '../context/SettingsProvider';
 import { Chat, CopyLink, Difficulty, Guest, OwnerButton } from '../components/room/Export';
-import InputTitles from '../components/InputTitles';
 import { LogoutRounded } from '@mui/icons-material';
-import YoutubePlayer from '../components/YoutubePlayer';
 import { useRoomContext } from '../context/RoomProvider';
-// import { useParams } from 'react-router-dom';
+import { error } from '../api/export';
+import YoutubePlayer from '../components/room/YoutubePlayer';
+import InputTitles from '../components/InputTitles';
+
 // import { Status } from '../components/room/Guest';
 
 function Crown() {
@@ -20,17 +20,21 @@ function Crown() {
     );
 }
 
+function updateGuest(player, stat) {
+    if (player.id === stat.id) {
+        player.points = stat.points;
+        player.status = stat.status;
+        return player;
+    } else {
+        return player;
+    }
+}
+
 const webSocketAddress = (process.env.NODE_ENV === 'development' ?
     `ws://${window.location.hostname}:3001` :
     `ws://${window.location.hostname}:3000`) + `/socket`;
 
 function RoomPage() {
-    // const room = useLoaderData();
-    // let navigate = useNavigate();
-    // let nickname = sessionStorage.getItem("nickname");
-    // nickname = nickname === null ? "Guest" : nickname;
-    // const [owner, setOwner] = useState('');
-
     const { username } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
@@ -60,14 +64,25 @@ function RoomPage() {
             }
 
             if (message.type === "exited") {
-                const { id } = body;
+                const { id, kicked } = body;
                 const player = guests.find(g => g.id === id);
-                setChat([...chat, {
-                    text: `${player.nickname} was kicked from the game.`, 
-                    nickname: "System",
-                    isSystem: true
-                }]);
 
+                let systemMessage;
+                if (!kicked) {
+                    systemMessage = {
+                        text: `${player.nickname} exited the game.`, 
+                        nickname: "System",
+                        isSystem: true
+                    }
+                } else {
+                    systemMessage = {
+                        text: `${player.nickname} was kicked from the game.`, 
+                        nickname: "System",
+                        isSystem: true
+                    }
+                }
+
+                setChat([...chat, systemMessage]);
                 setGuests(array => array.filter(g => g.id !== id));
             }
 
@@ -80,19 +95,10 @@ function RoomPage() {
                 setChat([...chat, body]);
             }
 
-            if (message.type === "change") {
-                const { playerId, points, status } = body;
-                const updateGuests = guests.map(g => {
-                    if (g.id === playerId) {
-                        g.points = points;
-                        g.status = status;
-                        return g;
-                    } else {
-                        return g;
-                    }
-                })
+            if (message.type === "change") {                
+                // const updatedGuests = guests.map(g => updateGuest(g, body))
                 
-                setGuests(updateGuests);
+                setGuests(list => list.map(g => updateGuest(g, body)));
             }
 
             if (message.type === "prepare") {
@@ -131,7 +137,7 @@ function RoomPage() {
                 e.id = playerId;
                 e.nickname = username;
                 e.date = new Date();
-                axios.post('api/error', e);
+                error(e);
             }
         },
         shouldReconnect: () => false,
@@ -189,24 +195,17 @@ function RoomPage() {
     }
 
     useEffect(() => {
-        // const ownerId = sessionStorage.getItem("RoomOwnerId");
-        // ownerId && setOwner(ownerId);
-        // ownerId && sessionStorage.removeItem("RoomOwnerId");
-
-        // if (room.requirePassword) {
-        //     navigate(`/enter/${room.id}`, { state: room });
-        // } else {
-        //     window.history.replaceState(null, "Room", "/room");
-        //     // this prevents sending joined to websocket again
-        //     if (id === null) {
-        //         sendJsonMessage({ type: "joined", body: { nickname: username, room_id: room.id } });
-        //     }
-        // }
-
         window.history.replaceState(null, "Room", "/room");
+        
         // this prevents sending joined to websocket again
         if (playerId === null) {
-            sendJsonMessage({ type: "joined", body: { nickname: username, room_id: roomId } });
+            sendJsonMessage({
+                type: "joined",
+                body: {
+                    nickname: username,
+                    room_id: roomId
+                }
+            });
         }
     }, [sendJsonMessage, roomId, playerId, username]);
 
@@ -231,26 +230,21 @@ function RoomPage() {
     );
 }
 
-export async function RoomLoader({ params }) {
-    let passwordHash = sessionStorage.getItem("RoomPasswordHash");
-    passwordHash && sessionStorage.removeItem("RoomPasswordHash");
-
-    const res = await fetch(`/api/rooms/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
-
-    if (!res.ok) {
-        // Wrong password
-        if (res.status === 400) {    
-            return await res.json();
-        }
-        
-        if (res.status === 404) {
-            throw new Response("Not Found", { status: 404 });
-        }
-        
-        throw new Error(res.status);
-    }
-    
-    return await res.json();
-}
+// export async function RoomLoader({ params }) {
+//     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
+//     passwordHash && sessionStorage.removeItem("RoomPasswordHash");
+//     const res = await fetch(`/api/rooms/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
+//     if (!res.ok) {
+//         // Wrong password
+//         if (res.status === 400) {    
+//             return await res.json();
+//         }
+//         if (res.status === 404) {
+//             throw new Response("Not Found", { status: 404 });
+//         }
+//         throw new Error(res.status);
+//     }
+//     return await res.json();
+// }
 
 export default RoomPage;

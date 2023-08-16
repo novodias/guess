@@ -224,7 +224,7 @@ class Room {
                 }
 
                 // console.log("kick:", body);
-                this.removePlayer(body.id, 3000, "You got kicked from the room.");
+                this.removePlayer(body.id, 3000, "You got kicked from the room.", true);
             },
 
             "submit": () => {
@@ -374,7 +374,7 @@ class Room {
         player.send(object);
     }
 
-    removePlayer(id, code = undefined, reason = undefined) {
+    removePlayer(id, code = undefined, reason = undefined, kicked = false) {
         const player = this._getPlayer(id);
         player && player.closeWebSocket(code, reason);
 
@@ -386,10 +386,12 @@ class Room {
             this._clearTimer();
             this.emit("empty", this.id);
         } else {
-            // broadcast player that exited
             const message = {
                 type: "exited",
-                body: { id }
+                body: {
+                    id,
+                    kicked
+                }
             };
 
             this.broadcast(message);

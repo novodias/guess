@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
 import './Options.css';
-import { SettingsContext, SettingsDispatchContext } from '../context/SettingsProvider';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { SettingsContext, SettingsDispatchContext } from '../../context/SettingsProvider';
 
 export default function SettingsBubble({ hide }) {
     const { username } = useContext(SettingsContext);
-    const setSettingsDetails = useContext(SettingsDispatchContext);
+    const setSettings = useContext(SettingsDispatchContext);
     const [display, setDisplay] = useState('none');
     const timerRef = useRef(null);
 
@@ -23,9 +23,8 @@ export default function SettingsBubble({ hide }) {
     }, [hide]);
 
     const setUsername = (e) => {
-        setSettingsDetails({
-            username: e.target.value
-        });
+        const text = e.target.value;
+        setSettings({ username: text || "Guest" });
     }
 
     return (
@@ -36,7 +35,7 @@ export default function SettingsBubble({ hide }) {
             <div>
                 <label htmlFor='options-nickname-input'>Name</label>
                 <input type="text" id='options-nickname-input' placeholder='Guest'
-                    value={username} onInput={setUsername} />
+                    value={username} onChange={setUsername} />
             </div>
             <div className='bubble-space'></div>
             <div className='bubble-end'>

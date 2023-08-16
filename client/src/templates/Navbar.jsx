@@ -1,8 +1,8 @@
-import * as React from 'react';
 import './Navbar.css';
+import * as React from 'react';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
-import SettingsBubble from '../components/Options';
+import SettingsBubble from '../components/nav/Options';
 import { Link } from 'react-router-dom';
 
 const Navbar = ({ showOptions, onClick }) => {

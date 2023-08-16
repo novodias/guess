@@ -9,9 +9,16 @@ function SettingsProvider({ children }) {
         quality: "360p"
     });
 
+    const setSettings = ({ username = null, quality = null }) => {
+        setSettingsDetails({
+            username: username || settingsDetails.username,
+            quality: quality || settingsDetails.quality
+        });
+    }
+
     return (
         <SettingsContext.Provider value={settingsDetails}>
-            <SettingsDispatchContext.Provider value={setSettingsDetails}>
+            <SettingsDispatchContext.Provider value={setSettings}>
                 {children}
             </SettingsDispatchContext.Provider>
         </SettingsContext.Provider>
