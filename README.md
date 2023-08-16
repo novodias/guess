@@ -1,5 +1,5 @@
 # Ritmovu (Guess)
-- Created with React (Client) and Express (API)
+Created with React (Client) and Express (API)
 
 ## Setup database
 
@@ -14,7 +14,7 @@ $ npm i --prefix server
 ```
 
 ### Development build
-Run `./start-dev.sh` to start the development build.
+Run `./start-dev.sh` to start the development build. The script start both servers with hotloading.
 
 ### Production build
 Run these commands to build production.
