@@ -57,22 +57,6 @@ export default function AddPage() {
         }
 
         try {
-            // const response = await fetch(`/api/create`, {
-            //     method: 'POST',
-            //     mode: 'cors',
-            //     cache: "no-cache",
-            //     headers: {
-            //         "Content-Type": "application/json"
-            //     },
-            //     body: JSON.stringify({
-            //         title_id: id,
-            //         title_name: name,
-            //         title_type: type,
-            //         title_tags: tags,
-            //         song_name: songName,
-            //         youtube_id: youtubeId
-            //     }),
-            // });
             const response = await createAsync(
                 { id, name, type, tags },
                 songName, youtubeId
@@ -114,18 +98,16 @@ export default function AddPage() {
     }
 
     return (
-        <div>
-            <form onSubmit={_onFormSubmit}>
-                <div id='create-container'>
-                    <TitleContainer id={id} onDropdownClick={_onDropdownClick}
-                        setSearchQuery={setSearchQuery} setTag={setTag}
-                        type={type} />
-                    <TagsContainer tags={tags} setTags={setTags} />
-                    <SongContainer songName={songName} youtubeId={youtubeId}
-                        setSongName={setSongName} setYoutubeId={matchYoutubeId} />
-                    {success && <Alert message={success.message} type={success.type} />}
-                </div>
-            </form>
-        </div>
+        <form className='add-form row' onSubmit={_onFormSubmit}>
+            <div id='create-container' className='col'>
+                <TitleContainer id={id} onDropdownClick={_onDropdownClick}
+                    setSearchQuery={setSearchQuery} setTag={setTag}
+                    type={type} />
+                <TagsContainer tags={tags} setTags={setTags} />
+                <SongContainer songName={songName} youtubeId={youtubeId}
+                    setSongName={setSongName} setYoutubeId={matchYoutubeId} />
+                {success && <Alert message={success.message} type={success.type} />}
+            </div>
+        </form>
     );
 }

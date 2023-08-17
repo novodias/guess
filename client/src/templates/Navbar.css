@@ -1,7 +1,12 @@
+header {
+    z-index: 999;
+}
+
 #navbar {
     position: static;
     min-width: 100vw;
-    z-index: 10;
+    z-index: 999;
+    filter: drop-shadow(0px -5px 10px var(--color-four));
 }
 
 #navbar ul {

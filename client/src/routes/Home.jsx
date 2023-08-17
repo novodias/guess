@@ -5,6 +5,26 @@ import { useNavigate } from 'react-router-dom';
 import { SettingsContext } from '../context/SettingsProvider';
 import { RoomDispatchContext } from '../context/RoomProvider';
 import { createRoomAsync } from '../api/export';
+import NavigationIcon from '@mui/icons-material/Navigation';
+
+function JoinContainer({room, onInput, onKeyUp, redirectPage}) {
+    return (
+        <div className='col container join-container'>
+            <h2>Join a room</h2>
+            <label htmlFor='join-room-input'>Room code</label>
+            <h3>Insert the code below</h3>
+            <div className='input-btn-grouped row'>
+                <input id='join-room-input' value={room}
+                    placeholder='Ex.: ABC12345' type='text'
+                    onInput={onInput} autoComplete='off'
+                    onKeyUp={onKeyUp} />
+                <button className="btn" onClick={redirectPage}>
+                    <NavigationIcon style={{rotate: "90deg"}}/>
+                </button>
+            </div>
+        </div>
+    )
+}
 
 const HomePage = () => {
     const { username } = useContext(SettingsContext);
@@ -50,14 +70,6 @@ const HomePage = () => {
         const passwordHash = hasPass ? crypto.MD5(localPassword).toString() : null;
         
         try {
-            // const response = await fetch(`/api/rooms`, {
-            //     method: "POST",
-            //     body: JSON.stringify({ name: roomName, passwordHash, isPrivate: false }),
-            //     headers: {
-            //         "Content-Type": "application/json"
-            //     },
-            // });
-            // const { id, ownerId } = await response.json();
             const { id, ownerId } = await createRoomAsync(roomName, false, passwordHash);
 
             setOwner(ownerId);
@@ -69,7 +81,7 @@ const HomePage = () => {
 
     return (
         <div className='home-container'>
-            <div className='col container join-container'>
+            {/* <div className='col container join-container'>
                 <h2>Join a room</h2>
                 <label htmlFor='join-room-input'>Room code</label>
                 <h3>Insert the code below</h3>
@@ -78,7 +90,10 @@ const HomePage = () => {
                     onInput={_onInput} autoComplete='off'
                     onKeyUp={_onKeyUp} />
                 <button className="btn" onClick={redirectPage}>Join</button>
-            </div>
+            </div> */}
+            <JoinContainer onInput={_onInput} onKeyUp={_onKeyUp} 
+                room={room} redirectPage={redirectPage} />
+            
             <div className='col container'>
                 <h2>Create a room</h2>
                 <label htmlFor="create-room-input">Name</label>

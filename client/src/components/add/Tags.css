@@ -1,7 +1,3 @@
-.tags-container {
-    z-index: 0;
-}
-
 .tags-input-container {
     padding: 5px;
     margin-top: 10px;
@@ -15,6 +11,7 @@
     margin-top: 10px;
     flex-wrap: wrap;
     gap: 8px;
+    max-width: 500px;
 }
 
 .tags-wrapper > span {
@@ -24,9 +21,19 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
+    transition: transform 0.1s;
+    transition: filter 0.1s;
+    user-select: none;
 }
 
 .tags-wrapper > span:hover {
     background-color: var(--bg-crimsom);
+    color: white;
+}
+
+.tags-wrapper > span:active {
+    transform: scale(0.95);
+    background-color: var(--bg-crimsom);
+    filter: brightness(75%);
     color: white;
 }
