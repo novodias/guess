@@ -1,9 +1,17 @@
+@keyframes increase_height {
+    from { max-height: 0px; }
+    to { max-height: 250px; }
+}
+
 .dropdown {
     display: none;
     position: absolute;
     width: 350px;
     z-index: 100;
-    /* max-height: 250px; */
+    height: auto;
+    max-height: 0px;
+    overflow-y: auto;
+    animation: increase_height normal forwards 0.4s ease-out;
 }
 
 .dropdown ul {
@@ -12,7 +20,6 @@
     border-bottom-right-radius: 8px;
     border-bottom-left-radius: 8px;
     overflow-y: auto;
-    max-height: 250px;
     border: 0;
     font-size: 1.0em;
 }

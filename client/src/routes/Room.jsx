@@ -30,6 +30,10 @@ function updateGuest(player, stat) {
     }
 }
 
+function prepareMessage(type, body) {
+    return { type, body };
+}
+
 const webSocketAddress = (process.env.NODE_ENV === 'development' ?
     `ws://${window.location.hostname}:3001` :
     `ws://${window.location.hostname}:3000`) + `/socket`;
@@ -196,7 +200,9 @@ function RoomPage() {
 
     useEffect(() => {
         window.history.replaceState(null, "Room", "/room");
-        
+    });
+
+    useEffect(() => {        
         // this prevents sending joined to websocket again
         if (playerId === null) {
             sendJsonMessage({

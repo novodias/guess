@@ -18,9 +18,12 @@ export async function getRoomAsync(id, hash = null) {
             if (error.response.status === 400) {
                 data = error.response.data;
                 return data;
+            } else {
+                throw error;
             }
         } else {
-            console.error(error);
+            // console.error(error);
+            throw error;
         }
     }
 

@@ -1,6 +1,6 @@
 import crypto from 'crypto-js';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRoomContext, useRoomDispatchContext } from '../../context/RoomProvider';
 import { LockRounded } from '@mui/icons-material';
 import Alert from '../Alert';
@@ -20,19 +20,24 @@ function AuthenticateRoom({ name, setPass, loadRoom, message }) {
 
     return (
         <div className='col container'>
-            <h2><LockRounded /> The {name || `room`} requires a password</h2>
-            <label htmlFor="create-room-password-input">Password</label>
-            <h3>Insert the room's password below</h3>
-            <input type='password' id='create-room-password-input'
-                value={password} onChange={_onChange}
-                style={{ fontSize: '1.5em' }} autoComplete='off'
-            />
-            {message && <Alert message={message} style={{ marginTop: '20px' }} type={'danger'} />}
-            <button className='btn'
-                style={{ alignSelf: 'flex-end', marginTop: '20px' }}
-                onClick={handleSubmit}>
-                Enter
-            </button>
+            <div className='header-container' style={{color: "white", background: "crimson"}}>
+                <h2><LockRounded /> The room requires a password</h2>
+            </div>
+            <div className='col inner-container'>
+                <h2 style={{marginLeft: "0px"}}>{name}</h2>
+                <label htmlFor="create-room-password-input" style={{marginTop: "20px"}}>Password</label>
+                <h3>Insert the room's password below</h3>
+                <input type='password' id='create-room-password-input'
+                    value={password} onChange={_onChange}
+                    style={{ fontSize: '1.5em' }} autoComplete='off'
+                />
+                {message && <Alert message={message} style={{ marginTop: '20px' }} type={'danger'} />}
+                <button className='btn'
+                    style={{ alignSelf: 'flex-end', marginTop: '20px' }}
+                    onClick={handleSubmit}>
+                    Enter
+                </button>
+            </div>
         </div>
     );
 }
@@ -40,6 +45,7 @@ function AuthenticateRoom({ name, setPass, loadRoom, message }) {
 export default function ProtectedRoom({ children }) {
     const { id } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const { setName } = useRoomDispatchContext();
     const { getRoom, name } = useRoomContext();
     
@@ -71,7 +77,7 @@ export default function ProtectedRoom({ children }) {
             return room;
         } catch (error) {
             console.error(error);
-            setMessage(error.message);
+            setMessage(error.response.data);
         } finally {
             setLoading(false);
         }
@@ -120,11 +126,13 @@ export default function ProtectedRoom({ children }) {
                 <Spinner sx={128} sy={128} />
             </div>
         )
-    } 
+    }
     
     if (auth) {
         return <AuthenticateRoom name={name} message={message}
             setPass={setPass} loadRoom={loadRoomAsync} />
+    } else if (!auth && message) {
+        navigate("/", { state: { id, message }})
     }
 
     return (

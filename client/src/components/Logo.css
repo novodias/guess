@@ -1,0 +1,31 @@
+.logo-ritmovu {
+    position: absolute;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-weight: bold;
+    -webkit-text-stroke: .5px rgb(53, 49, 49);
+    filter: drop-shadow(rgb(255,0,0) -2px 2px 0px);
+    font-size: 36px;
+    margin: 20px;
+    left: 0px;
+    top: 0px;
+    transition: transform 0.2s ease-out;
+    transform: scale(0.9);
+    letter-spacing: -2px;
+}
+
+.logo-ritmovu:hover {
+    transform: rotate(-10deg) scale(1);
+}
+
+.logo-ritmovu svg {
+    transform: scale(1.5) rotate(-15deg);
+}
+
+.logo-ritmovu > span {
+    position: relative;
+}
+
+.logo-ritmovu > span:last-child {
+    left: -3px;
+}

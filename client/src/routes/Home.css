@@ -1,22 +1,65 @@
 .home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 20px;
 }
 
-.home-container > .container {
-    width: 100%;
+.you-wrapper::before {
+    background: #A14A9A;
 }
 
-.home-container > .container:first-child, .container:first-child::before {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+.you-wrapper > .header-container {
+    background: #ff3254;
+    color: white;
 }
 
-.home-container > .container:last-child, .container:last-child::before {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+.join-container > .header-container {
+    background-color: #009C58;
+    color: white;
+}
+
+.join-container::before {
+    background: #007D78;
+}
+
+.create-wrapper {
+    grid-column-start: 2;
+    grid-column-end: 2;
+    grid-row: span 2;
+}
+
+.create-wrapper::before {
+    background: #3F25C1;
+}
+
+.create-wrapper::before:hover {
+    transform: translate(0px, -10px) !important;
+}
+
+.create-wrapper::before:focus-within {
+    transform: translate(0px, -10px) !important;
+}
+
+.create-wrapper > .header-container {
+    background-color: #845BFF;
+    color: white;
+}
+
+.rooms-wrapper {
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 2;
+    grid-row-end: 2;
+}
+
+.rooms-wrapper > .header-container {
+    background: #82D173;
+    color: white;
+}
+
+.rooms-wrapper::before {
+    background: #009D8D;
 }
 
 .home-container input {
@@ -30,24 +73,24 @@
 
 .input-btn-grouped {
     height: fit-content;
-    outline: 1px solid var(--btn-primary-bg-active);
-    border-radius: 25px;
+    outline: 1px solid var(--btn-primary-bg);
+    border-radius: 8px;
     overflow: hidden;
 }
 
 .input-btn-grouped:focus-within {
-    outline: 1px solid var(--btn-primary-bg);
+    outline: 1px solid var(--btn-primary-bg-hover);
 }
 
 .input-btn-grouped:focus-within button {
-    background-color: var(--btn-primary-bg);
+    background-color: var(--btn-primary-bg-active);
 }
 
 .input-btn-grouped button {
     margin: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
-    background-color: var(--btn-primary-bg-active);
+    background-color: var(--btn-primary-bg);
     display: flex;
     justify-content: center;
     align-items: center;
