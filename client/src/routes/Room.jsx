@@ -9,12 +9,14 @@ import { useRoomContext } from '../context/RoomProvider';
 import { error } from '../api/export';
 import YoutubePlayer from '../components/room/YoutubePlayer';
 import InputTitles from '../components/InputTitles';
+import LogoRitmovu from '../components/Logo';
 
 // import { Status } from '../components/room/Guest';
 
 function Crown() {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+        style={{filter: "drop-shadow(gray -1px -1px 0px)"}}>
             <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
         </svg>
     );
@@ -202,7 +204,7 @@ function RoomPage() {
         window.history.replaceState(null, "Room", "/room");
     });
 
-    useEffect(() => {        
+    useEffect(() => {
         // this prevents sending joined to websocket again
         if (playerId === null) {
             sendJsonMessage({
@@ -216,23 +218,27 @@ function RoomPage() {
     }, [sendJsonMessage, roomId, playerId, username]);
 
     return (
-        <>
-            <div id='guests-container' className='col'>
+        <div id='room'>
+            <div id='guests-container' className='col container'>
+                <div className='header-container'><h2>Players</h2></div>
                 <Scoreboard />
                 <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
                 <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button>
             </div>
-            <div className='room-container col'>
+            <div className='col container game-container'>
                 <div className={`timer ${timerClass}`}></div>
                 <Difficulty value={'???'} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
                 <YoutubePlayer videoId={video.youtube_id} startAt={video.start_at} play={video.play} />
             </div>
-            <div className='col container chat-container'>
+            <div className='right-wrapper col'>
                 <CopyLink id={roomId} />
-                <Chat messages={chat} onEnter={SendChatMessage} />
+                <div className='col container chat-container'>
+                    <div className='header-container'><h2>Chat</h2></div>
+                    <Chat messages={chat} onEnter={SendChatMessage} />
+                </div>
             </div>
-        </>
+        </div>
     );
 }
 

@@ -1,14 +1,33 @@
+#room {
+    display: flex;
+    height: 100%;
+    min-width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+}
+
 #guests-container {
     width: 300px;
     height: 86vh;
-    background-color: var(--color-three);
-    border-radius: 25px;
-    overflow: hidden;
+    /* background-color: var(--color-three); */
+    border-radius: var(--border-container-radius);
+}
+
+#guests-container::before {
+    background: #006CF8;
 }
 
 #guests-container > div {
     padding: 20px 30px;
-    background-color: var(--color-one);
+    /* background-color: var(--color-one); */
+}
+
+#guests-container > .header-container {
+    padding: 0;
+    color: white;
+    background: #5A44D9;
+    height: 63px;
 }
 
 #scoreboard {
@@ -19,10 +38,15 @@
 }
 
 #scoreboard li {
-    background-color: rgb(20, 20, 20);
+    /* background-color: rgb(20, 20, 20); */
+    background: rgb(255, 255, 255, .3);
     justify-content: center;
     align-items: center;
     align-content: center;
+}
+
+#scoreboard .guest-info h3 {
+    font-size: 1em;
 }
 
 #scoreboard .btn-kick {
@@ -63,7 +87,7 @@
     transform: scale(1.1);
 }
 
-.room-container {
+.game-container {
     width: 50%;
     height: 86vh;
     justify-content: center;
@@ -71,8 +95,8 @@
     gap: 12px;
     /* padding: 0px 10px; */
     margin: 0 10px;
-    border-radius: 25px;
-    background-color: var(--color-three);
+    /* border-radius: 25px; */
+    /* background-color: var(--color-three); */
     
     position: relative;
     overflow: hidden;
@@ -82,9 +106,9 @@
     position: absolute;
     height: 24px;
     width: 100%;
-    top: 0;
-    background-color: rgba(255, 255, 255, 0.5);
-    filter: drop-shadow(0 0 0.75rem rgba(255, 255, 255, 0.5));
+    top: 0px;
+    background-color: rgba(180, 180, 180, 0.301);
+    /* filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.5)); */
     /* animation: start_timer 30s infinite ease-out; */
 }
 
@@ -122,18 +146,18 @@
     }
 }
 
-.room-container .difficulty-container {
+.game-container .difficulty-container {
     justify-content: center;
     align-items: center;
     overflow: hidden;
     width: 100%;
 }
 
-.room-container .difficulty-container > * {
+.game-container .difficulty-container > * {
     padding: 10px 20px;
 }
 
-.room-container .difficulty-container h2 {
+.game-container .difficulty-container h2 {
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
     background-color: var(--color-two);
@@ -142,7 +166,7 @@
     opacity: 0.5;
 }
 
-.room-container .difficulty-container span {
+.game-container .difficulty-container span {
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     font-size: 1em;
@@ -160,15 +184,32 @@
     width: 50%;
 }
 
-.copy-link-container {
-    order: 0;
-    padding: 10px;
-    align-self: center;
+.right-wrapper {
+    gap: 10px;
+    height: 86vh;
 }
 
+.right-wrapper .container::before {
+    transform: translate(5px, -5px);
+}
+
+.right-wrapper .container:hover::before {
+    transform: translate(10px, -10px);
+}
+
+.copy-link-container {
+    order: 0;
+    padding: 10px 0px;
+    align-self: center;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* 
 .copy-link-container::before {
     content: none;
-}
+} */
 
 .copy-link-container div {
     width: fit-content;
@@ -204,7 +245,7 @@
     filter: blur(0.4rem);
 }
 
-.room-container > .dropdown-input-container {
+.game-container > .dropdown-input-container {
     position: relative;
     width: 80%;
     /* align-items: center; */
@@ -217,7 +258,7 @@
     font-size: 1.5rem;
 }
 
-.room-container > .dropdown {
+.game-container > .dropdown {
     position: absolute;
     background: none;
     min-height: 100%;
@@ -227,24 +268,30 @@
     z-index: 999;
 }
 
-.room-container > .dropdown ul {
+.game-container > .dropdown ul {
     background-color: var(--color-two);
     width: 100%;
 }
 
 .chat-container {
-    height: 86vh;
+    flex-grow: 1;
     width: 300px;
     padding: 0;
 }
 
+.chat-container > .header-container {
+    color: white;
+    background: #00b7ff;
+}
+
 .chat-container::before {
-    content: none;
+    /* content: none; */
+    background: #7685E4;
 }
 
 #chat {
     flex-grow: 1;
-    background-color: var(--color-three);
+    background-color: rgba(156, 156, 156, 0.1);
     overflow-y: auto;
     flex-direction: column-reverse;
 }
@@ -273,6 +320,7 @@
 
 #chat h2 {
     font-size: 1.2em;
+    margin: 0;
     color: rgb(128, 128, 128);
 }
 

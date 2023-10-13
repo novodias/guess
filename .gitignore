@@ -11,6 +11,9 @@
 # development
 server/dev
 
+# assets
+server/musics
+
 # production
 client/build
 
