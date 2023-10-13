@@ -118,14 +118,20 @@ api.post("/create", async (req, res) => {
     }
 });
 
+const musics = require('./routes/musics');
 const rooms = require('./routes/room');
 const songs = require('./routes/songs');
 const titles = require('./routes/titles');
 const { compareArrays } = require('./utils');
 
+api.use("/musics", musics);
+console.log("Route /musics enabled");
 api.use("/rooms", rooms);
+console.log("Route /rooms enabled");
 api.use("/songs", songs);
+console.log("Route /songs enabled");
 api.use("/titles", titles);
+console.log("Route /titles enabled");
 
 app.use("/api", api);
 

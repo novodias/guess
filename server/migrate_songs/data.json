@@ -1,0 +1,191 @@
+[
+    {
+        "id": 1,
+        "song_name": "Underground",
+        "youtube_id": "c-OttnZEXZo",
+        "title_id": 1,
+        "name": "Terraria"
+    },
+    {
+        "id": 2,
+        "song_name": "Day",
+        "youtube_id": "x23I8f9PwlI",
+        "title_id": 1,
+        "name": "Terraria"
+    },
+    {
+        "id": 3,
+        "song_name": "Firelink Shrine",
+        "youtube_id": "M6GK8HhjQQE",
+        "title_id": 2,
+        "name": "Dark Souls"
+    },
+    {
+        "id": 4,
+        "song_name": "Menu Theme",
+        "youtube_id": "IMWTyxrBgRU",
+        "title_id": 2,
+        "name": "Dark Souls"
+    },
+    {
+        "id": 5,
+        "song_name": "Left for Death",
+        "youtube_id": "5CGqSkckg_4",
+        "title_id": 3,
+        "name": "Left 4 Dead"
+    },
+    {
+        "id": 6,
+        "song_name": "Halls Of Science 4",
+        "youtube_id": "-vZ2OMh-YkA",
+        "title_id": 4,
+        "name": "Portal 2"
+    },
+    {
+        "id": 7,
+        "song_name": "Arrival To Earth",
+        "youtube_id": "0_FHPJIhNBw",
+        "title_id": 5,
+        "name": "Transformers"
+    },
+    {
+        "id": 8,
+        "song_name": "Main Theme",
+        "youtube_id": "PDM2qukzKwg",
+        "title_id": 6,
+        "name": "Team Fortress 2"
+    },
+    {
+        "id": 9,
+        "song_name": "Sweden",
+        "youtube_id": "aBkTkxKDduc",
+        "title_id": 7,
+        "name": "Minecraft"
+    },
+    {
+        "id": 11,
+        "song_name": "On The Precipice of Defeat",
+        "youtube_id": "PLyi5xHtkb0",
+        "title_id": 8,
+        "name": "Bleach"
+    },
+    {
+        "id": 12,
+        "song_name": "Trailer Song",
+        "youtube_id": "cSJr2yWaSVw",
+        "title_id": 9,
+        "name": "Grand Theft Auto V"
+    },
+    {
+        "id": 13,
+        "song_name": "Rocket Jump Waltz",
+        "youtube_id": "kbdtBLD8Lbg",
+        "title_id": 6,
+        "name": "Team Fortress 2"
+    },
+    {
+        "id": 14,
+        "song_name": "Mice on Venus",
+        "youtube_id": "DZ47H84Bc_Q",
+        "title_id": 7,
+        "name": "Minecraft"
+    },
+    {
+        "id": 15,
+        "song_name": "Soviet Connection",
+        "youtube_id": "PvT8Kx1WC64",
+        "title_id": 10,
+        "name": "Grand Theft Auto IV"
+    },
+    {
+        "id": 16,
+        "song_name": "Night",
+        "youtube_id": "5Amwk16RgEo",
+        "title_id": 1,
+        "name": "Terraria"
+    },
+    {
+        "id": 17,
+        "song_name": "Awaken",
+        "youtube_id": "lRrOLTHu-ew",
+        "title_id": 11,
+        "name": "JoJo's Bizarre Adventure: Battle Tendency"
+    },
+    {
+        "id": 18,
+        "song_name": "Stardust Crusaders",
+        "youtube_id": "NFjE5A4UAJI",
+        "title_id": 12,
+        "name": "JoJo's Bizarre Adventure: Stardust Crusaders"
+    },
+    {
+        "id": 19,
+        "song_name": "Main Menu",
+        "youtube_id": "Q8Je4Vyo7r0",
+        "title_id": 13,
+        "name": "Counter-Strike: Global Offensive"
+    },
+    {
+        "id": 20,
+        "song_name": "Main Menu",
+        "youtube_id": "hAm49X3PQ-E",
+        "title_id": 14,
+        "name": "Grand Theft Auto: San Andreas"
+    },
+    {
+        "id": 21,
+        "song_name": "Welcome to Los Santos",
+        "youtube_id": "KzKvPrIPVbE",
+        "title_id": 9,
+        "name": "Grand Theft Auto V"
+    },
+    {
+        "id": 22,
+        "song_name": "Bonetrousle",
+        "youtube_id": "zdeZwAk6ULE",
+        "title_id": 15,
+        "name": "Undertale"
+    },
+    {
+        "id": 23,
+        "song_name": "Megalovania",
+        "youtube_id": "c5daGZ96QGU",
+        "title_id": 15,
+        "name": "Undertale"
+    },
+    {
+        "id": 24,
+        "song_name": "Death By Glamour",
+        "youtube_id": "Q9kDr4na0ls",
+        "title_id": 15,
+        "name": "Undertale"
+    },
+    {
+        "id": 25,
+        "song_name": "Running in The 90's",
+        "youtube_id": "XCiDuy4mrWU",
+        "title_id": 16,
+        "name": "Initial D"
+    },
+    {
+        "id": 26,
+        "song_name": "il vento d'oro",
+        "youtube_id": "FPyIMtXsIcY",
+        "title_id": 17,
+        "name": "JoJo's Bizarre Adventure: Golden Wind"
+    },
+    {
+        "id": 27,
+        "song_name": "Main Title Theme",
+        "youtube_id": "5AI44gnaLxY",
+        "title_id": 18,
+        "name": "Better Call Saul"
+    },
+    {
+        "id": 28,
+        "song_name": "Main Title Theme",
+        "youtube_id": "ilfYnhXD-bE",
+        "title_id": 19,
+        "name": "Breaking Bad"
+    }
+]
