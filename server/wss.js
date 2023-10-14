@@ -72,7 +72,10 @@ class RoomsCluster {
 
         RoomsCluster._instance = this;
 
-        this.wss = new webSocket.Server({ server: server, path: "/socket" });
+        this.wss = new webSocket.Server({
+            server: server,
+            path: "/socket",
+        });
         this.rooms = new Map();
         this.db = db;
         this._addEvents();

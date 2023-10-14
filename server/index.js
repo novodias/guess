@@ -15,7 +15,11 @@ const path                  = require('path');
 const db = new GuessDb();
 
 const app = express()
-    .use(cors())
+    .use(cors({
+        credentials: true,
+        origin: ["https://ritmovu.dev", "https://api.ritmovu.dev", "https://cdn.ritmovu.dev"],
+        methods: "GET, POST",
+    }))
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: false }));
 
@@ -123,21 +127,29 @@ const rooms = require('./routes/room');
 const songs = require('./routes/songs');
 const titles = require('./routes/titles');
 const { compareArrays } = require('./utils');
+const subdomain = require('express-subdomain');
 
-api.use("/musics", musics);
+api.use("/musics", subdomain('cdn', musics));
+// api.use("/musics", musics);
 console.log("Route /musics enabled");
+
+// api.use("/rooms", subdomain('api', rooms));
 api.use("/rooms", rooms);
 console.log("Route /rooms enabled");
+
+// api.use("/songs", subdomain('api', songs));
 api.use("/songs", songs);
 console.log("Route /songs enabled");
+
+// api.use("/titles", subdomain('api', titles));
 api.use("/titles", titles);
 console.log("Route /titles enabled");
 
-app.use("/api", api);
+app.use("/", api);
 
 let server;
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.HTTPS === 'true') {
     try {
         const options = {
             key: readFileSync(process.env.HTTPS_KEY),
