@@ -5,8 +5,20 @@ import axios from 'axios';
 
 export const client = axios.create({
     baseURL: '/api',
-    timeout: 1000 * 30
+    timeout: 1000 * 30,
 });
+
+/**
+ * 
+ * @param {string} name 
+ * @param {string} song_name 
+ * @returns 
+ */
+export function getMusicUrl(name, song_name) {
+    name = name.replace(":", "").replace("'", "");
+    song_name = song_name.replace(":", "").replace("'", "");
+    return `cdn/musics/${name}/${song_name}`;
+}
 
 /**
  * 

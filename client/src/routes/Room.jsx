@@ -37,8 +37,8 @@ function prepareMessage(type, body) {
 }
 
 const webSocketAddress = (process.env.NODE_ENV === 'development' ?
-    `ws://${window.location.hostname}:3001` :
-    `ws://${window.location.hostname}:3000`) + `/socket`;
+    `wss://${window.location.hostname}:3001` :
+    `wss://${window.location.hostname}:3000`) + `/socket`;
 
 function RoomPage() {
     const { username } = useContext(SettingsContext);
