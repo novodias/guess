@@ -4,6 +4,7 @@ const Room = require('./room');
 const { Player, PlayerStatus } = require('./player');
 const { GuessDb, Song } = require('./db');
 const random = require('./utils');
+const createRoomMapStore = require('./roomStore');
 
 // const _messageHandler = {
 //     /**
@@ -77,6 +78,7 @@ class RoomsCluster {
             path: "/socket",
         });
         this.rooms = new Map();
+        // this.roomsStore = createRoomMapStore();
         this.db = db;
         this._addEvents();
         

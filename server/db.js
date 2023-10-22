@@ -2,6 +2,15 @@ const pg = require('pg');
 const moment = require('moment');
 
 class Song {
+
+    /**
+     * 
+     * @param {Number} title_id 
+     * @param {String} type 
+     * @param {String} song_name 
+     * @param {Number} song_duration 
+     * @param {String} youtube_id 
+     */
     constructor(title_id, type, song_name, song_duration, youtube_id) {
         this.title_id = title_id;
         this.type = type;
@@ -267,7 +276,8 @@ class GuessDb {
 
         const query = {
             // text: `SELECT * FROM f_random_sample(null::"songs", 'oDD ID', $1, 1.03)`,
-            text: `SELECT * FROM songs ${type && 'WHERE type = $2'} ORDER BY random() LIMIT $1`,
+            // text: `SELECT * FROM songs ${type && 'WHERE type = $2'} ORDER BY random() LIMIT $1`,
+            text: `SELECT s.id, s.title_id, s.type, s.song_name, s.song_duration, t.name FROM songs s JOIN titles t ON t.id = s.title_id ORDER BY random() LIMIT $1`,
             values: [total]
         };
 

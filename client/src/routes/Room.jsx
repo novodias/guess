@@ -1,5 +1,6 @@
+import logger from '../utils';
 import React, { useEffect, useState, useContext } from 'react';
-import useWebSocket from 'react-use-websocket';
+// import useWebSocket from 'react-use-websocket';
 
 import './Room.css';
 import { SettingsContext } from '../context/SettingsProvider';
@@ -7,11 +8,12 @@ import { Chat, CopyLink, Difficulty, Guest, OwnerButton } from '../components/ro
 import { LogoutRounded } from '@mui/icons-material';
 import { useRoomContext } from '../context/RoomProvider';
 import { error } from '../api/export';
-import YoutubePlayer from '../components/room/YoutubePlayer';
 import InputTitles from '../components/InputTitles';
-import LogoRitmovu from '../components/Logo';
-
-// import { Status } from '../components/room/Guest';
+import useGameWebSocket from '../components/room/game/Websocket';
+import { useGameContext, useGameDispatchContext } from '../context/GameProvider';
+import AudioPlayer from '../components/room/AudioPlayer';
+import useCanvasRef from '../components/room/game/Canvas';
+import { getMusic } from '../api/client';
 
 function Crown() {
     return (
@@ -32,150 +34,156 @@ function updateGuest(player, stat) {
     }
 }
 
-function prepareMessage(type, body) {
-    return { type, body };
-}
-
-const webSocketAddress = (process.env.NODE_ENV === 'development' ?
-    `wss://${window.location.hostname}:3001` :
-    `wss://${window.location.hostname}:3000`) + `/socket`;
-
 function RoomPage() {
     const { username } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
-    const [playerId, setPlayerId] = useState(null);
-    const [guests, setGuests] = useState([]);
-    const [chat, setChat] = useState([]);
+    const { id, players, chat, music } = useGameContext();
+    const { chatManager, gameManager } = useGameDispatchContext();
+
+    const canvasRef = useCanvasRef();
+
     const [showKickBtn, setShowKickBtn] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
-    const [video, setVideo] = useState({});
     
     const [timerClass, setTimerClass] = useState('');
     const StartTimer = () => setTimerClass("timer-start");
     const RevertTimer = () => setTimerClass("timer-start timer-goback");
 
-    const { sendJsonMessage } = useWebSocket(webSocketAddress, {
-        onOpen: () => {
-            console.log('connected');
+    const messageHandler = {
+        "players": (body) => {
+            // const { setGuests } = gameManager;
+            // setGuests(pĺayers);
+            
+            const newPĺayers = body;
+            gameManager.setPlayers(newPĺayers);
         },
+        "exited": (body) => {
+            // const { chat, guests, setChat, setGuests } = gameManager;
+            const exit = body;
+            const player = players.find(g => g.id === exit.id);
+            let systemMessage;
+            if (!exit.kicked) {
+                systemMessage = {
+                    text: `${player.nickname} exited the game.`,
+                    nickname: "System",
+                    // isSystem: true
+                }
+            } else {
+                systemMessage = {
+                    text: `${player.nickname} was kicked from the game.`,
+                    nickname: "System",
+                    // isSystem: true
+                }
+            }
+            chatManager.alert(systemMessage);
+            gameManager.removePlayer(exit.id);
+            // setChat([...chat, systemMessage]);
+            // setGuests(array => array.filter(g => g.id !== id));
+        },
+        "yourid": (body) => {
+            // const { setPlayerId } = gameManager;
+            // setPlayerId(id);
+            const { id } = body;
+            gameManager.setClientId(id);
+        },
+        "chat": (body) => {
+            // const { setChat } = gameManager;
+            // setChat(chat => [...chat, body]);
+            chatManager.add(body);
+        },
+        "change": (body) => {
+            // const { setGuests } = gameManager;
+            // setGuests(list => list.map(g => updateGuest(g, body)));
+            gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
+        },
+        "prepare": (body) => {
+            const { music_hash, start_at } = body;
+            const play = false;
+            const src = getMusic(roomId, music_hash);
+            
+            gameManager.configurePlayback({
+                src: src,
+                start_at: start_at,
+                play: play
+            });
+
+            RevertTimer();
+        },
+        "round": (body) => {
+            // setGuests(players);
+            // setVideo({
+            //     ...video,
+            //     play: true
+            // });
+            const { players } = body;
+            StartTimer();
+            setReadOnly(false);
+            gameManager.setPlayers(players);
+            gameManager.configurePlayback({ play: true });
+        },
+        "end": (body) => {
+            // const { RevertTimer, setVideo, video } = gameManager;
+            // setVideo({
+            //     ...video,
+            //     play: false
+            // });
+            
+            gameManager.configurePlayback({ play: false });
+            RevertTimer();
+        }
+    };
+
+    const { sendMessage } = useGameWebSocket({
         onMessage: (e) => {
             const message = JSON.parse(e.data);
-            // console.log(message);
-            
-            const body = message.body;
-            if (message.type === "players") {
-                const players = body;
-                setGuests(players);
-            }
-
-            if (message.type === "exited") {
-                const { id, kicked } = body;
-                const player = guests.find(g => g.id === id);
-
-                let systemMessage;
-                if (!kicked) {
-                    systemMessage = {
-                        text: `${player.nickname} exited the game.`, 
-                        nickname: "System",
-                        isSystem: true
-                    }
-                } else {
-                    systemMessage = {
-                        text: `${player.nickname} was kicked from the game.`, 
-                        nickname: "System",
-                        isSystem: true
-                    }
-                }
-
-                setChat([...chat, systemMessage]);
-                setGuests(array => array.filter(g => g.id !== id));
-            }
-
-            if (message.type === "yourid") {
-                const { id } = body;
-                setPlayerId(id);
-            }
-
-            if (message.type === "chat") {
-                setChat([...chat, body]);
-            }
-
-            if (message.type === "change") {                
-                // const updatedGuests = guests.map(g => updateGuest(g, body))
-                
-                setGuests(list => list.map(g => updateGuest(g, body)));
-            }
-
-            if (message.type === "prepare") {
-                const { /* room_status, round, */ youtube_id, start_at } = body;
-                
-                RevertTimer();
-                setVideo({
-                    youtube_id,
-                    start_at,
-                    play: false,
-                });
-            }
-
-            if (message.type === "round") {
-                const { /* room_status, */ players } = body;
-                
-                StartTimer();
-                setReadOnly(false);
-                setGuests(players);
-                video.play = true;
-            }
-
-            if (message.type === "end") {
-                video.play = false;
-                RevertTimer();
-            }
-
+            const { type, body } = message;
+            logger.debug("Message received: ", body);
+            messageHandler[type](body);
+        },
+        onOpen: () => {
+            console.log("Connected");
         },
         onClose: (e) => {
-            console.log("close:", e.reason);
-            
-            // show a popup saying that lost connection?
+            console.log("Close:", e.reason);
+            // TODO: show a popup saying that lost connection?
         },
         onError: (e) => {
             if (process.env.NODE_ENV === 'development') {
-                e.id = playerId;
+                e.id = id;
                 e.nickname = username;
                 e.date = new Date();
                 error(e);
             }
-        },
-        shouldReconnect: () => false,
-        share: true,
-    }, true);
+        }
+    });
 
     const KickPerson = (personId) => {
-        if (playerId === personId) {
+        if (id === personId) {
             return;
         }
 
-        sendJsonMessage({ type: "kick", body: { owner, id: personId }});
+        sendMessage("kick", { owner, id: personId });
     }
 
     const SendChatMessage = (text) => {
-        sendJsonMessage({ type: "chat", body: { text, nickname: username } });
+        sendMessage("chat", { text, nickname: username });
     }
 
     const SubmitAnswer = (title) => {
-        sendJsonMessage({ type: "submit", body: { playerId, title: { id: title.id } } });
+        sendMessage("submit", { id, title: { id: title.id } });
         setReadOnly(true);
     }
 
     const StartMatch = () => {
-        sendJsonMessage({ type: "start", body: { owner } });
+        sendMessage("start", { owner });
     }
 
     function GuestContainer({v, inFirstPlace}) {
         const btn_kick = showKickBtn && owner;
         return (
             <li className='row'>
-                {owner && playerId !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
+                {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
                     <button onClick={() => KickPerson(v.id)}>
                         <LogoutRounded htmlColor='white' />
                     </button>
@@ -192,7 +200,7 @@ function RoomPage() {
         return (
             <ul id='scoreboard'>
                 {
-                    guests
+                    players
                         .sort((v1, v2) => v2.points - v1.points)
                         .map((v, i) => <GuestContainer key={i} v={v} inFirstPlace={i === 0} />)
                 }
@@ -202,20 +210,17 @@ function RoomPage() {
 
     useEffect(() => {
         window.history.replaceState(null, "Room", "/room");
-    });
+    }, []);
 
     useEffect(() => {
         // this prevents sending joined to websocket again
-        if (playerId === null) {
-            sendJsonMessage({
-                type: "joined",
-                body: {
-                    nickname: username,
-                    room_id: roomId
-                }
+        if (id === null) {
+            sendMessage("joined", {
+                nickname: username,
+                room_id: roomId
             });
         }
-    }, [sendJsonMessage, roomId, playerId, username]);
+    }, [sendMessage, roomId, id, username]);
 
     return (
         <div id='room'>
@@ -229,7 +234,11 @@ function RoomPage() {
                 <div className={`timer ${timerClass}`}></div>
                 <Difficulty value={'???'} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
-                <YoutubePlayer videoId={video.youtube_id} startAt={video.start_at} play={video.play} />
+                <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas>
+                <AudioPlayer src={music.src}
+                    play={music.play}
+                    startTime={music.start_at}
+                    canvasCallback={canvasRef.invoke} />
             </div>
             <div className='right-wrapper col'>
                 <CopyLink id={roomId} />
@@ -241,22 +250,5 @@ function RoomPage() {
         </div>
     );
 }
-
-// export async function RoomLoader({ params }) {
-//     let passwordHash = sessionStorage.getItem("RoomPasswordHash");
-//     passwordHash && sessionStorage.removeItem("RoomPasswordHash");
-//     const res = await fetch(`/api/rooms/${params.id}${passwordHash !== null ? `?hash=${passwordHash}` : ''}`);
-//     if (!res.ok) {
-//         // Wrong password
-//         if (res.status === 400) {    
-//             return await res.json();
-//         }
-//         if (res.status === 404) {
-//             throw new Response("Not Found", { status: 404 });
-//         }
-//         throw new Error(res.status);
-//     }
-//     return await res.json();
-// }
 
 export default RoomPage;

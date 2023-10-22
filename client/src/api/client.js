@@ -14,10 +14,14 @@ export const client = axios.create({
  * @param {string} song_name 
  * @returns 
  */
-export function getMusicUrl(name, song_name) {
-    name = name.replace(":", "").replace("'", "");
-    song_name = song_name.replace(":", "").replace("'", "");
-    return `cdn/musics/${name}/${song_name}`;
+// export function getMusicUrl(name, song_name) {
+//     name = name.replace(":", "").replace("'", "");
+//     song_name = song_name.replace(":", "").replace("'", "");
+//     return `cdn/musics/${name}/${song_name}`;
+// }
+
+export function getMusic(roomid, hash) {
+    return `cdn/musics/${roomid}?hash=${hash}`;
 }
 
 /**

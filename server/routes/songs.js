@@ -52,11 +52,11 @@ router.post("/create", async (req, res) => {
 });
 
 // temporary
-router.get("/random", async (req, res) => {
-    const { total, type } = req.query;
-    const db = req.db;
-    const result = await db.get_songs_random(Number.parseInt(total), type);
-    res.json(result);
-});
+// router.get("/random", async (req, res) => {
+//     const { total, type } = req.query;
+//     const db = req.db;
+//     const result = await db.get_songs_random(Number.parseInt(total), type);
+//     res.json(result);
+// });
 
 module.exports = router;

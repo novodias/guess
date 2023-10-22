@@ -16,33 +16,40 @@ function refCallback (ref, callback) {
     }
 }
 
-const audioCtx = new window.AudioContext();
-let audioSource = null;
-let analyser = null;
+// const audioCtx = new window.AudioContext();
+// let audioSource = null;
+// let analyser = null;
 let x = 0;
 
 /**
  * 
  * @returns {null | AnalyserNode}
  */
-const getAnalyser = () => {
-    return analyser;
-}
+// const getAnalyser = () => {
+//     return analyser;
+// }
 
 export default function AudioPlayer({ src, play, startTime, canvasCallback }) {
     const audioRef = useRef(new Audio());
+    const audioCtxRef = useRef(new AudioContext());
+    const audioSource = useRef(null);
+    const analyser = useRef(null);
+
+    const getAnalyser = () => {
+        return analyser.current;
+    }
     
     useEffect(() => {
         audioCallback((audio) => {
-            if (audioSource === null) {
-                audioSource = audioCtx.createMediaElementSource(audio);
+            if (audioSource.current === null) {
+                audioSource.current = audioCtxRef.current.createMediaElementSource(audio);
             }
     
-            if (analyser === null) {
-                analyser = audioCtx.createAnalyser();
-                audioSource.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 128;
+            if (analyser.current === null) {
+                analyser.current = audioCtxRef.current.createAnalyser();
+                audioSource.current.connect(analyser.current);
+                analyser.current.connect(audioCtxRef.current.destination);
+                analyser.current.fftSize = 128;
             }
         });
     }, []);
@@ -58,10 +65,10 @@ export default function AudioPlayer({ src, play, startTime, canvasCallback }) {
                 let barHeight;
                 for (let i = 0; i < bufferLength; i++) {
                     barHeight = dataArray[i];
-                    // const red = (i * barHeight) / 10;
-                    // const green = i * 4;
-                    // const blue = barHeight / 4 - 12;
-                    ctx.fillStyle = `black`;
+                    const red = (i * barHeight) / 10;
+                    const green = i * 4;
+                    const blue = barHeight / 4 - 12;
+                    ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
                     ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
                     x += barWidth;
                 }
@@ -118,15 +125,28 @@ export default function AudioPlayer({ src, play, startTime, canvasCallback }) {
     }), [startTime]);
 
     useEffect(() => {
+        audioCallback((audio) => {
+            audio.muted = true;
+            audio.onplay = (e) => {
+                audioCtxRef.current.resume();
+            };
+        });
+    }, [])
+
+    useEffect(() => {
         if (src) {
-            audioCtx.resume();
             setSource(src);
         }
+    }, [src, setSource]);
 
-    }, [src, play, playAudio, setSource]);
+    useEffect(() => {
+        if (play) {
+            playAudio();
+        }
+    }, [play, playAudio]);
 
     return (
-        <audio ref={audioRef} controls>
+        <audio ref={audioRef} controls controlsList='nodownload noremoteplayback'>
             Your browser doesn't have support for this.
         </audio>
     )

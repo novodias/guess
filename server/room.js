@@ -12,6 +12,33 @@ const RoomStatus = Object.freeze({
     ENDED: 'ended'
 });
 
+/**
+ * 
+ * @param {String} value 
+ * @returns 
+ */
+function replaceSpecial(value) {
+    return value
+        .replaceAll(":", "").replaceAll("'", "").replaceAll(" ", "-")
+        .toLowerCase();
+}
+
+function getPartialPath(title, name) {
+    return replaceSpecial(title) + '/' + replaceSpecial(name);
+}
+
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+};
+
 class Room {
 
     /**
@@ -20,7 +47,7 @@ class Room {
      * @param {String} name 
      * @param {String} passwordHash
      * @param {boolean} isPrivate
-     * @param {Array<{id, title_id, type, song_name, song_duration, youtube_id}>} songs
+     * @param {Array<{id, title_id, type, song_name, song_duration, name}>} songs
      */
     constructor(id, name, passwordHash, isPrivate, songs) {
         this.id = id;
@@ -30,6 +57,10 @@ class Room {
         this.hasPassword = passwordHash !== null;
         this.ownerId = uuid.v4();
         this.listeners = {};
+
+        // ROOM MAP STORE
+        // this.store = null;
+        // this.unstore = null;
         
         // GAME PROPERTIES
         this.status = RoomStatus.WAITING; // wait owner to start
@@ -43,6 +74,7 @@ class Room {
         // songs
         this.songs = songs; // has 10 here - use maxRounds to get the right amount
         this.selected = null; // selects on prepareRound
+        this.musicStorageInfo = null;
         
         // timer
         this.timer = null;
@@ -54,9 +86,15 @@ class Room {
 
     _selectRandomSong() {
         const rnd = random.intFromInterval(0, this.songs.length - 1);
+        
         this.selected = this.songs[rnd];
-        console.log(`[Room/${this.id}] Selected random song:`, this.selected);
+        this.musicStorageInfo = {
+            hash: makeid(9),
+            partialPath: getPartialPath(this.selected.name, this.selected.song_name)
+        };
         this.songs = this.songs.filter((song, idx) => idx !== rnd);
+
+        console.log(`[Room/${this.id}] Hash: ${this.musicStorageInfo.hash} / Selected song:`, this.selected);
     }
 
     _clearTimer() {
@@ -80,14 +118,14 @@ class Room {
         this.rounds += 1;
         this.status = RoomStatus.PREPARING;
         this._selectRandomSong();
-        const start_at = random.intFromInterval(30, this.selected.song_duration - 30);
+        const start_at = random.intFromInterval(5, this.selected.song_duration - 30);
 
         const prepare = {
             type: "prepare",
             body: {
                 room_status: this.status,
                 round: this.rounds,
-                youtube_id: this.selected.youtube_id,
+                music_hash: this.musicStorageInfo.hash,
                 start_at,
             }
         };
