@@ -266,7 +266,7 @@ class Room {
             },
 
             "submit": () => {
-                const id = body.playerId;
+                const id = body.id;
                 const title_id = body.title.id;
                 const pending = this._getPlayersByStatus(PlayerStatus.PENDING);
 
