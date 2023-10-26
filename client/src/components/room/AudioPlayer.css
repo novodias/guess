@@ -14,6 +14,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 #audio-ui > .progress-wrapper > .progress-bar {
@@ -26,6 +27,8 @@
     background: black;
     width: 4px;
     height: 15px;
+    position: absolute;
+    left: 0%;
 }
 
 #audio-ui > .volume-wrapper {
@@ -103,11 +106,11 @@
 
 @keyframes loading-buffering {
     from {
-        transform: rotate(0deg);
+        transform: rotate(360deg);
     }
 
     to {
-        transform: rotate(360deg);
+        transform: rotate(0deg);
     }
 }
 
