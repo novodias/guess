@@ -4,20 +4,13 @@ const SettingsContext = createContext(undefined);
 const SettingsDispatchContext = createContext(undefined);
 
 function SettingsProvider({ children }) {
-    const [settingsDetails, setSettingsDetails] = useState({
+    const [settings, setSettings] = useState({
         username: "Guest",
-        quality: "360p"
+        showAudioVisualizer: true
     });
 
-    const setSettings = ({ username = null, quality = null }) => {
-        setSettingsDetails({
-            username: username || settingsDetails.username,
-            quality: quality || settingsDetails.quality
-        });
-    }
-
     return (
-        <SettingsContext.Provider value={settingsDetails}>
+        <SettingsContext.Provider value={settings}>
             <SettingsDispatchContext.Provider value={setSettings}>
                 {children}
             </SettingsDispatchContext.Provider>

@@ -43,13 +43,25 @@ function JoinContainer({ room, onInput, onKeyUp, redirectPage, error }) {
 }
 
 const HomePage = () => {
-    const { username } = useContext(SettingsContext);
+    const settings = useContext(SettingsContext);
+    const setSettings = useContext(SettingsDispatchContext);
+    
     const { setOwner } = useContext(RoomDispatchContext);
     
-    const setSettings = useContext(SettingsDispatchContext);
     const setUsername = (e) => {
         const text = e.target.value;
-        setSettings({ username: text || "Guest" });
+        setSettings({
+            ...settings,
+            username: text
+        });
+    }
+
+    const setAudioVisualizer = (e) => {
+        const value = e.target.checked;
+        setSettings({
+            ...settings,
+            showAudioVisualizer: value
+        });
     }
 
     // join
@@ -92,7 +104,7 @@ const HomePage = () => {
     const setupRoom = async () => {
         let roomName;
         if (!name || name === '') {
-            roomName = `${username}'s room`;
+            roomName = `${settings.username}'s room`;
         } else {
             roomName = name;
         }
@@ -119,7 +131,13 @@ const HomePage = () => {
                     <label htmlFor="input-set-username">Nickname</label>
                     <h3>Insert your nickname below</h3>
                     <input type='text' id='input-set-username' placeholder="Guest"
-                        value={username} onInput={(e) => setUsername(e)} autoComplete='off' />
+                        value={settings.username} onInput={(e) => setUsername(e)} autoComplete='off' />
+                    <div className='row' style={{ marginTop: '20px', alignItems: 'center' }}>
+                        <input type="checkbox" id='checkbox-visualizer'
+                            checked={settings.showAudioVisualizer}
+                            onChange={setAudioVisualizer} />
+                        <label htmlFor='checkbox-visualizer' style={{margin: '0', flexGrow: '1'}}>Show audio visualizer</label>
+                    </div>
                 </div>
             </div>
             
@@ -139,7 +157,7 @@ const HomePage = () => {
                 <div className='col inner-container'>
                     <label htmlFor="create-room-input">Name</label>
                     <h3>Insert the room's name below</h3>
-                    <input type='text' id='create-room-input' placeholder={`${username}'s room`}
+                    <input type='text' id='create-room-input' placeholder={`${settings.username}'s room`}
                         value={name} onInput={(e) => setName(e.target.value)} autoComplete='off' />
                     
                     <div className='row' style={{ marginTop: '20px', alignItems: 'center' }}>

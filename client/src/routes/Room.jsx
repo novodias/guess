@@ -35,7 +35,7 @@ function updateGuest(player, stat) {
 }
 
 function RoomPage() {
-    const { username } = useContext(SettingsContext);
+    const { username, showAudioVisualizer } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
     const { id, players, chat, music } = useGameContext();
@@ -208,6 +208,14 @@ function RoomPage() {
         )
     }
 
+    function GameCanvas() {
+        if (!showAudioVisualizer) {
+            return null;
+        }
+
+        return <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas>
+    }
+
     useEffect(() => {
         window.history.replaceState(null, "Room", "/room");
     }, []);
@@ -234,7 +242,7 @@ function RoomPage() {
                 <div className={`timer ${timerClass}`}></div>
                 <Difficulty value={'???'} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
-                <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas>
+                <GameCanvas />
                 <AudioPlayer src={music.src}
                     play={music.play}
                     startTime={music.start_at}
