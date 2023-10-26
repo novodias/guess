@@ -1,0 +1,46 @@
+.slider {
+    position: relative;
+    display: flex;
+    /* padding: 5px; */
+}
+
+.slider[orient=vertical] {
+    flex-direction: column;
+}
+
+.slider[orient=horizontal] {
+    flex-direction: row;
+}
+
+.slider .range {
+    background-color: rgb(85, 85, 85);
+}
+
+.slider[orient=vertical] .range {
+    width: 10px;
+    height: 100px;
+}
+
+.slider[orient=horizontal] .range {
+    width: 100px;
+    height: 10px
+}
+
+.slider > .thumb {
+    width: 20px;
+    height: 20px;
+    background-color: black;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+}
+
+.slider[orient=vertical] > .thumb {
+    transform: translateX(-25%) translateY(-50%);
+    height: 10px !important;
+}
+
+.slider > .thumb:hover {
+    background-color: rgb(150, 150, 150);
+}
