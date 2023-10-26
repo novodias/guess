@@ -1,0 +1,116 @@
+#audio-ui {
+    z-index: 999;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    border: var(--border-btn);
+    border-radius: var(--border-btn-radius);
+    padding: 8px;
+}
+
+#audio-ui > .progress-wrapper {
+    width: 150px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+#audio-ui > .progress-wrapper > .progress-bar {
+    background: rgb(85, 85, 85);
+    width: 100%;
+    height: 4px;
+}
+
+#audio-ui > .progress-wrapper > .progress-value {
+    background: black;
+    width: 4px;
+    height: 15px;
+}
+
+#audio-ui > .volume-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border-radius: var(--border-btn-radius);
+    transition: background-color 200ms linear;
+    z-index: 10;
+}
+
+#audio-ui > .volume-wrapper > .hidden-volume {
+    position: absolute;
+    display: flex;
+    top: 24px;
+    width: 100%;
+    height: 140px;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+#audio-ui .volume-values-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    gap: 5px;
+    /* top: 24px; */
+    width: 100%;
+    padding: 8px 0px;
+    border-bottom-left-radius: var(--border-btn-radius);
+    border-bottom-right-radius: var(--border-btn-radius);
+    background-color: #bec0c2;
+    transform: translateY(-140px);
+    transition: transform 500ms ease-out;
+    pointer-events: all;
+}
+
+#audio-ui > .volume-wrapper:hover .volume-values-wrapper {
+    transform: translateY(0px);
+}
+
+#audio-ui > .volume-wrapper:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+}
+
+#audio-ui button {
+    height: 28px;
+    width: 20px;
+    display: grid;
+    place-content: center;
+    background-color: #dadfe4;
+    border: none;
+    border-radius: var(--border-btn-radius);
+    transition: background-color 100ms linear;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#audio-ui button:hover {
+    background-color: #c1c6ca;
+}
+
+#audio-ui button:disabled, button[disabled] {
+    background-color: transparent;
+    cursor: default;
+}
+
+#audio-ui .loading {
+    animation: 2s linear 0s infinite loading-buffering;
+}
+
+@keyframes loading-buffering {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#audio-ui > audio {
+    display: none;
+}
