@@ -13,7 +13,7 @@ import './Popup.css';
  * @param {function(PointerEvent)} props.onButtonClick 
  * @param {function} props.onDone 
  */
-export default function Popup({ show, text, orient, gap, batchNumber, hasButton, buttonText, onButtonClick, onDone }) {
+export default function Popup({ text, orient, gap, batchNumber, hasButton, buttonText, onButtonClick, onDone }) {
     /**
      * @type {React.MutableRefObject<HTMLDivElement>}
      */
