@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import './Slider.css';
 
 /**
@@ -26,9 +26,13 @@ function refCallback (ref, callback) {
  * @param {function(value)} param0.onChange 
  */
 export default function Slider({ orient, max, min, defaultValue, onChange }) {
+    /**
+     * @type {import('react').MutableRefObject<HTMLDivElement>}
+     */
+    const sliderRef = useRef(null);
     const thumbRef = useRef(null);
-    // const [value, setValue] = useState(defaultValue);
-    const [press, setPress] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
 
     /**
      * @callback callbackSpan
@@ -52,17 +56,12 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
         return Math.min(Math.max(value, min), max);
     }
 
-    const setThumb = (value) => {
-        if (orient === 'horizontal') {
-            thumbInvoke((thumb) => {
-                thumb.style.left = `${value}%`;
-            });
-        } else {
-            thumbInvoke((thumb) => {
-                thumb.style.top = `${value}%`;
-            });
-        }
-    }
+    const setThumb = useCallback((value) => {
+        const dir = orient === 'horizontal' ? 'left' : 'top';
+        thumbInvoke((thumb) => {
+            thumb.style[dir] = value + '%';
+        });
+    }, [orient]);
 
     const invokeEvent = (value) => {
         if (onChange !== undefined) {
@@ -70,8 +69,12 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
         }
     }
 
+    /** 
+     * @param {import('react').MouseEvent} e
+     */
     const getValue = (e) => {
-        const { left, width, top, height } = e.currentTarget.getBoundingClientRect();
+        // const { left, width, top, height } = e.currentTarget.getBoundingClientRect();
+        const { left, width, top, height } = sliderRef.current.getBoundingClientRect();
         const x = (e.clientX - left) / width;
         const y = (e.clientY - top) / height;
 
@@ -85,7 +88,7 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
      * @param {import('react').MouseEvent} e
      */
     const onMouseMove = (e) => {
-        if (!press) {
+        if (!isDragging) {
             return;
         }
 
@@ -106,7 +109,7 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
         const value = getValue(e);
         setThumb(value);
         invokeEvent(value);
-        setPress(true);
+        setIsDragging(true);
     }
 
     /** 
@@ -117,30 +120,36 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
         if (e.button !== 0) {
             return;
         }
-
-        setPress(false);
+        setIsDragging(false);
     }
 
     useEffect(() => {
-        const value = (defaultValue / max) * (max - min) + min;
-        
-        if (orient === 'horizontal') {
-            thumbInvoke((thumb) => {
-                thumb.style.left = `${value}%`;
-            });
-        } else {
-            thumbInvoke((thumb) => {
-                thumb.style.top = `${value}%`;
-            });
+        if (initialLoad) {
+            setThumb(defaultValue);
+            setInitialLoad(false);
         }
-    }, [max, min, defaultValue, orient])
+    }, [initialLoad, setThumb, defaultValue]);
+
+    useEffect(() => {
+        if (isDragging) {
+            window.addEventListener("mouseup", onMouseUp);
+            window.addEventListener("mousemove", onMouseMove);
+        } else {
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
+        }
+        return () => {
+            window.removeEventListener("mousemove", onMouseMove);
+            window.removeEventListener("mouseup", onMouseUp);
+        }
+    });
     
     return (
-        <div className='slider' orient={orient} 
+        <div ref={sliderRef} className='slider' orient={orient} 
             onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
-            onMouseOut={() => setPress(false)}
-            onMouseMove={onMouseMove}>
+            /** onMouseUp={onMouseUp} */
+            /** onMouseOut={() => setPress(false)} */
+            /** onMouseMove={onMouseMove} */ >
             <span className='range'></span>
             <span ref={thumbRef} className='thumb'></span>
         </div>
