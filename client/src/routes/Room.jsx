@@ -52,14 +52,10 @@ function RoomPage() {
 
     const messageHandler = {
         "players": (body) => {
-            // const { setGuests } = gameManager;
-            // setGuests(pĺayers);
-            
             const newPĺayers = body;
             gameManager.setPlayers(newPĺayers);
         },
         "exited": (body) => {
-            // const { chat, guests, setChat, setGuests } = gameManager;
             const exit = body;
             const player = players.find(g => g.id === exit.id);
             let systemMessage;
@@ -67,34 +63,24 @@ function RoomPage() {
                 systemMessage = {
                     text: `${player.nickname} exited the game.`,
                     nickname: "System",
-                    // isSystem: true
                 }
             } else {
                 systemMessage = {
                     text: `${player.nickname} was kicked from the game.`,
                     nickname: "System",
-                    // isSystem: true
                 }
             }
             chatManager.alert(systemMessage);
             gameManager.removePlayer(exit.id);
-            // setChat([...chat, systemMessage]);
-            // setGuests(array => array.filter(g => g.id !== id));
         },
         "yourid": (body) => {
-            // const { setPlayerId } = gameManager;
-            // setPlayerId(id);
             const { id } = body;
             gameManager.setClientId(id);
         },
         "chat": (body) => {
-            // const { setChat } = gameManager;
-            // setChat(chat => [...chat, body]);
             chatManager.add(body);
         },
         "change": (body) => {
-            // const { setGuests } = gameManager;
-            // setGuests(list => list.map(g => updateGuest(g, body)));
             gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
         },
         "prepare": (body) => {
@@ -111,11 +97,6 @@ function RoomPage() {
             RevertTimer();
         },
         "round": (body) => {
-            // setGuests(players);
-            // setVideo({
-            //     ...video,
-            //     play: true
-            // });
             const { players } = body;
             StartTimer();
             setReadOnly(false);
@@ -123,12 +104,6 @@ function RoomPage() {
             gameManager.configurePlayback({ play: true });
         },
         "end": (body) => {
-            // const { RevertTimer, setVideo, video } = gameManager;
-            // setVideo({
-            //     ...video,
-            //     play: false
-            // });
-            
             gameManager.configurePlayback({ play: false });
             RevertTimer();
         }
@@ -245,6 +220,7 @@ function RoomPage() {
                 <GameCanvas />
                 <AudioPlayer src={music.src}
                     play={music.play}
+                    playButtonDisabled={true}
                     startTime={music.start_at}
                     canvasCallback={canvasRef.invoke} />
             </div>
