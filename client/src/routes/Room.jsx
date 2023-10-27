@@ -117,6 +117,12 @@ function RoomPage() {
             messageHandler[type](body);
         },
         onOpen: () => {
+            if (id === null) {
+                sendMessage("joined", {
+                    nickname: username,
+                    room_id: roomId
+                });
+            }
             console.log("Connected");
         },
         onClose: (e) => {
@@ -195,15 +201,15 @@ function RoomPage() {
         window.history.replaceState(null, "Room", "/room");
     }, []);
 
-    useEffect(() => {
-        // this prevents sending joined to websocket again
-        if (id === null) {
-            sendMessage("joined", {
-                nickname: username,
-                room_id: roomId
-            });
-        }
-    }, [sendMessage, roomId, id, username]);
+    // useEffect(() => {
+    //     // this prevents sending joined to websocket again
+    //     if (id === null) {
+    //         sendMessage("joined", {
+    //             nickname: username,
+    //             room_id: roomId
+    //         });
+    //     }
+    // }, [sendMessage, roomId, id, username]);
 
     return (
         <div id='room'>
