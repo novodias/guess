@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import Navbar from './templates/Navbar';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SettingsProvider } from './context/SettingsProvider';
 import { RoomProvider } from './context/RoomProvider';
+import { PopupProvider } from './context/PopupProvider';
 import LogoRitmovu from './components/Logo';
 
 export default function Layout() {
@@ -18,12 +18,14 @@ export default function Layout() {
                 {/* <header>
                     <Navbar showOptions={options} onClick={onClick} />
                 </header> */}
-                <RoomProvider>
-                    <main>
-                        <LogoRitmovu />
-                        <Outlet />
-                    </main>
-                </RoomProvider>
+                <PopupProvider>
+                    <RoomProvider>
+                        <main>
+                            <LogoRitmovu />
+                            <Outlet />
+                        </main>
+                    </RoomProvider>
+                </PopupProvider>
             </SettingsProvider>
         </>
     )

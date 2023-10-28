@@ -3,17 +3,21 @@ import './Popup.css';
 
 /**
  * @param {Object} props 
- * @param {boolean} props.show 
  * @param {string} props.text 
  * @param {("bottom"|"top")} props.orient 
  * @param {number} props.gap 
  * @param {number} props.batchNumber 
  * @param {boolean} props.hasButton 
  * @param {string} props.buttonText 
- * @param {function(PointerEvent)} props.onButtonClick 
- * @param {function} props.onDone 
+ * @param {function(MouseEvent)} props.onButtonClick 
+ * @param {function()} props.onDone 
+ * @param {boolean} props.waitForClick 
+ * 
  */
-export default function Popup({ text, orient, gap, batchNumber, hasButton, buttonText, onButtonClick, onDone }) {
+export default function Popup({
+    text, orient, gap, batchNumber,
+    hasButton, buttonText, onButtonClick, onDone,
+    waitForClick }) {
     /**
      * @type {React.MutableRefObject<HTMLDivElement>}
      */
@@ -24,15 +28,16 @@ export default function Popup({ text, orient, gap, batchNumber, hasButton, butto
 
     const [initialLoad, setInitialLoad] = useState(true);
 
+    const buttonClick = (e) => {
+        if (onButtonClick) {
+            onButtonClick(e);
+            onDone();
+        }
+    }
+
     function Button() {
         if (!hasButton) {
             return null;
-        }
-
-        const buttonClick = (e) => {
-            if (onButtonClick) {
-                onButtonClick(e);
-            }
         }
 
         return (
@@ -47,7 +52,7 @@ export default function Popup({ text, orient, gap, batchNumber, hasButton, butto
     }
 
     const setPopupPos = useCallback((value) => {
-        popupRef.current.style[orient] = value + '%';
+        popupRef.current.style[orient] = value + 'px';
     }, [orient])
 
     const tick = useCallback(() => {
@@ -66,16 +71,26 @@ export default function Popup({ text, orient, gap, batchNumber, hasButton, butto
             }
             
             cancelAnimationFrame(rafRef.current);
-            onDone();
-        }
-    }, [gap, batchNumber, setPopupPos, onDone]);
 
+            // doesnt expect a click, sets a timer to call ondone
+            if (!waitForClick) {
+                setTimeout(onDone, 1000 * 7);
+            }
+        }
+    }, [gap, batchNumber, setPopupPos, onDone, waitForClick]);
+    
     useEffect(() => {
         if (initialLoad) {
             tick();
             setInitialLoad(false);
+            
+            if (waitForClick) {
+                if (!hasButton) {
+                    popupRef.current.onclick = onDone;
+                }
+            }
         }
-    }, [initialLoad, tick]);
+    }, [initialLoad, tick, waitForClick, hasButton, onDone]);
 
     useEffect(() => {
         return () => {
