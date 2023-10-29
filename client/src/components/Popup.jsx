@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import './Popup.css';
+import { usePopupDispatchContext } from '../context/PopupProvider';
 
 /**
  * @param {Object} props 
@@ -15,8 +16,8 @@ import './Popup.css';
  * 
  */
 export default function Popup({
-    text, orient, gap, batchNumber,
-    hasButton, buttonText, onButtonClick, onDone,
+    text, orient, gap, batchNumber, close, hash,
+    hasButton, buttonText, onButtonClick, /** onDone,*/
     waitForClick }) {
     /**
      * @type {React.MutableRefObject<HTMLDivElement>}
@@ -27,11 +28,12 @@ export default function Popup({
     const duration = 600;
 
     const [initialLoad, setInitialLoad] = useState(true);
+    const { remove } = usePopupDispatchContext();
 
     const buttonClick = (e) => {
         if (onButtonClick) {
             onButtonClick(e);
-            onDone();
+            remove(batchNumber - 1);
         }
     }
 
@@ -46,57 +48,58 @@ export default function Popup({
             </button>
         )
     }
-
-    function easeOutCubic(num) {
-        return 1 - Math.pow(1 - num, 3);
-    }
-
-    const setPopupPos = useCallback((value) => {
-        popupRef.current.style[orient] = value + 'px';
-    }, [orient])
-
-    const tick = useCallback(() => {
-        const elapsed = Date.now() - startTimeRef.current;
-        const { height } = popupRef.current.getBoundingClientRect();
-        const finalPos = height * batchNumber + gap;
-        const percent = elapsed / duration;
-        const wishPos = finalPos * easeOutCubic(percent);
-
-        if (elapsed < duration) {
-            setPopupPos(wishPos);
-            rafRef.current = requestAnimationFrame(tick);
-        } else {
-            if (wishPos !== finalPos) {
-                setPopupPos(finalPos);
-            }
-            
-            cancelAnimationFrame(rafRef.current);
-
-            // doesnt expect a click, sets a timer to call ondone
-            if (!waitForClick) {
-                setTimeout(onDone, 1000 * 7);
-            }
-        }
-    }, [gap, batchNumber, setPopupPos, onDone, waitForClick]);
     
     useEffect(() => {
+        function easeOutCubic(num) {
+            return 1 - Math.pow(1 - num, 3);
+        }
+    
+        const setPopupPos = (value) => {
+            popupRef.current.style[orient] = value + 'px';
+        }
+
+        const tick = () => {
+            const elapsed = Date.now() - startTimeRef.current;
+            const { height } = popupRef.current.getBoundingClientRect();
+            const finalPos = height * batchNumber + gap * batchNumber;
+            const percent = elapsed / duration;
+            const wishPos = finalPos * easeOutCubic(percent);
+            
+            if (elapsed < duration) {
+                setPopupPos(wishPos);
+                rafRef.current = requestAnimationFrame(tick);
+            } else {
+                if (wishPos !== finalPos) {
+                    setPopupPos(finalPos);
+                }
+                
+                cancelAnimationFrame(rafRef.current);
+    
+                // doesnt expect a click, sets a timer to call ondone
+                if (waitForClick === false) {
+                    setTimeout(() => remove(batchNumber - 1), 1000 * 7);
+                }
+            }
+        }
+
         if (initialLoad) {
             tick();
             setInitialLoad(false);
             
             if (waitForClick) {
                 if (!hasButton) {
-                    popupRef.current.onclick = onDone;
+                    popupRef.current.onclick = () => remove(batchNumber - 1);
+                    popupRef.current.style.cursor = "pointer";
                 }
             }
         }
-    }, [initialLoad, tick, waitForClick, hasButton, onDone]);
+    }, [initialLoad, waitForClick, hasButton, batchNumber, gap, orient, remove, hash]);
 
     useEffect(() => {
-        return () => {
-            cancelAnimationFrame(rafRef.current);
+        if (close) {
+            remove(batchNumber - 1);
         }
-    });
+    }, [close, remove, hash, batchNumber]);
     
     return (
         <div ref={popupRef} className='popup'>

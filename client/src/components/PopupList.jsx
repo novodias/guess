@@ -1,6 +1,7 @@
 import React from 'react';
 import Popup from './Popup';
-import { usePopupContext, usePopupDispatchContext } from '../context/PopupProvider';
+import './PopupList.css';
+import { usePopupContext } from '../context/PopupProvider';
 
 /**
  * @typedef PopupProps
@@ -20,19 +21,12 @@ import { usePopupContext, usePopupDispatchContext } from '../context/PopupProvid
  * @param {React.Dispatch<SetStateAction<never[]>>} props.setPopups
  */
 export default function PopupList() {
-    // const [popups, setPopups] = useState([]);
     const { popups } = usePopupContext();
-    const { setPopups } = usePopupDispatchContext();
-    
-    const onDone = (idx) => {
-        setPopups(array => array.filter((v, key) => key !== idx));
-    }
 
     return (
         <div id="popup-wrapper">
             {popups.map((pop, idx) => {
-                return <Popup {...pop} batchNumber={idx + 1}
-                    onDone={() => onDone(idx)} />
+                return <Popup key={idx} {...pop} batchNumber={idx + 1} hash={pop.hash} />
             })}
         </div>
     )

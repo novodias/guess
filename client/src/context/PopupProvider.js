@@ -13,7 +13,21 @@ import React, { useState, createContext, useContext } from 'react';
  * @property {boolean} waitForClick 
  */
 
+/**
+ * @callback AddPopup
+ * @param {PopupProps} popup
+ */
+
 const PopupContext = createContext(undefined);
+/**
+ * @typedef {Object} PopupDispatch
+ * @property {AddPopup} add
+ * @property {React.Dispatch<React.SetStateAction<PopupProps[]>>} setPopups
+ */
+
+/**
+ * @type {PopupDispatch}
+ */
 const PopupDispatchContext = createContext(undefined);
 
 export function PopupProvider({ children }) {
@@ -22,23 +36,31 @@ export function PopupProvider({ children }) {
     /**
      * @param {PopupProps} popup
      */
-    const addPopup = ({text, orient, gap, hasButton, buttonText, onButtonClick, waitForClick}) => {
+    const add = ({text, orient, gap, hasButton, buttonText, onButtonClick, waitForClick}) => {
         const popup = {
+            uid: crypto.randomUUID(),
             text,
             orient,
             gap,
             hasButton,
             buttonText,
             onButtonClick,
-            waitForClick
+            waitForClick,
+            close: false
         }
 
+        const idx = popups.length;
         setPopups([...popups, popup]);
+        return idx;
+    }
+
+    const remove = (idx) => {
+        setPopups(pops => pops.filter((v, i) => i !== idx));
     }
 
     return (
         <PopupContext.Provider value={{popups}}>
-            <PopupDispatchContext.Provider value={{setPopups, addPopup}}>
+            <PopupDispatchContext.Provider value={{remove, add}}>
                 {children}
             </PopupDispatchContext.Provider>
         </PopupContext.Provider>
@@ -49,6 +71,9 @@ export const usePopupContext= () => {
     return useContext(PopupContext);
 }
 
+/**
+ * @returns {PopupDispatch}
+ */
 export const usePopupDispatchContext = () => {
     return useContext(PopupDispatchContext);
 }
