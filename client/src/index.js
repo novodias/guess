@@ -8,7 +8,7 @@ import RoomPage from './routes/Room';
 import AddPage from './routes/Add';
 import Layout from './Layout';
 import ProtectedRoom from './components/room/ProtectedRoom';
-import AudioPlayerTestPage from './routes/AudioPlayerTest';
+import AudioPlayerTestPage from './routes/Test';
 import { GameProvider } from './context/GameProvider';
 
 const router = createBrowserRouter([
@@ -35,10 +35,10 @@ const router = createBrowserRouter([
         path: "add",
         element: <AddPage />,
       },
-      // {
-      //   path: "test",
-      //   element: <AudioPlayerTestPage />
-      // },
+      {
+        path: "test",
+        element: <AudioPlayerTestPage />
+      },
       {
         path: "*",
         element: <Navigate to="/" />
