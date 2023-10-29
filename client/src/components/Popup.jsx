@@ -16,7 +16,7 @@ import { usePopupDispatchContext } from '../context/PopupProvider';
  * 
  */
 export default function Popup({
-    text, orient, gap, batchNumber, close, hash,
+    text, orient, gap, batchNumber, close, uid,
     hasButton, buttonText, onButtonClick, /** onDone,*/
     waitForClick }) {
     /**
@@ -33,7 +33,7 @@ export default function Popup({
     const buttonClick = (e) => {
         if (onButtonClick) {
             onButtonClick(e);
-            remove(batchNumber - 1);
+            remove(uid);
         }
     }
 
@@ -77,7 +77,7 @@ export default function Popup({
     
                 // doesnt expect a click, sets a timer to call ondone
                 if (waitForClick === false) {
-                    setTimeout(() => remove(batchNumber - 1), 1000 * 7);
+                    setTimeout(() => remove(uid), 1000 * 7);
                 }
             }
         }
@@ -88,18 +88,18 @@ export default function Popup({
             
             if (waitForClick) {
                 if (!hasButton) {
-                    popupRef.current.onclick = () => remove(batchNumber - 1);
+                    popupRef.current.onclick = () => remove(uid);
                     popupRef.current.style.cursor = "pointer";
                 }
             }
         }
-    }, [initialLoad, waitForClick, hasButton, batchNumber, gap, orient, remove, hash]);
+    }, [initialLoad, waitForClick, hasButton, batchNumber, gap, orient, remove, uid]);
 
     useEffect(() => {
         if (close) {
-            remove(batchNumber - 1);
+            remove(uid);
         }
-    }, [close, remove, hash, batchNumber]);
+    }, [close, remove, uid]);
     
     return (
         <div ref={popupRef} className='popup'>

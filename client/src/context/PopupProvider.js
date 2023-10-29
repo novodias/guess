@@ -1,8 +1,9 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useCallback } from 'react';
 
 /**
  * @typedef PopupProps
- * @property {string} text 
+ * @property {string} uid
+ * @property {string} text
  * @property {("bottom"|"top")} orient 
  * @property {number} gap 
  * @property {number|Null} batchNumber 
@@ -14,11 +15,19 @@ import React, { useState, createContext, useContext } from 'react';
  */
 
 /**
+ * @typedef {Object} PopupProvider
+ * @property {Array<PopupProps>} popups
+ */
+
+/**
+ * @type {PopupProvider}
+ */
+const PopupContext = createContext(undefined);
+
+/**
  * @callback AddPopup
  * @param {PopupProps} popup
  */
-
-const PopupContext = createContext(undefined);
 /**
  * @typedef {Object} PopupDispatch
  * @property {AddPopup} add
@@ -36,7 +45,9 @@ export function PopupProvider({ children }) {
     /**
      * @param {PopupProps} popup
      */
-    const add = ({text, orient, gap, hasButton, buttonText, onButtonClick, waitForClick}) => {
+    const add = useCallback(({ text, orient, gap,
+        hasButton, buttonText,
+        onButtonClick, waitForClick }) => {
         const popup = {
             uid: crypto.randomUUID(),
             text,
@@ -49,14 +60,18 @@ export function PopupProvider({ children }) {
             close: false
         }
 
-        const idx = popups.length;
-        setPopups([...popups, popup]);
-        return idx;
-    }
+        setPopups(p => [...p, popup]);
+        return popup.uid;
+    }, []);
 
-    const remove = (idx) => {
-        setPopups(pops => pops.filter((v, i) => i !== idx));
-    }
+    const remove = useCallback((uid) => {
+        // console.log("removing popup uid:", uid);
+        // setPopups(pops => pops.filter((v, i) => v.uid !== uid));
+        setPopups(pops => {
+            const idx = pops.findIndex((p => p.uid === uid));
+            return pops.filter((v, i) => i !== idx);
+        });
+    }, []);
 
     return (
         <PopupContext.Provider value={{popups}}>
@@ -67,6 +82,9 @@ export function PopupProvider({ children }) {
     )
 }
 
+/**
+ * @returns {PopupProvider}
+ */
 export const usePopupContext= () => {
     return useContext(PopupContext);
 }
