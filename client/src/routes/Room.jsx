@@ -1,5 +1,5 @@
 import logger from '../utils';
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 // import useWebSocket from 'react-use-websocket';
 
 import './Room.css';
@@ -14,6 +14,7 @@ import { useGameContext, useGameDispatchContext } from '../context/GameProvider'
 import AudioPlayer from '../components/room/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
+import { usePopupDispatchContext } from '../context/PopupProvider';
 
 function Crown() {
     return (
@@ -40,6 +41,9 @@ function RoomPage() {
 
     const { id, players, chat, music } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
+    
+    const { add, remove } = usePopupDispatchContext();
+    const startPopupRef = useRef(null);
 
     const canvasRef = useCanvasRef();
 
@@ -156,9 +160,9 @@ function RoomPage() {
         setReadOnly(true);
     }
 
-    const StartMatch = () => {
-        sendMessage("start", { owner });
-    }
+    // const StartMatch = () => {
+    //     sendMessage("start", { owner });
+    // }
 
     function GuestContainer({v, inFirstPlace}) {
         const btn_kick = showKickBtn && owner;
@@ -201,6 +205,26 @@ function RoomPage() {
         window.history.replaceState(null, "Room", "/room");
     }, []);
 
+    useEffect(() => {
+        if (startPopupRef.current === null) {
+            startPopupRef.current = add({
+                text: "Click here to begin",
+                hasButton: true,
+                onButtonClick: () => {
+                    sendMessage("start", { owner });
+                },
+                gap: 10,
+                orient: "bottom",
+                waitForClick: true,
+                buttonText: "Start",
+            });
+        }
+
+        return () => {
+            remove(startPopupRef.current);
+        }
+    }, [owner, sendMessage, add, remove]);
+
     // useEffect(() => {
     //     // this prevents sending joined to websocket again
     //     if (id === null) {
@@ -217,7 +241,7 @@ function RoomPage() {
                 <div className='header-container'><h2>Players</h2></div>
                 <Scoreboard />
                 <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
-                <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button>
+                {/* <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button> */}
             </div>
             <div className='col container game-container'>
                 <div className={`timer ${timerClass}`}></div>
