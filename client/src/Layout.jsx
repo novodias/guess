@@ -4,6 +4,7 @@ import { SettingsProvider } from './context/SettingsProvider';
 import { RoomProvider } from './context/RoomProvider';
 import { PopupProvider } from './context/PopupProvider';
 import LogoRitmovu from './components/Logo';
+import PopupList from './components/PopupList';
 
 export default function Layout() {
     // const [options, setOptions] = useState(false);
@@ -23,6 +24,7 @@ export default function Layout() {
                         <main>
                             <LogoRitmovu />
                             <Outlet />
+                            <PopupList />
                         </main>
                     </RoomProvider>
                 </PopupProvider>
