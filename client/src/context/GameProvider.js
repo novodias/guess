@@ -99,7 +99,7 @@ export function GameProvider({ children }) {
 
     useEffect(() => {
         logger.debug('effect game music context ->', music);
-    });
+    }, [music]);
 
     return (
         <GameContext.Provider value={{ id, players, chat, music }}>
