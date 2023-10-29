@@ -1,5 +1,5 @@
 import logger from '../utils';
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 // import useWebSocket from 'react-use-websocket';
 
 import './Room.css';
@@ -43,7 +43,7 @@ function RoomPage() {
     const { chatManager, gameManager } = useGameDispatchContext();
     
     const { add, remove } = usePopupDispatchContext();
-    const startPopupRef = useRef(null);
+    const [startPopup, setStartPopup] = useState(null);
 
     const canvasRef = useCanvasRef();
 
@@ -206,8 +206,8 @@ function RoomPage() {
     }, []);
 
     useEffect(() => {
-        if (startPopupRef.current === null) {
-            startPopupRef.current = add({
+        if (startPopup === null && owner) {
+            const idx = add({
                 text: "Click here to begin",
                 hasButton: true,
                 onButtonClick: () => {
@@ -218,12 +218,17 @@ function RoomPage() {
                 waitForClick: true,
                 buttonText: "Start",
             });
-        }
 
-        return () => {
-            remove(startPopupRef.current);
+            setStartPopup(idx);
         }
-    }, [owner, sendMessage, add, remove]);
+        
+        return () => {
+            if (startPopup !== null) {
+                console.log("remove start popup:", startPopup);
+                remove(startPopup);
+            }
+        }
+    }, [owner, sendMessage, add, startPopup, remove]);
 
     // useEffect(() => {
     //     // this prevents sending joined to websocket again
