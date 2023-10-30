@@ -73,15 +73,17 @@ export default function Popup({
             
             cancelAnimationFrame(rafRef.current);
             onEnd();
-            // doesnt expect a click, sets a timer to call ondone
-            // if (waitForClick === false) {
-            //     setTimeout(() => remove(uid), 1000 * 7);
-            // }
         }
     }, [setPopupPos]);
 
     const AnimationEnd = useCallback(() => {
         startTimeRef.current = Date.now();
+        if (waitForClick) {
+            if (!hasButton) {
+                popupRef.current.onclick = null;
+                popupRef.current.style.cursor = "default";
+            }
+        }
         
         const end = () => {
             const elapsed = Date.now() - startTimeRef.current;
@@ -98,7 +100,7 @@ export default function Popup({
         }
 
         end();
-    }, [Animate, batchNumber, gap, remove, uid, popupDisplayNone]);
+    }, [Animate, batchNumber, gap, remove, uid, popupDisplayNone, hasButton, waitForClick]);
 
     const AnimationStart = useCallback(() => {
         const elapsed = Date.now() - startTimeRef.current;
@@ -115,27 +117,6 @@ export default function Popup({
     }, [Animate, AnimationEnd, batchNumber, gap, waitForClick]);
     
     useEffect(() => {
-        // const tick = () => {
-        //     const elapsed = Date.now() - startTimeRef.current;
-        //     const { height } = popupRef.current.getBoundingClientRect();
-        //     const finalPos = height * batchNumber + gap * batchNumber;
-        //     const percent = elapsed / duration;
-        //     const wishPos = finalPos * easeOutCubic(percent);
-        //     if (elapsed < duration) {
-        //         setPopupPos(wishPos);
-        //         rafRef.current = requestAnimationFrame(tick);
-        //     } else {
-        //         if (wishPos !== finalPos) {
-        //             setPopupPos(finalPos);
-        //         }
-        //         cancelAnimationFrame(rafRef.current);
-        //         // doesnt expect a click, sets a timer to call ondone
-        //         if (waitForClick === false) {
-        //             setTimeout(() => remove(uid), 1000 * 7);
-        //         }
-        //     }
-        // }
-
         if (initialLoad) {
             AnimationStart();
             setInitialLoad(false);
