@@ -230,16 +230,6 @@ function RoomPage() {
         }
     }, [owner, sendMessage, add, startPopup, remove]);
 
-    // useEffect(() => {
-    //     // this prevents sending joined to websocket again
-    //     if (id === null) {
-    //         sendMessage("joined", {
-    //             nickname: username,
-    //             room_id: roomId
-    //         });
-    //     }
-    // }, [sendMessage, roomId, id, username]);
-
     return (
         <div id='room'>
             <div id='guests-container' className='col container'>
@@ -257,7 +247,8 @@ function RoomPage() {
                     play={music.play}
                     playButtonDisabled={true}
                     startTime={music.start_at}
-                    canvasCallback={canvasRef.invoke} />
+                    canvasCallback={canvasRef.invoke}
+                    showAudioVisualizer={showAudioVisualizer} />
             </div>
             <div className='right-wrapper col'>
                 <CopyLink id={roomId} />

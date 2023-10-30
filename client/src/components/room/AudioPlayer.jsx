@@ -21,9 +21,9 @@ function refCallback (ref, callback) {
 
 let x = 0;
 
-export default function AudioPlayer({ src, play, startTime, playButtonDisabled, canvasCallback }) {
+export default function AudioPlayer({ src, play, startTime, playButtonDisabled, canvasCallback, showAudioVisualizer }) {
     const audioRef = useRef(new Audio());
-    const audioCtxRef = useRef(new AudioContext());
+    const audioCtxRef = useRef(null);
     /**
      * @type {import("react").MutableRefObject<MediaElementAudioSourceNode>}
      */
@@ -45,18 +45,24 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
     }
     
     useEffect(() => {
-        audioCallback((audio) => {
-            if (audioSource.current === null) {
-                audioSource.current = audioCtxRef.current.createMediaElementSource(audio);
-            }
+        if (showAudioVisualizer) {
+            audioCallback((audio) => {
+                if (audioCtxRef.current === null) {
+                    audioCtxRef.current = new window.AudioContext();
+                }
     
-            if (analyser.current === null) {
-                analyser.current = audioCtxRef.current.createAnalyser();
-                audioSource.current.connect(analyser.current);
-                analyser.current.connect(audioCtxRef.current.destination);
-                analyser.current.fftSize = 128;
-            }
-        });
+                if (audioSource.current === null) {
+                    audioSource.current = audioCtxRef.current.createMediaElementSource(audio);
+                }
+        
+                if (analyser.current === null) {
+                    analyser.current = audioCtxRef.current.createAnalyser();
+                    audioSource.current.connect(analyser.current);
+                    analyser.current.connect(audioCtxRef.current.destination);
+                    analyser.current.fftSize = 128;
+                }
+            });
+        }
 
         return () => {
             console.log("audioSource and analyser disconnected and disposed");
@@ -74,10 +80,10 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
                 audioRef.current = null;
             }
         }
-    }, []);
+    }, [showAudioVisualizer]);
     
     useEffect(() => {
-        if (canvasCallback) {
+        if (canvasCallback && showAudioVisualizer) {
             canvasCallback((canvas) => {
                 const ctx = canvas.getContext("2d");
                 const drawVisualizer = ({
@@ -121,7 +127,7 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
                 };
             })
         }
-    }, [canvasCallback]);
+    }, [canvasCallback, showAudioVisualizer]);
 
     /**
      * @callback callbackAudio
@@ -196,7 +202,9 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
             audio.onplay = (e) => {
                 setPlayState('play');
                 updateProgress();
-                audioCtxRef.current.resume();
+                if (audioCtxRef.current) {
+                    audioCtxRef.current.resume();
+                }
             };
 
             function cancelProgressRaf(calledOn = '') {
