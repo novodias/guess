@@ -16,7 +16,7 @@
 }
 
 .popup {
-    padding: 6px 8px;
+    padding: 6px;
     border-radius: var(--border-btn-radius);
     color: white;
     background-color: #009C58;
