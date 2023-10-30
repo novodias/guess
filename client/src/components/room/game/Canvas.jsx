@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 function refCallback (ref, callback) {
     if (ref.current !== null) {
@@ -31,7 +31,7 @@ export default function useCanvasRef() {
     /**
      * @param {callbackCanvas} callback
      */
-    function canvasCallback(callback) {
+    const canvasCallback = useCallback((callback) => {
         refCallback(canvasRef, (canvas) => {
             if (!(canvas instanceof HTMLCanvasElement)) {
                 return;
@@ -39,7 +39,7 @@ export default function useCanvasRef() {
 
             callback(canvas);
         });
-    }
+    }, []);
 
     canvasRef.invoke = canvasCallback;
     return canvasRef;
