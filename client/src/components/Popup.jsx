@@ -90,7 +90,6 @@ export default function Popup({
             const finalPos = height * batchNumber + gap * batchNumber;
             const percent = remaining / duration;
             const wishPos = finalPos * easeOutCubic(percent);
-            console.log("end:", wishPos);
     
             Animate({ wishPos, finalPos, elapsed }, end, () => {
                 popupDisplayNone();
