@@ -1,24 +1,13 @@
 import './Home.css';
 import crypto from 'crypto-js';
-import React, { useState, useContext, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SettingsContext, SettingsDispatchContext } from '../context/SettingsProvider';
 import { RoomDispatchContext } from '../context/RoomProvider';
 import { createRoomAsync } from '../api/export';
 import NavigationIcon from '@mui/icons-material/Navigation';
-import Alert from '../components/Alert';
 
-function JoinContainer({ room, onInput, onKeyUp, redirectPage, error }) {
-    function Error() {
-        if (error) {
-            return (
-                <Alert style={{marginTop: "10px"}} message={error.message} type={"danger"} />
-            )
-        }
-
-        return null;
-    }
-
+function JoinContainer({ room, onInput, onKeyUp, redirectPage }) {
     return (
         <div className='col container join-container'>
             <div className='header-container'>
@@ -36,7 +25,6 @@ function JoinContainer({ room, onInput, onKeyUp, redirectPage, error }) {
                         <NavigationIcon style={{rotate: "90deg"}}/>
                     </button>
                 </div>
-                <Error />
             </div>
         </div>
     )
@@ -66,7 +54,6 @@ const HomePage = () => {
 
     // join
     const [room, setRoom] = useState('');
-    const [error, setError] = useState(null);
     
     // create
     const [name, setName] = useState('');
@@ -74,13 +61,6 @@ const HomePage = () => {
     const [localPassword, setLocalPassword] = useState('');
 
     let navigate = useNavigate();
-    let location = useLocation();
-
-    useEffect(() => {
-        if (location.state) {
-            setError(location.state);
-        }
-    }, [location])
 
     const redirectPage = () => {
         navigate(`/room/${room}`);
@@ -142,7 +122,7 @@ const HomePage = () => {
             </div>
             
             <JoinContainer onInput={_onInput} onKeyUp={_onKeyUp} 
-                room={room} redirectPage={redirectPage} error={error} />
+                room={room} redirectPage={redirectPage} />
 
             <div className="col container rooms-wrapper">
                 <div className='header-container'>

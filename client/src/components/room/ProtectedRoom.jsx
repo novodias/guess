@@ -1,13 +1,13 @@
 import crypto from 'crypto-js';
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useRoomContext, useRoomDispatchContext } from '../../context/RoomProvider';
 import { LockRounded } from '@mui/icons-material';
-import Alert from '../Alert';
 import Spinner from '../Spinner';
 import logger from '../../utils';
+import { usePopupDispatchContext } from '../../context/PopupProvider';
 
-function AuthenticateRoom({ name, setPass, loadRoom, message }) {
+function AuthenticateRoom({ name, loadRoom }) {
     const [password, setPassword] = useState(null);
     
     function _onChange(e) {
@@ -15,7 +15,8 @@ function AuthenticateRoom({ name, setPass, loadRoom, message }) {
     }
 
     async function handleSubmit() {
-        setPass(password);
+        const hash = crypto.MD5(password).toString();
+        loadRoom(hash);
     }
 
     return (
@@ -31,7 +32,6 @@ function AuthenticateRoom({ name, setPass, loadRoom, message }) {
                     value={password} onChange={_onChange}
                     style={{ fontSize: '1.5em' }} autoComplete='off'
                 />
-                {message && <Alert message={message} style={{ marginTop: '20px' }} type={'danger'} />}
                 <button className='btn'
                     style={{ alignSelf: 'flex-end', marginTop: '20px' }}
                     onClick={handleSubmit}>
@@ -45,22 +45,26 @@ function AuthenticateRoom({ name, setPass, loadRoom, message }) {
 export default function ProtectedRoom({ children }) {
     const { id } = useParams();
     const location = useLocation();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const { setName } = useRoomDispatchContext();
     const { getRoom, name } = useRoomContext();
+    const { add } = usePopupDispatchContext();
     
-    // const [isAuth, setIsAuth] = useState(false);
     const [auth, setAuth] = useState(false);
-    const [password, setPassword] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState(null);
+    const [initialLoad, setInitialLoad] = useState(true);
 
-    async function loadRoomAsync() {
+    const loadRoomAsync = useCallback(async (pass = null) => {
         logger.debug("Fetching room:", id);
-        try {    
-            const room = await getRoom(password);
-            
-            // setRoomId(room.id);
+
+        try {
+            const room = await getRoom(pass);
+            setAuth(false);
+            return room;
+        } catch (error) {
+            const room = error.response.data;
+            console.error(room);
+
             if (!name) {
                 setName(room.name);
             }
@@ -74,48 +78,33 @@ export default function ProtectedRoom({ children }) {
                 setAuth(false);
             }
 
-            return room;
-        } catch (error) {
-            console.error(error);
-            setMessage(error.response.data);
+            if (!initialLoad) {
+                add({
+                    text: room.message,
+                    gap: 10,
+                    orient: "bottom",
+                    waitForClick: false,
+                });
+            }
         } finally {
             setLoading(false);
         }
-    }
+    }, [add, auth, getRoom, id, initialLoad, name, setName]);
 
-    const loadRoomAsyncCallback = useCallback(loadRoomAsync,
-        [getRoom, setName, id, password, auth, name]);
-
-    function setPass(pass) {
-        if (pass === null) {
-            setPassword(null);
-            return;
-        }
-
-        const hash = crypto.MD5(pass).toString();
-        setPassword(hash);
-    }
-
-    useEffect(() => {
-        if (password && auth) {
-            loadRoomAsyncCallback();
-        }
-    }, [password, auth, loadRoomAsyncCallback]);
-
-    useEffect(() => {
+    const LoadWithHash = useCallback(() => {
         if (location.state) {
             const hash = location.state.passwordHash;
             if (hash) {
-                // console.log("Password hash found - setting up request");
                 logger.debug("Password hash found - setting up request");
-                setPassword(hash);
+                loadRoomAsync(hash);
             }
+        } else if (location.state === null && initialLoad) {
+            loadRoomAsync();
+            setInitialLoad(false);
         }
+    }, [initialLoad, loadRoomAsync, location.state]);
 
-        if (loading) {
-            loadRoomAsyncCallback();
-        }
-    }, [loadRoomAsyncCallback, loading, location.state]);
+    useEffect(LoadWithHash, [LoadWithHash]);
 
     if (loading) {
         return (
@@ -129,10 +118,7 @@ export default function ProtectedRoom({ children }) {
     }
     
     if (auth) {
-        return <AuthenticateRoom name={name} message={message}
-            setPass={setPass} loadRoom={loadRoomAsync} />
-    } else if (!auth && message) {
-        navigate("/", { state: { id, message }})
+        return <AuthenticateRoom name={name} loadRoom={loadRoomAsync} />
     }
 
     return (
