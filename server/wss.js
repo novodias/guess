@@ -4,43 +4,6 @@ const Room = require('./room');
 const { Player, PlayerStatus } = require('./player');
 const { GuessDb, Song } = require('./db');
 const random = require('./utils');
-const createRoomMapStore = require('./roomStore');
-
-// const _messageHandler = {
-//     /**
-//      * 
-//      * @param {RoomsCluster} cluster 
-//      * @param {webSocket.WebSocket} ws 
-//      * @param {*} body 
-//      * @returns 
-//      */
-//     "joined": function (cluster, ws, body) {
-//         const room = cluster.getRoom(body.room_id)
-    
-//         if (room === undefined) {
-//             // const notFound = {
-//             //     type: "error",
-//             //     statusCode: 404,
-//             //     message: "Room not found"
-//             // };
-
-//             ws.close();
-//             return;
-//         }
-
-//         const id = room.getSize();
-//         const player = new Player(ws, id, room.id, body.nickname, 0, 0);
-//         room.addPlayer(player);
-//     },
-
-//     // client exited
-//     // "exited": function (cluster, ws, body) {
-//     // },
-
-//     "generic": function (cluster, ws, body) {
-
-//     }
-// }
 
 const generateRoomCode = () => {
     let initialCode = "";
@@ -78,7 +41,6 @@ class RoomsCluster {
             path: "/socket",
         });
         this.rooms = new Map();
-        // this.roomsStore = createRoomMapStore();
         this.db = db;
         this._addEvents();
         
@@ -137,10 +99,6 @@ class RoomsCluster {
     deleteRoom(id) {
         this.rooms.delete(id);
     }
-
-    // stringify(object) {
-    //     return JSON.stringify(object);
-    // }
 
     /**
      * 
