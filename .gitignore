@@ -13,6 +13,7 @@ dev
 
 # assets
 server/musics
+server/emotes
 
 # production
 client/build
