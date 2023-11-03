@@ -16,8 +16,8 @@ export async function getRoomAsync(id, hash = null) {
         if (error instanceof AxiosError) {
             //  wrong password
             if (error.response.status === 400) {
-                data = error.response.data;
-                return data;
+                // data = error.response.data;
+                throw error;
             } else {
                 throw error;
             }
