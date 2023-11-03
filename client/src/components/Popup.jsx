@@ -34,7 +34,6 @@ export default function Popup({
         if (onButtonClick) {
             onButtonClick(e);
             AnimationEnd();
-            // remove(uid);
         }
     }
 
@@ -54,21 +53,28 @@ export default function Popup({
         return 1 - Math.pow(1 - num, 3);
     }
 
+    const getPopupPos = useCallback(() => {
+        if (popupRef.current === null) return undefined;
+        return parseFloat(popupRef.current.style[orient] || 0);
+    }, [orient]);
+
     const setPopupPos = useCallback((value) => {
+        if (popupRef.current === null) return;
         popupRef.current.style[orient] = value + 'px';
     }, [orient]);
 
     const popupDisplayNone = useCallback(() => {
+        if (popupRef.current === null) return;
         popupRef.current.style.display = 'none';
     }, []);
 
-    const Animate = useCallback(({ wishPos, finalPos, elapsed }, onNextFrame, onEnd) => {
+    const Animate = useCallback(({ wishPos, desiredPos, elapsed }, onNextFrame, onEnd) => {
         if (elapsed < duration) {
             setPopupPos(wishPos);
             rafRef.current = requestAnimationFrame(onNextFrame);
         } else {
-            if (wishPos !== finalPos) {
-                setPopupPos(finalPos);
+            if (wishPos !== desiredPos) {
+                setPopupPos(desiredPos);
             }
             
             cancelAnimationFrame(rafRef.current);
@@ -77,6 +83,11 @@ export default function Popup({
     }, [setPopupPos]);
 
     const AnimationEnd = useCallback(() => {
+        // cancel the start animation raf if is running
+        if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+        }
+        
         startTimeRef.current = Date.now();
         if (waitForClick) {
             if (!hasButton) {
@@ -87,34 +98,49 @@ export default function Popup({
         
         const end = () => {
             const elapsed = Date.now() - startTimeRef.current;
-            const remaining = duration - elapsed;
-            const { height } = popupRef.current.getBoundingClientRect();
-            const finalPos = height * batchNumber + gap * batchNumber;
-            const percent = remaining / duration;
-            const wishPos = finalPos * easeOutCubic(percent);
-    
-            Animate({ wishPos, finalPos, elapsed }, end, () => {
+            const percent = elapsed / duration;
+            const currentPos = getPopupPos();
+            
+            // weird stuff here, when removed, the raf still goes
+            if (currentPos === undefined) {
+                cancelAnimationFrame(rafRef.current);
                 popupDisplayNone();
-                remove(uid)
+                remove(uid);
+            }
+
+            const desiredPos = -10;
+            const wishPos = desiredPos + (currentPos - desiredPos) * easeOutCubic(1 - percent);
+    
+            Animate({ wishPos, desiredPos, elapsed }, end, () => {
+                popupDisplayNone();
+                remove(uid);
             });
         }
 
         end();
-    }, [Animate, batchNumber, gap, remove, uid, popupDisplayNone, hasButton, waitForClick]);
+    }, [waitForClick, hasButton, getPopupPos, Animate, popupDisplayNone, remove, uid]);
 
     const AnimationStart = useCallback(() => {
         const elapsed = Date.now() - startTimeRef.current;
-        const { height } = popupRef.current.getBoundingClientRect();
-        const finalPos = height * batchNumber + gap * batchNumber;
-        const percent = elapsed / duration;
-        const wishPos = finalPos * easeOutCubic(percent);
         
-        Animate({ wishPos, finalPos, elapsed }, AnimationStart, () => {
+        const { height } = popupRef.current.getBoundingClientRect();
+        const desiredPos = height * batchNumber + gap * batchNumber;
+        const currentPos = getPopupPos();
+
+        const percent = elapsed / duration;
+        let wishPos = desiredPos * easeOutCubic(percent);
+
+        // this goes down
+        if (currentPos > desiredPos) {
+            wishPos = desiredPos + (currentPos - desiredPos) * easeOutCubic(1 - percent);
+        }
+        
+        Animate({ wishPos, desiredPos, elapsed }, AnimationStart, () => {
             if (waitForClick === false) {
                 setTimeout(AnimationEnd, 1000 * 7);
             }
         });
-    }, [Animate, AnimationEnd, batchNumber, gap, waitForClick]);
+    }, [Animate, AnimationEnd, getPopupPos, batchNumber, gap, waitForClick]);
     
     useEffect(() => {
         if (initialLoad) {
@@ -123,13 +149,15 @@ export default function Popup({
             
             if (waitForClick) {
                 if (!hasButton) {
-                    // popupRef.current.onclick = () => remove(uid);
                     popupRef.current.onclick = AnimationEnd;
                     popupRef.current.style.cursor = "pointer";
                 }
             }
+        } else if (!initialLoad && batchNumber) {
+            startTimeRef.current = Date.now();
+            AnimationStart();
         }
-    }, [initialLoad, waitForClick, hasButton, AnimationStart, AnimationEnd]);
+    }, [initialLoad, waitForClick, hasButton, batchNumber, AnimationStart, AnimationEnd]);
     
     return (
         <div ref={popupRef} className='popup'>
