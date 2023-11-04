@@ -12,8 +12,7 @@
 dev
 
 # assets
-server/musics
-server/emotes
+server/assets
 
 # production
 client/build
