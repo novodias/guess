@@ -1,3 +1,5 @@
+const { filterName } = require('../utils');
+
 /**
  * @class
  * @constructor
@@ -53,12 +55,14 @@ class Song {
     title_type;
     // franchise_id;
 
-    constructor(data) {
-        this.title_id = data['title_id'];
-        this.type = data['type'];
-        this.name = data['song_name'];
-        this.duration = data['song_duration'];
-        this.youtube_id = data['youtube_id'];
+    constructor(data = null) {
+        if (data) {
+            this.title_id = data['title_id'];
+            this.type = data['type'];
+            this.name = data['song_name'];
+            this.duration = data['song_duration'];
+            this.youtube_id = data['youtube_id'];
+        }
     }
 
     static instantiate(row) {
@@ -91,7 +95,7 @@ class Song {
      * @private
      */
     get songNameFiltered() {
-        return filterName(this.song_name);
+        return filterName(this.name);
     }
 
     get partialPath() {
