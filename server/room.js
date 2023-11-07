@@ -89,7 +89,7 @@ class Room {
         this.rounds += 1;
         this.status = Room.STATUS.PREPARING;
         this._selectRandomSong();
-        const start_at = random.intFromInterval(5, this.selected.song_duration - 30);
+        const start_at = intFromInterval(5, this.selected.duration - 30);
 
         const prepare = {
             type: "prepare",
