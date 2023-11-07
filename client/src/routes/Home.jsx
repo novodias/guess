@@ -93,9 +93,9 @@ const HomePage = () => {
         
         try {
             const { id, ownerId } = await createRoomAsync(roomName, false, passwordHash);
-
+            const state = passwordHash ? { passwordHash } : null;
             setOwner(ownerId);
-            navigate(`room/${id}`, { state: { passwordHash }});
+            navigate(`room/${id}`, { state });
         } catch (error) {
             console.error(error);
         }
