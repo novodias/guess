@@ -1,8 +1,28 @@
 const express = require('express');
+const Room = require('../room');
 const router = express.Router();
+const { nullOrUndefined } = require('../utils');
+const AbortMessage = require('../models/abortError');
 
-const nullUndefined = (value) => {
-    return value === null || value === undefined;
+/**
+ * @param {Room} room
+ * @param {Response<any, Record<string, any>, number>} res
+ */
+const ensureRoomAuthentication = (room, hash, res) => {
+    if (room.hasPassword && nullOrUndefined(hash)) {
+        res.json(room.public);
+        console.log(`[Rooms/${room.id}] Room with password found, password not inserted`);
+        return false;
+    }
+
+    if (room.passwordHash !== hash) {
+        console.log(`[Rooms/${room.id}] Room found, wrong authentication`);
+        const abt = new AbortMessage("Room's password doesn't match", 400, room.public);
+        res.abort(abt);
+        return false;
+    }
+
+    return true;
 }
 
 router.use("/", (req, res, next) => {
@@ -10,12 +30,15 @@ router.use("/", (req, res, next) => {
         const { id } = req.query;
         const authorization = req.headers.authorization;
         const hash = Buffer.from(authorization, 'base64').toString('ascii');
+        /**
+         * @type {Room}
+         */
         const room = req.cluster.getRoom(id);
         // console.log(room.passwordHash, hash, room.passwordHash === hash);
 
         if (!room) {
-            res.status(404).send("Not found");
             console.log("[Rooms] Couldn't found room", id);
+            res.abort(new AbortMessage("Room not found", 404));
             return;
         }
 
@@ -26,18 +49,7 @@ router.use("/", (req, res, next) => {
             return;
         }
 
-        if (room.hasPassword && nullUndefined(hash)) {
-            res.json(room.getRoomInformation());
-            console.log(`[Rooms/${room.id}] Room found, password NEEDED`);
-            return;
-        }
-
-        if (room.passwordHash !== hash) {
-            console.log(`[Rooms/${room.id}] Room found, wrong authentication`);
-            res.status(400).json({
-                message: "Wrong password",
-                ...room.getRoomInformation()
-            })
+        if (!ensureRoomAuthentication(room, hash, res)) {
             return;
         }
 
@@ -48,8 +60,12 @@ router.use("/", (req, res, next) => {
 })
 
 router.get("/", (req, res) => {
+    // auth part gone
+    /**
+     * @type {Room}
+     */
     const room = req.room;
-    res.json(room.getRoomData());
+    res.json(room.private);
 });
 
 router.post("/", async (req, res) => {
@@ -58,14 +74,12 @@ router.post("/", async (req, res) => {
         res.status(406).send("Not acceptable");
     }
 
-    console.log(req.body);
     const { name, passwordHash, isPrivate } = req.body;
     const db = req.db;
     const cluster = req.cluster;
 
     const songs = await db.get_songs_random(10);
     const room = cluster.createRoom(name, passwordHash, isPrivate, songs);
-    console.log(room);
 
     res.json({ id: room.id, ownerId: room.ownerId });
 });

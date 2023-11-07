@@ -1,24 +1,5 @@
 const pg = require('pg');
-const moment = require('moment');
-
-class Song {
-
-    /**
-     * 
-     * @param {Number} title_id 
-     * @param {String} type 
-     * @param {String} song_name 
-     * @param {Number} song_duration 
-     * @param {String} youtube_id 
-     */
-    constructor(title_id, type, song_name, song_duration, youtube_id) {
-        this.title_id = title_id;
-        this.type = type;
-        this.song_name = song_name;
-        this.song_duration = song_duration;
-        this.youtube_id = youtube_id;
-    };
-}
+const Song = require('./models/song');
 
 class GuessDb {
     constructor(connectionString) {
@@ -65,24 +46,14 @@ class GuessDb {
         return result.rows;
     }
 
-    // table songs
-    // "id" integer PRIMARY KEY,
-    // "title_id" integer,
-    // "type" types,
-    // "song_name" varchar(255),
-    // "song_duration" integer,
-    // "youtube_id" varchar(50),
-    // "correct" integer,
-    // "misses" integer
-
     /**
-     * 
      * @param {Song} value 
+     * @returns {Song}
      */
     async add_song(value) {
         const query = {
             text: 'INSERT INTO songs(title_id, type, song_name, song_duration, youtube_id, correct, misses) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            values: [value.title_id, value.type, value.song_name, value.song_duration, value.youtube_id, 0, 0],
+            values: [value.title_id, value.type, value.name, value.song_duration, value.youtube_id, 0, 0],
         };
 
         let result = null;
@@ -96,7 +67,7 @@ class GuessDb {
             client.release();
         }
 
-        return result.rows;
+        return Song.instantiate(result.rows[0]);
     }
 
     /**
@@ -205,6 +176,9 @@ class GuessDb {
         return result.rows;
     }
 
+    /**
+     * @returns {Song}
+     */
     async get_song_by_youtube_id(id) {
         const query = {
             text: `SELECT * FROM songs WHERE youtube_id = $1`,
@@ -222,18 +196,13 @@ class GuessDb {
             client.release();
         }
 
-        return result.rows;
+        return Song.instantiate(result.rows[0]);
     }
 
-    async get_songs_starts_with({name, type, title_id}) {
-        // name += '%';
-        // const queryType = !type ?
-        //     '' :
-        //     `AND type = $2`;
-        // const queryTitle = !title_id ?
-        //     '' :
-        //     `AND id = $3`;
-        
+    /**
+     * @returns {Array<Song>}
+     */
+    async get_songs_starts_with({name, type, title_id}) {        
         const values = [];
         let batch = 1;
         let queryName = '', queryType = '', queryTitle = '';
@@ -269,11 +238,10 @@ class GuessDb {
             client.release();
         }
 
-        return result.rows;
+        return Song.toArray(result.rows);
     }
 
     async get_songs_random(total, type) {
-
         const query = {
             // text: `SELECT * FROM f_random_sample(null::"songs", 'oDD ID', $1, 1.03)`,
             // text: `SELECT * FROM songs ${type && 'WHERE type = $2'} ORDER BY random() LIMIT $1`,
@@ -281,8 +249,7 @@ class GuessDb {
             values: [total]
         };
 
-        type && query.values.push(type);
-
+        // type && query.values.push(type);
         let result = null;
 
         const client = await this.pool.connect();
@@ -294,7 +261,7 @@ class GuessDb {
             client.release();
         }
 
-        return result.rows;
+        return Song.toArray(result.rows);
     }
 }
 

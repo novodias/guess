@@ -1,20 +1,20 @@
 const webSocket = require('ws');
 const http = require('http');
 const Room = require('./room');
-const { Player, PlayerStatus } = require('./player');
+const { Player } = require('./player');
 const { GuessDb, Song } = require('./db');
-const random = require('./utils');
+const { intFromInterval, loggerFactory } = require('./utils');
 
 const generateRoomCode = () => {
     let initialCode = "";
     let finalCode = "";
     
     for (let i = 0; i < 3; i++) {
-        initialCode += String.fromCharCode(random.intFromInterval(65, 90));
+        initialCode += String.fromCharCode(intFromInterval(65, 90));
     }
 
     for (let i = 0; i < 5; i++) {
-        finalCode += String.fromCharCode(random.intFromInterval(48, 57));
+        finalCode += String.fromCharCode(intFromInterval(48, 57));
     }
 
     return initialCode + finalCode;
@@ -36,6 +36,7 @@ class RoomsCluster {
 
         RoomsCluster._instance = this;
 
+        this.logger = loggerFactory("WSServer");
         this.wss = new webSocket.Server({
             server: server,
             path: "/socket",
@@ -44,7 +45,7 @@ class RoomsCluster {
         this.db = db;
         this._addEvents();
         
-        console.log(`[WebSocket] Listening on ${port}`);
+        this.logger.log(`Listening on ${port}`);
     }
 
     /**
@@ -60,7 +61,7 @@ class RoomsCluster {
         const room = new Room(id, name, passwordHash, isPrivate, songs);
         
         room.onempty(id => {
-            console.log(`[Rooms] Deleted ${id}`);
+            this.logger.log(`Deleted room: ${id}`);
             this.deleteRoom(id);
             // room = null;
         });
@@ -114,12 +115,13 @@ class RoomsCluster {
 
         const _onMessage = (data) => {
             const message = JSON.parse(data.toString());
-            console.log(message);
+            this.logger.debug(message);
+            
 
             // only accept a joined type message upon joining
             const body = message.body;
             if (message.type !== "joined") {
-                console.log("[Cluster] Closing WebSocket client connection, type didn't match");
+                this.logger.debug("[Cluster] Closing WebSocket client connection, type didn't match");
                 ws.close();
                 return;
             }
@@ -137,7 +139,7 @@ class RoomsCluster {
             }
 
             const id = room.getSize();
-            const player = new Player(ws, id, room.id, body.nickname, 0, PlayerStatus.PENDING);
+            const player = new Player(ws, id, body.nickname, 0, Player.STATUS.PENDING);
 
             // remove the callback here
             ws.emit('remove', ws);
@@ -148,7 +150,7 @@ class RoomsCluster {
 
         ws.on('remove', ws => {
             ws.off('message', _onMessage);
-            console.log("[Cluster] Player joined, removed event message");
+            this.logger.debug("[Cluster] Player joined, removed event message");
         });
 
         ws.on('message', _onMessage);

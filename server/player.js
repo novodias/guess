@@ -8,6 +8,12 @@ const PlayerStatus = Object.freeze({
 
 class Player {
 
+    static STATUS = Object.freeze({
+        PENDING: 0,
+        CORRECT: 1,
+        WRONG: 2,
+    })
+
     /**
      * 
      * @param {webSocket.WebSocket} ws 
@@ -17,10 +23,9 @@ class Player {
      * @param {Number} points 
      * @param {Number} status 
      */
-    constructor(ws, id, room_id, nickname, points, status) {
+    constructor(ws, id, nickname, points, status) {
         this.ws = ws;
         this.id = id;
-        this.room_id = room_id;
         this.nickname = nickname;
         this.points = points;
         this.status = status;
@@ -41,12 +46,11 @@ class Player {
 
     /**
      * 
-     * @returns {{id, room_id, nickname, points, status}}
+     * @returns {{id, nickname, points, status}}
      */
-    getPlayerData() {
+    get data() {
         return {
             id: this.id,
-            // room_id: this.room_id,
             nickname: this.nickname,
             points: this.points,
             status: this.status

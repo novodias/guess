@@ -1,9 +1,11 @@
 const express = require('express');
-const moment  = require('moment');
+// const moment  = require('moment');
+const AbortError = require('../models/abortError');
 const router  = express.Router();
 
 router.get("/", async (req, res) => {
     const { name, type, id } = req.query;
+    const db = req.db;
 
     // if (!name) {
     //     res.status(406).send("Not acceptable - Query 'name' is empty.");
@@ -13,43 +15,47 @@ router.get("/", async (req, res) => {
 
     try {
         const result = await db.get_songs_starts_with({ name, type, id });
+        
+        if (result.length <= 0) {
+            throw new AbortError("Not found", 404);
+        }
+
         res.json(result);
-    } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
+    } catch (err) {
+        next(err);
     }
 });
 
-router.post("/create", async (req, res) => {
-    const {
-        title_id,
-        type,
-        song_name,
-        youtube_id
-    } = req.body;
-    const db = req.db;
+// router.post("/create", async (req, res) => {
+//     const {
+//         title_id,
+//         type,
+//         song_name,
+//         youtube_id
+//     } = req.body;
+//     const db = req.db;
     
-    const content_type = req.get("Content-Type");
-    if (content_type && content_type !== "application/json") {
-        res.status(406).send("Not acceptable");
-    }
+//     const content_type = req.get("Content-Type");
+//     if (content_type && content_type !== "application/json") {
+//         res.status(406).send("Not acceptable");
+//     }
 
-    // todo: verify visibility
-    try {
-        const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
+//     // todo: verify visibility
+//     try {
+//         const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
         
-        const duration = moment
-            .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
-            .asSeconds();
-        const song = new database.Song(title_id, type, song_name, duration, youtube_id);
-        const result = await db.add_song(song);
+//         const duration = moment
+//             .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
+//             .asSeconds();
+//         const song = new db.Song(title_id, type, song_name, duration, youtube_id);
+//         const result = await db.add_song(song);
         
-        res.json(result);
-    } catch (error) {
-        res.status(404).send("Not found");
-        console.log(error);
-    }
-});
+//         res.json(result);
+//     } catch (error) {
+//         res.status(404).send("Not found");
+//         console.log(error);
+//     }
+// });
 
 // temporary
 // router.get("/random", async (req, res) => {

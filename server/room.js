@@ -1,45 +1,16 @@
-// const { WebSocket } = require('ws');
-const { Player, PlayerStatus } = require("./player");
+const { Player } = require("./player");
 const { Song } = require('./db');
-const random = require('./utils');
+const { intFromInterval, makeid } = require('./utils');
 const uuid = require('uuid');
 
-
-const RoomStatus = Object.freeze({
-    WAITING: 'waiting',
-    PREPARING: 'preparing',
-    STARTED: 'started',
-    ENDED: 'ended'
-});
-
-/**
- * 
- * @param {String} value 
- * @returns 
- */
-function replaceSpecial(value) {
-    return value
-        .replaceAll(":", "").replaceAll("'", "").replaceAll(" ", "-")
-        .toLowerCase();
-}
-
-function getPartialPath(title, name) {
-    return replaceSpecial(title) + '/' + replaceSpecial(name);
-}
-
-function makeid(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-};
-
 class Room {
+
+    static STATUS = Object.freeze({
+        WAITING: 'waiting',
+        PREPARING: 'preparing',
+        STARTED: 'started',
+        ENDED: 'ended'
+    });
 
     /**
      * 
@@ -47,7 +18,7 @@ class Room {
      * @param {String} name 
      * @param {String} passwordHash
      * @param {boolean} isPrivate
-     * @param {Array<{id, title_id, type, song_name, song_duration, name}>} songs
+     * @param {Array<Song>} songs
      */
     constructor(id, name, passwordHash, isPrivate, songs) {
         this.id = id;
@@ -57,13 +28,12 @@ class Room {
         this.hasPassword = passwordHash !== null;
         this.ownerId = uuid.v4();
         this.listeners = {};
-
-        // ROOM MAP STORE
-        // this.store = null;
-        // this.unstore = null;
         
         // GAME PROPERTIES
-        this.status = RoomStatus.WAITING; // wait owner to start
+        this.status = Room.STATUS.WAITING; // wait owner to start
+        /**
+         * @type {Map<Number, Player>}
+         */
         this.players = new Map();
         
         this.rounds = 0;
@@ -85,16 +55,17 @@ class Room {
     }
 
     _selectRandomSong() {
-        const rnd = random.intFromInterval(0, this.songs.length - 1);
+        const rnd = intFromInterval(0, this.songs.length - 1);
         
         this.selected = this.songs[rnd];
         this.musicStorageInfo = {
             hash: makeid(9),
-            partialPath: getPartialPath(this.selected.name, this.selected.song_name)
+            partialPath: this.selected.partialPath
+            // partialPath: getPartialPath(this.selected.name, this.selected.song_name)
         };
         this.songs = this.songs.filter((song, idx) => idx !== rnd);
 
-        console.log(`[Room/${this.id}] Hash: ${this.musicStorageInfo.hash} / Selected song:`, this.selected);
+        console.log(`[Room/${this.id}] Hash: ${this.musicStorageInfo.hash} / Selected song:`, this.selected.name);
     }
 
     _clearTimer() {
@@ -116,7 +87,7 @@ class Room {
         }
     
         this.rounds += 1;
-        this.status = RoomStatus.PREPARING;
+        this.status = Room.STATUS.PREPARING;
         this._selectRandomSong();
         const start_at = random.intFromInterval(5, this.selected.song_duration - 30);
 
@@ -139,10 +110,10 @@ class Room {
 
     _startRound() {
         this.players.forEach(ply => {
-            ply.status = PlayerStatus.PENDING;
+            ply.status = Player.STATUS.PENDING;
         });
 
-        this.status = RoomStatus.STARTED;
+        this.status = Room.STATUS.STARTED;
 
         const round = {
             type: "round",
@@ -163,7 +134,7 @@ class Room {
         const winner = this.getPlayers()
             .sort((v1, v2) => v2.points - v1.points)[0];
 
-        this.status = RoomStatus.ENDED;
+        this.status = Room.STATUS.ENDED;
         
         const end = {
             type: "end",
@@ -182,13 +153,13 @@ class Room {
 
     /**
      * 
-     * @returns {Array<{id, room_id, nickname, points, status}>}
+     * @returns {Array<{id, nickname, points, status}>}
      */
     getPlayers() {
         return Array
             .from(this.players)
             .map(([id, player]) => {
-                return player.getPlayerData();
+                return player.data;
             });
     }
 
@@ -204,7 +175,10 @@ class Room {
             });
     }
 
-    getRoomInformation() {
+    /**
+     * This will return data that is available to the public.
+     */
+    get public() {
         return {
             id: this.id,
             name: this.name,
@@ -213,7 +187,10 @@ class Room {
         };
     }
     
-    getRoomData() {
+    /**
+     * This will return data that is available to people that joined the room.
+     */
+    get private() {
         return {
             id: this.id,
             name: this.name,
@@ -236,8 +213,7 @@ class Room {
     _handleMessage(message, player) {
         const type = message.type;
         const body = message.body;
-
-        console.log(message);
+        // console.log(message);
         
         const handler = {
             "start": () => {
@@ -247,7 +223,7 @@ class Room {
                     return;
                 }
 
-                if (this.status !== RoomStatus.WAITING) {
+                if (this.status !== Room.STATUS.WAITING) {
                     return;
                 }
 
@@ -268,7 +244,7 @@ class Room {
             "submit": () => {
                 const id = body.id;
                 const title_id = body.title.id;
-                const pending = this._getPlayersByStatus(PlayerStatus.PENDING);
+                const pending = this._getPlayersByStatus(Player.STATUS.PENDING);
 
                 // if player its not with status pending, ignore
                 // if (!pending.find(p => p.id === id)) {
@@ -278,8 +254,8 @@ class Room {
                 const player = this.players.get(id);
 
                 const ratio = pending.length / this.players.size;
-                let status = this.selected.title_id === title_id ? PlayerStatus.CORRECT : PlayerStatus.WRONG;
-                let points = status === PlayerStatus.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
+                let status = this.selected.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
+                let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
                 
                 // the player class emits a onchange event and broadcasts to all
                 player.set(points, status);
@@ -292,8 +268,8 @@ class Room {
                 // }
             },
 
+            // self explanatory
             "chat": () => {
-                // self explanatory
                 this.broadcast({
                     type: "chat",
                     body: { text: body.text, nickname: player.nickname }
