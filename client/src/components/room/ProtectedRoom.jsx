@@ -6,6 +6,7 @@ import { LockRounded } from '@mui/icons-material';
 import Spinner from '../Spinner';
 import logger from '../../utils';
 import { usePopupDispatchContext } from '../../context/PopupProvider';
+import { RoomAuthError } from '../../api/rooms/api';
 
 function AuthenticateRoom({ name, loadRoom }) {
     const [password, setPassword] = useState(null);
@@ -61,30 +62,34 @@ export default function ProtectedRoom({ children }) {
             const room = await getRoom(pass);
             setAuth(false);
             return room;
-        } catch (error) {
-            const room = error.response.data;
-            console.error(room);
-
-            if (!name) {
-                setName(room.name);
-            }
-            
-            if (room.requirePassword) {
-                if (!auth) {
-                    logger.debug("Room", id, "needs a password - setAuth to true");
-                    setAuth(true);
+        } catch (err) {
+            if (err instanceof RoomAuthError) {
+                const room = err.data;
+                console.error(room);
+    
+                if (!name) {
+                    setName(room.name);
+                }
+                
+                if (room.requirePassword) {
+                    if (!auth) {
+                        logger.debug("Room", id, "needs a password - setAuth to true");
+                        setAuth(true);
+                    }
+                } else {
+                    setAuth(false);
+                }
+    
+                if (!initialLoad) {
+                    add({
+                        text: room.message,
+                        gap: 10,
+                        orient: "bottom",
+                        waitForClick: false,
+                    });
                 }
             } else {
-                setAuth(false);
-            }
-
-            if (!initialLoad) {
-                add({
-                    text: room.message,
-                    gap: 10,
-                    orient: "bottom",
-                    waitForClick: false,
-                });
+                throw err;
             }
         } finally {
             setLoading(false);
