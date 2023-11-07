@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config({ path: '.env' });
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env.local', override: true });
 dotenv.config({ path: `.env.${process.env.NODE_ENV}`, override: true });
 dotenv.config({ path: `.env.${process.env.NODE_ENV}.local`, override: true });
 
@@ -74,14 +74,6 @@ api.get("/", (req, res) => {
 api.get("/secret", async (req, res, next) => {
     try {
         throw new AbortError("You found my secret page :)", 500);
-    } catch (err) {
-        next(err);
-    }
-});
-
-api.get("/secret2", async (req, res, next) => {
-    try {
-        throw new Error("You found my secret2 page :)");
     } catch (err) {
         next(err);
     }
