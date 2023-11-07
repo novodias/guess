@@ -24,6 +24,7 @@ function compareArrays(arr1, arr2) {
     // return arr1.toString() === arr2.toString();
 }
 
+const search = /[':]/g
 /**
  * 
  * @param {string} value 
@@ -31,7 +32,7 @@ function compareArrays(arr1, arr2) {
  */
 function filterName(value) {
     return value
-        .replaceAll(":", "").replaceAll("'", "").replaceAll(" ", "-")
+        .replace(search, "").replace(/ /g, "-")
         .toLowerCase();
 }
 
