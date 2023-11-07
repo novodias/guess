@@ -32,11 +32,6 @@ router.post("/create", async (req, res) => {
         }
 
         const result = await db.add_title(type, title, tags);
-
-        if (result.length <= 0) {
-            throw new AbortError("Not found", 404);
-        }
-        
         res.json(result);
     } catch (error) {
         next(err);
