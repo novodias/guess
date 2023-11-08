@@ -64,23 +64,24 @@ function makeid(length) {
 
 const isDebug = process.env.NODE_ENV == 'development'
 
+const moment = require('moment');
 const loggerFactory = (name) => {
-    const newName = '[' + name + ']';
+    const time = () => '[' + moment().format("HH:mm:ss") + ']'; 
+    const id = '[' + name + ']';
     const logger = {
         debug: function () {
-            if (isDebug) {
-                const info = newName + "[Debug]";
-                const args = [info, ...Array.prototype.slice.call(arguments)];
-                console.debug.apply(console, args);
-            }
+            if (!isDebug) return;
+            const info = time() + id + "[Debug]";
+            const args = [info, ...Array.prototype.slice.call(arguments)];
+            console.debug.apply(console, args);
         },
         log: function() {
-            const info = newName + "[Log]";
+            const info = time() + id + "[Log]";
             const args = [info, ...Array.prototype.slice.call(arguments)];
             console.log.apply(console, args);
         },
         error: function () {
-            const info = newName + "[Error]";
+            const info = time() + id + "[Error]";
             const args = [info, ...Array.prototype.slice.call(arguments)];
             console.error.apply(console, args);
         }
