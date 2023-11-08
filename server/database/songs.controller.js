@@ -17,7 +17,7 @@ class Songs {
     }
 
     static async findOne(name) {
-        return await (Songs.find(name))[0];   
+        return (await Songs.find(name))[0];   
     }
 
     static async findWithYoutubeId(id) {

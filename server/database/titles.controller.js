@@ -32,7 +32,7 @@ class Titles {
      * @returns {Promise<Title>}
      */
     static async findOne(name) {
-        return await (Titles.find(name))[0];   
+        return (await Titles.find(name))[0];   
     }
 
     /**
@@ -47,7 +47,7 @@ class Titles {
      * @returns {Promise<Title>}
      */
     static async add(name, type, tags) {
-        return await (Titles._repo.add_title(title.type, title.name, title.tags))[0];
+        return (await Titles._repo.add_title(title.type, title.name, title.tags))[0];
     }
 
     /**

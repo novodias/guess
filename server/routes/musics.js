@@ -31,7 +31,8 @@ class FileNotFoundError extends Error {
      * @param {Error} err 
      */
     constructor(err) {
-        super(err)
+        super(err.message)
+        this.name = "FileNotFoundError";
         this.errno = err.errno;
         this.code = err.code;
         this.path = err.path;
