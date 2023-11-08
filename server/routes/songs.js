@@ -1,11 +1,11 @@
 const express = require('express');
 // const moment  = require('moment');
 const AbortError = require('../models/abortError');
+const Songs = require('../database/songs.controller');
 const router  = express.Router();
 
 router.get("/", async (req, res) => {
     const { name, type, id } = req.query;
-    const db = req.db;
 
     // if (!name) {
     //     res.status(406).send("Not acceptable - Query 'name' is empty.");
@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
     // console.log(nameFiltered);
 
     try {
-        const result = await db.get_songs_starts_with({ name, type, id });
+        const result = await Songs.find(name, type, id);
         
         if (result.length <= 0) {
             throw new AbortError("Not found", 404);

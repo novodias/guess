@@ -11,7 +11,8 @@ const express               = require('express');
 const cors                  = require('cors');
 const bodyParser            = require('body-parser');
 const RoomsCluster          = require('./wss');
-const { GuessDb, Song }     = require('./db');
+// const { GuessRepository } = require('./database/db');
+const Song = require('./models/song');
 const { readFileSync }      = require('fs');
 const path = require('path');
 const musics = require('./routes/musics');
@@ -20,8 +21,11 @@ const songs = require('./routes/songs');
 const titles = require('./routes/titles');
 const subdomain = require('express-subdomain');
 const AbortError = require('./models/abortError');
+const Titles = require('./database/titles.controller');
+const Title = require('./models/title');
+const Songs = require('./database/songs.controller');
 
-const db = new GuessDb();
+// const repository = GuessRepository.instance;
 const logger = loggerFactory("Main");
 
 const app = express()
@@ -61,7 +65,7 @@ function abort(res, abortObject) {
 const api = express.Router();
 
 api.use((req, res, next) => {
-    req.db = db;
+    // req.repository = repository;
     req.cluster = cluster;
     res.abort = (abortMsg) => abort(res, abortMsg);
     next();
@@ -88,55 +92,43 @@ function hasInvalidBody(body) {
     return iterableAnyNullOrUndefined([...body]);
 }
 
+/**
+ * @returns {Promise<Title>}
+ */
 async function getOrAddTitle({ title_id, title_name, title_type, title_tags }) {
-    let db_Title;
-    
+    /**
+     * @type {?Title}
+     */
+    let title = null;
     if (title_id === 0) {
-        logger.debug("[Db/Titles] Title doesn't exist, creating", title_name);
-        db_Title = (await db.add_title(title_type, title_name, title_tags))[0];
+        logger.debug("[TitlesController] Title doesn't exist, creating", title_name);
+        title = await Titles.add(title_name, title_type, title_tags);
     } else {
-        db_Title = (await db.get_title_by_id(title_id))[0];
+        title = await Titles.findById(title_id);
         
-        if (!compareArrays(db_Title.tags, title_tags)) {
-            logger.debug("[Db/Titles] Tags are diferent, updating title");
-            await db.update_title_tags(db_Title.id, title_tags);
+        if (!compareArrays(title.tags, title_tags)) {
+            logger.debug("[TitlesController] Tags are diferent, updating title");
+            await Titles.updateTags(title.id, title_tags);
         }
 
-        db_Title.tags = title_tags;
+        title.tags = title_tags;
     }
 
-    return db_Title;
+    return title;
 }
 
-async function checkSong(title, { song_name, youtube_id }) {
-    const songYoutubeIdFound = db.get_song_by_youtube_id(youtube_id);
-    
-    if (songYoutubeIdFound.length > 0) {
-        logger.debug("[Db/Songs] Youtube ID found, ignoring create", youtube_id);
-        // res.status(400).send("A song with the youtube ID sent already exists.");
-        return {
-            exists: true,
-            reason: "A song with the youtube ID sent already exists."
-        };
+async function ensureSongExists(title, { song_name, youtube_id }) {
+    const foundYtId = await Songs.findWithYoutubeId(youtube_id);
+    if (foundYtId.length > 0) {
+        logger.debug("[SongsController] Youtube ID found, ignoring create", youtube_id);
+        throw new AbortError("A song with the youtube ID sent already exists.", 400);
     }
 
-    const songFound = db.get_songs_starts_with({
-        name: song_name, title_id: title.id, type: title.type
-    });
-
-    if (songFound.length > 0) {
-        logger.debug("[Db/Songs] Song name found, ignoring create", song_name);
-        // res.status(400).send("A song with the same name already exists.");
-        return {
-            exists: true,
-            reason: "A song with the same name already exists."
-        };
+    const songs = Songs.find(song_name, title.type, title.id);
+    if (songs.length > 0) {
+        logger.debug("[SongsController] Song name found, ignoring create", song_name);
+        throw new AbortError("A song with the same name already exists.", 400);
     }
-
-    return {
-        exists: false,
-        reason: null
-    };
 }
 
 async function addSong(title, {song_name, youtube_id}) {
@@ -168,7 +160,7 @@ async function addSong(title, {song_name, youtube_id}) {
     };
 
     const song = new Song(data);
-    return db.add_song(song);
+    return Songs.add(song);
 }
 
 api.post("/create", async (req, res, next) => {
@@ -188,11 +180,7 @@ api.post("/create", async (req, res, next) => {
         } = req.body;
 
         const title = await getOrAddTitle({ title_id, title_name, title_type, title_tags });
-        const msg = await checkSong(title, { song_name, youtube_id });
-        
-        if (msg.exists) {
-            throw new AbortError(msg.reason, 400);
-        }
+        await ensureSongExists(title, { song_name, youtube_id });
         
         const result = await addSong(title, { song_name, youtube_id });
         res.json(result);

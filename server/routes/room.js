@@ -4,6 +4,7 @@ const router = express.Router();
 const { nullOrUndefined } = require('../utils');
 const AbortMessage = require('../models/abortError');
 const AbortError = require('../models/abortError');
+const Songs = require('../database/songs.controller');
 
 /**
  * @param {Room} room
@@ -62,10 +63,9 @@ router.post("/", async (req, res, next) => {
         }
     
         const { name, passwordHash, isPrivate } = req.body;
-        const db = req.db;
         const cluster = req.cluster;
     
-        const songs = await db.get_songs_random(10);
+        const songs = await Songs.random(10);
         const room = cluster.createRoom(name, passwordHash, isPrivate, songs);
     
         res.json({ id: room.id, ownerId: room.ownerId });
