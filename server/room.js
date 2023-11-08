@@ -1,5 +1,5 @@
 const { Player } = require("./player");
-const { Song } = require('./db');
+const Song = require('./models/song');
 const { intFromInterval, makeid } = require('./utils');
 const uuid = require('uuid');
 
