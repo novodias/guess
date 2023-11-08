@@ -25,3 +25,5 @@ class Title {
         return filterName(this.name);
     }
 }
+
+module.exports = Title;
