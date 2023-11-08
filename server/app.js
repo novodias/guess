@@ -205,6 +205,9 @@ logger.log("Route /songs enabled");
 api.use("/titles", titles);
 logger.log("Route /titles enabled");
 
+const avatars = require('./routes/avatars');
+api.use("/avatars", subdomain('cdn', avatars));
+
 const clientErrorHandler = (err, req, res, next) => {
     if (err instanceof AbortError) {
         res.abort(err);
