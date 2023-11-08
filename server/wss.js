@@ -2,7 +2,6 @@ const webSocket = require('ws');
 const http = require('http');
 const Room = require('./room');
 const { Player } = require('./player');
-const { GuessDb, Song } = require('./db');
 const { intFromInterval, loggerFactory } = require('./utils');
 
 const generateRoomCode = () => {
@@ -26,10 +25,9 @@ class RoomsCluster {
      * 
      * @param {http.Server} server
      * @param {Number} port
-     * @param {GuessDb} db 
      * @returns 
      */
-    constructor(server, port, db) {
+    constructor(server, port) {
         if (RoomsCluster._instance) {
             return RoomsCluster._instance;
         }
@@ -42,7 +40,6 @@ class RoomsCluster {
             path: "/socket",
         });
         this.rooms = new Map();
-        this.db = db;
         this._addEvents();
         
         this.logger.log(`Listening on ${port}`);
