@@ -28,16 +28,14 @@ const Guest = ({ nickname, points, status }) => {
     }
 
     return (
-        <>
-            <div className={`guest-info ${GuestBg()}`}>
-                <div>
-                    <AccountCircleIcon />
-                    <h3>{nickname}</h3>
-                </div>
-                <i>Points: {points}</i>
-                <Status />
+        <div className={`guest-info ${GuestBg()}`}>
+            <div>
+                <AccountCircleIcon />
+                <h3>{nickname}</h3>
             </div>
-        </>
+            <i>Points: {points}</i>
+            <Status />
+        </div>
     );
 }
 
