@@ -37,17 +37,21 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
             // console.log("Fetching titles with name:", query);
             logger.debug("Fetching titles with name:", query);
             
-            const data = await getTitlesAsync({ name: query });
-            
-            if (data) {
-                setList(data);
-            }
-
-            if (data.length === 0) {
+            try {
+                const data = await getTitlesAsync({ name: query });
+                if (data) {
+                    setList(data);
+                }
+    
+                if (data.length === 0) {
+                    setIsFetchEmpty(true);
+                } else {
+                    setIsFetchEmpty(false);
+                }
+            } catch (error) {
                 setIsFetchEmpty(true);
-            } else {
-                setIsFetchEmpty(false);
             }
+            
         }
 
         function queryEqualsLast() {
