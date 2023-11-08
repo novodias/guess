@@ -1,9 +1,26 @@
 const pg = require('pg');
-const Song = require('./models/song');
+const Song = require('../models/song');
 
-class GuessDb {
-    constructor(connectionString) {
-        // this.pool = new pg.Pool(connectionString);
+class GuessRepository {
+    /**
+     * @type {GuessRepository}
+     * @private
+     */
+    static _instance;
+
+    static get instance() {
+        if (this._instance) {
+            return this._instance;
+        }
+
+        this._instance = new GuessRepository();
+        return this._instance;
+    }
+
+    /**
+     * @private
+     */
+    constructor() {
         this.pool = new pg.Pool();
         this.beat = { lastbeat: null, count: 0 };
 
@@ -33,7 +50,6 @@ class GuessDb {
         };
 
         let result = null;
-
         const client = await this.pool.connect();
         try {
             result = await client.query(query);
@@ -42,7 +58,7 @@ class GuessDb {
         } finally {
             client.release();
         }
-
+        
         return result.rows;
     }
 
@@ -57,7 +73,6 @@ class GuessDb {
         };
 
         let result = null;
-
         const client = await this.pool.connect();
         try {
             result = await client.query(query);
@@ -76,6 +91,7 @@ class GuessDb {
      * @returns 
      */
     async update_songs_statistics(rows) {
+        let totalUpdated = 0;
         const client = await this.pool.connect();
         try {
             for (const {id, correct, misses} of rows) {
@@ -85,15 +101,19 @@ class GuessDb {
                 };
                 
                 await client.query(query);
+                totalUpdated++;
             }
         } catch (error) {
             console.error(error);
         } finally {
             client.release();
         }
+
+        return totalUpdated;
     }
 
     async update_title_tags(id, tags) {
+        let updated = 0;
         const client = await this.pool.connect();
         try {
             const query = {
@@ -102,11 +122,13 @@ class GuessDb {
             };
             
             await client.query(query);
+            updated++;
         } catch (error) {
             console.error(error);
         } finally {
             client.release();
         }
+        return updated;
     }
 
     async get_title_by_id(id) {
@@ -265,4 +287,4 @@ class GuessDb {
     }
 }
 
-module.exports = { GuessDb, Song };
+module.exports = { GuessRepository };
