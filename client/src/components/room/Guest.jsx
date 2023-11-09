@@ -1,6 +1,6 @@
 import './Guest.css';
 import React from 'react';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+// import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import PendingIcon from '@mui/icons-material/Pending';
@@ -29,11 +29,13 @@ const Guest = ({ nickname, points, status }) => {
 
     return (
         <div className={`guest-info ${GuestBg()}`}>
+            <img className='avatar' src='cdn/avatars/8'
+                width={44} height={44} alt='Avatar'></img>
             <div>
-                <AccountCircleIcon />
-                <h3>{nickname}</h3>
+                {/* <AccountCircleIcon /> */}
+                <span>{nickname}</span>
+                <i>Points: {points}</i>
             </div>
-            <i>Points: {points}</i>
             <Status />
         </div>
     );

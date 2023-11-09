@@ -7,16 +7,27 @@
     background-size: 80%;
     transition: background-size 0.275s ease-out;
     -webkit-transition: background-size 0.275s ease-out;
+    
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .guest-info div {
     display: flex;
     justify-content: flex-start;
-    align-items: center;
-    gap: 6px;
+    align-items: flex-start;
+    flex-direction: column;
+    margin-left: 10px;
 }
 
-.guest-info h3 {
+.guest-info .avatar {
+    border-radius: 50%;
+    background-color: rgb(199, 205, 211);
+    user-select: none;
+}
+
+.guest-info span {
     display: inline-block;
     margin: 0;
     margin-block: 0;
@@ -24,7 +35,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    width: 150px;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.guest-info i {
+    opacity: 0.6;
+    font-size: 0.9em;
 }
 
 .guest-status {
