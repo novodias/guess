@@ -37,8 +37,8 @@
   --color-three-text: white;
   --color-four: #343a41;
   --color-four-text: white;
-  --bg-green: #19691f;
-  --bg-green-hover: #196920e5;
+  --bg-green: #32ce3f;
+  --bg-green-hover: #19b126e5;
   --bg-crimsom: #CC2936;
   --bg-crimsom-hover: #cc2937e0;
   --btn-primary-bg: #798897;
@@ -204,7 +204,7 @@ main {
 input[type="text"] {
   display: inline-block;
   font-size: 2.2em;
-  color: rgb(128, 128, 128);
+  color: rgb(32, 31, 31);
   background: transparent;
   outline: solid 1px rgb(128, 128, 128);
   border-radius: 8px;
