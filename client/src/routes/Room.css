@@ -7,6 +7,23 @@
     margin-top: 40px;
 }
 
+#room #audio-ui {
+    width: 80%;
+    box-sizing: border-box;
+}
+
+#room #audio-ui > .progress-wrapper {
+    width: 100% !important;
+}
+
+#room #audio-ui .volume-values-wrapper {
+    z-index: 998;
+}
+
+#room #audio-ui button {
+    z-index: 999;
+}
+
 #guests-container {
     width: 300px;
     height: 86vh;
@@ -257,25 +274,27 @@
     /* align-items: center; */
     display: flex;
     justify-content: center;
-    z-index: 999;
+    z-index: 997;
 }
 
 .dropdown-input-container > #title-input {
     width: 100% !important;
     font-size: 1.5rem;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
-.game-container > .dropdown {
+.game-container > .dropdown-input-container > .dropdown {
     position: absolute;
     background: none;
     min-height: 100%;
-    width: 90%;
-    left: 12.5px;
-    top: 100%;
-    z-index: 999;
+    width: 100%;
+    left: 0;
+    top: calc(100% + 1px);
+    z-index: 998;
 }
 
-.game-container > .dropdown ul {
+.game-container > .dropdown-input-container > .dropdown ul {
     background-color: var(--color-two);
     width: 100%;
 }

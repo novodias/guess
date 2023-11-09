@@ -241,7 +241,6 @@ function RoomPage() {
             <div className='col container game-container'>
                 <div className={`timer ${timerClass}`}></div>
                 <Difficulty value={'???'} />
-                <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
                 <GameCanvas />
                 <AudioPlayer src={music.src}
                     play={music.play}
@@ -249,6 +248,7 @@ function RoomPage() {
                     startTime={music.start_at}
                     canvasCallback={canvasRef.invoke}
                     showAudioVisualizer={showAudioVisualizer} />
+                <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
             </div>
             <div className='right-wrapper col'>
                 <CopyLink id={roomId} />
