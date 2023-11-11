@@ -1,5 +1,6 @@
 const pg = require('pg');
 const Song = require('../models/song');
+const Title = require('../models/title');
 
 class GuessRepository {
     /**
@@ -59,7 +60,7 @@ class GuessRepository {
             client.release();
         }
         
-        return result.rows;
+        return Title.toArray(result.rows);
     }
 
     /**
@@ -148,13 +149,12 @@ class GuessRepository {
             client.release();
         }
 
-        return result.rows;
+        return Title.toArray(result.rows);
     }
 
     /**
      * 
      * @param {String} name 
-     * @returns {Array | null}
      */
     async get_titles_starts_with(name) {
         name += '%';
@@ -174,7 +174,7 @@ class GuessRepository {
             client.release();
         }
 
-        return result.rows;
+        return Title.toArray(result.rows);
     }
 
     async get_titles_starts_with_and_type(name, type) {
@@ -195,7 +195,7 @@ class GuessRepository {
             client.release();
         }
 
-        return result.rows;
+        return Title.toArray(result.rows);
     }
 
     /**
@@ -218,7 +218,7 @@ class GuessRepository {
             client.release();
         }
 
-        return Song.instantiate(result.rows[0]);
+        return Song.instantiate(result.rows[0]) || null;
     }
 
     /**

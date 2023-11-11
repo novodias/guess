@@ -1,8 +1,9 @@
-const webSocket = require('ws');
-const http = require('http');
-const Room = require('./room');
-const { Player } = require('./player');
-const { intFromInterval, loggerFactory } = require('./utils');
+import http from 'http';
+import webSocket from 'ws';
+import Room, { RoomConfig } from './room';
+import { Player } from './player';
+import { Logger, intFromInterval } from './utils';
+import Song from './models/song';
 
 const generateRoomCode = () => {
     let initialCode = "";
@@ -19,46 +20,35 @@ const generateRoomCode = () => {
     return initialCode + finalCode;
 }
 
-class RoomsCluster {
+export default class RoomsCluster {
 
-    /**
-     * 
-     * @param {http.Server} server
-     * @param {Number} port
-     * @returns 
-     */
-    constructor(server, port) {
+    private static _instance: RoomsCluster;
+    private logger: Logger | null;
+    private wss: webSocket.Server;
+    private rooms: Map<string, Room>;
+
+    constructor(server: http.Server, port: number) {
         if (RoomsCluster._instance) {
             return RoomsCluster._instance;
         }
 
         RoomsCluster._instance = this;
 
-        this.logger = loggerFactory("WSServer");
+        this.logger = null;
         this.wss = new webSocket.Server({
             server: server,
             path: "/socket",
         });
         this.rooms = new Map();
         this._addEvents();
-        
-        this.logger.log(`Listening on ${port}`);
     }
 
-    /**
-     * 
-     * @param {String} name 
-     * @param {String} passwordHash 
-     * @param {Boolean} isPrivate 
-     * @param {Array<Song>} songs 
-     * @returns {Room}
-     */
-    createRoom(name, passwordHash, isPrivate, songs) {
+    createRoom(config: RoomConfig, musics: Song[]) {
         const id = generateRoomCode();
-        const room = new Room(id, name, passwordHash, isPrivate, songs);
+        const room = new Room(id, config, musics);
         
-        room.onempty(id => {
-            this.logger.log(`Deleted room: ${id}`);
+        room.onempty((id: string) => {
+            this.logger?.log(`Deleted room: ${id}`);
             this.deleteRoom(id);
             // room = null;
         });
@@ -82,19 +72,17 @@ class RoomsCluster {
         // }
         // setTimeout(timerDeleteRoom, 5 * 60 * 1000);
         
-        return { id, name, isPrivate, ownerId: room.ownerId };
+        return {
+            id,
+            ownerUID: room.ownerUID
+        };
     }
 
-    /**
-     * 
-     * @param {String} id 
-     * @returns {Room | undefined}
-     */
-    getRoom(id) {
+    getRoom(id: string) {
         return this.rooms.get(id);
     }
 
-    deleteRoom(id) {
+    deleteRoom(id: string) {
         this.rooms.delete(id);
     }
 
@@ -103,22 +91,22 @@ class RoomsCluster {
      * @param {webSocket.WebSocket} ws 
      * @param {*} body 
      */
-    _setupClient(ws) {
+    _setupClient(ws: webSocket.WebSocket) {
         // Doesn't look pretty, but it works,
         // this allows to do the message event inside the room
         // Prevents adding room_id to the body for every message
         // Makes more easy to do stuff inside the room
         // which is where the stuff is happening.
 
-        const _onMessage = (data) => {
+        const _onMessage = (data: webSocket.RawData) => {
             const message = JSON.parse(data.toString());
-            this.logger.debug(message);
+            this.logger?.debug(message);
             
 
             // only accept a joined type message upon joining
             const body = message.body;
             if (message.type !== "joined") {
-                this.logger.debug("[Cluster] Closing WebSocket client connection, type didn't match");
+                this.logger?.debug("[Cluster] Closing WebSocket client connection, type didn't match");
                 ws.close();
                 return;
             }
@@ -147,7 +135,7 @@ class RoomsCluster {
 
         ws.on('remove', ws => {
             ws.off('message', _onMessage);
-            this.logger.debug("[Cluster] Player joined, removed event message");
+            this.logger?.debug("[Cluster] Player joined, removed event message");
         });
 
         ws.on('message', _onMessage);
@@ -159,5 +147,3 @@ class RoomsCluster {
         });
     }
 }
-
-module.exports = RoomsCluster;

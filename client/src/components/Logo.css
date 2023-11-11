@@ -1,4 +1,4 @@
-.logo-ritmovu {
+/* .logo-ritmovu {
     position: absolute;
     color: rgb(255, 255, 255);
     text-decoration: none;
@@ -12,13 +12,34 @@
     transition: transform 0.2s ease-out;
     transform: scale(0.9);
     letter-spacing: -2px;
+} */
+
+.logo-ritmovu {
+    position: absolute;
+    transition: background-color 0.2s ease-out;
+    width: 160px;
+    height: 80px;
+    left: 0px;
+    top: 0px;
+    background-color: transparent;
+}
+
+.logo-ritmovu > img {
+    width: 160px;
+    height: 80px;    
+}
+
+.logo-ritmovu > img {
+    position: absolute;
+    top: -5px;
 }
 
 .logo-ritmovu:hover {
-    transform: rotate(-10deg) scale(1);
+    /* transform: rotate(-10deg) scale(1); */
+    background-color: rgba(255, 0, 0, 0.1);
 }
 
-.logo-ritmovu svg {
+/* .logo-ritmovu svg {
     transform: scale(1.5) rotate(-15deg);
 }
 
@@ -28,4 +49,4 @@
 
 .logo-ritmovu > span:last-child {
     left: -3px;
-}
+} */

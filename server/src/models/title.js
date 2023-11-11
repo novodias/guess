@@ -21,6 +21,13 @@ class Title {
         return obj;
     }
 
+    /**
+     * @param {Array<any>} rows 
+     */
+    static toArray(rows) {
+        return rows.map((value) => Title.instantiate(value));
+    }
+
     get nameFiltered() {
         return filterName(this.name);
     }

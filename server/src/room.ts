@@ -1,9 +1,36 @@
-const { Player } = require("./player");
-const Song = require('./models/song');
-const { intFromInterval, makeid } = require('./utils');
-const uuid = require('uuid');
+import WebSocket from "ws";
+import Song from "./models/song";
+import { Player } from "./player";
+import { intFromInterval, makeid } from './utils';
+import uuid from 'uuid';
 
-class Room {
+export interface RoomConfig {
+    name: string;
+    password?: string;
+    private: boolean;
+}
+
+export interface MusicDetails {
+    hash: string;
+    partialPath: string;
+}
+
+export interface RoomOwnerDetails {
+    id: string;
+    name: string;
+    private: boolean;
+    ownerUID: string;
+}
+
+interface MessageHandler {
+    start(): void;
+    kick(): void;
+    submit(): void;
+    chat(): void;
+    joined(): void;
+}
+
+export default class Room {
 
     static STATUS = Object.freeze({
         WAITING: 'waiting',
@@ -12,21 +39,35 @@ class Room {
         ENDED: 'ended'
     });
 
-    /**
-     * 
-     * @param {String} id
-     * @param {String} name 
-     * @param {String} passwordHash
-     * @param {boolean} isPrivate
-     * @param {Array<Song>} songs
-     */
-    constructor(id, name, passwordHash, isPrivate, songs) {
+    public id: string;
+    public name: string;
+    public particular: boolean;
+    public password?: string;
+    public ownerUID: string;
+
+    private listeners: any;
+
+    public status: string;
+    public players: Map<number, Player>;
+    public rounds: number;
+    public roundTime: number;
+    public roundPrepare: number;
+    public roundsMax: number;
+
+    public musics: Song[];
+    public music?: Song;
+    public musicDetails?: MusicDetails;
+
+    public timer?: NodeJS.Timeout;
+    public timerCallback: any;
+
+    constructor(id: string, config: RoomConfig, songs: Song[]) {
         this.id = id;
-        this.name = name;
-        this.isPrivate = isPrivate;
-        this.passwordHash = passwordHash || null;
-        this.hasPassword = passwordHash !== null;
-        this.ownerId = uuid.v4();
+        this.name = config.name;
+        this.particular = config.private;
+        this.password = config.password;
+        this.ownerUID = uuid.v4();
+        
         this.listeners = {};
         
         // GAME PROPERTIES
@@ -39,36 +80,35 @@ class Room {
         this.rounds = 0;
         this.roundTime = 30; // make it a option on frontend
         this.roundPrepare = 5; // make it a option on frontend
-        this.maxRounds = 10; // make it a option on frontend
+        this.roundsMax = 10; // make it a option on frontend
 
         // songs
-        this.songs = songs; // has 10 here - use maxRounds to get the right amount
-        this.selected = null; // selects on prepareRound
-        this.musicStorageInfo = null;
+        this.musics = songs; // has 10 here - use maxRounds to get the right amount
+        this.music = undefined; // selects on prepareRound
+        this.musicDetails = undefined;
         
         // timer
-        this.timer = null;
-        this.timerFunction = this._prepareRound;
+        this.timer = undefined;
+        this.timerCallback = this._prepareRound;
 
         // todo: don't allow clients to connect if status is not 'waiting';
         // todo: kicked players (don't allow back in);
     }
 
-    _selectRandomSong() {
-        const rnd = intFromInterval(0, this.songs.length - 1);
+    private _selectRandomSong(): void {
+        const rnd = intFromInterval(0, this.musics.length - 1);
         
-        this.selected = this.songs[rnd];
-        this.musicStorageInfo = {
+        this.music = this.musics[rnd];
+        this.musicDetails = {
             hash: makeid(9),
-            partialPath: this.selected.partialPath
-            // partialPath: getPartialPath(this.selected.name, this.selected.song_name)
+            partialPath: this.music.partialPath
         };
-        this.songs = this.songs.filter((song, idx) => idx !== rnd);
 
-        console.log(`[Room/${this.id}] Hash: ${this.musicStorageInfo.hash} / Selected song:`, this.selected.name);
+        this.musics = this.musics.filter((_, idx) => idx !== rnd);
+        console.log(`[Room/${this.id}] Hash: ${this.musicDetails.hash} / Selected song:`, this.music.name);
     }
 
-    _clearTimer() {
+    private _clearTimer(): void {
         if (this.timer === null) {
             return;
         }
@@ -76,12 +116,12 @@ class Room {
         clearTimeout(this.timer);
     }
 
-    _startTimer(seconds) {
-        this.timer = setTimeout(this.timerFunction, 1000 * seconds);
+    private _startTimer(seconds: number): void {
+        this.timer = setTimeout(this.timerCallback, 1000 * seconds);
     }
 
-    _prepareRound() {
-        if (this.rounds === this.maxRounds) {
+    private _prepareRound(): void {
+        if (this.rounds === this.roundsMax) {
             this._endGame();
             return;
         }
@@ -89,26 +129,26 @@ class Room {
         this.rounds += 1;
         this.status = Room.STATUS.PREPARING;
         this._selectRandomSong();
-        const start_at = intFromInterval(5, this.selected.duration - 30);
+        const start_at = intFromInterval(5, this.music!.duration - 30);
 
         const prepare = {
             type: "prepare",
             body: {
                 room_status: this.status,
                 round: this.rounds,
-                music_hash: this.musicStorageInfo.hash,
+                music_hash: this.musicDetails!.hash,
                 start_at,
             }
         };
 
         this.broadcast(prepare);
-        this.timerFunction = this._startRound.bind(this);
+        this.timerCallback = this._startRound.bind(this);
 
         // roundPrepare default = 5
         this._startTimer(this.roundPrepare);
     }
 
-    _startRound() {
+    private _startRound(): void {
         this.players.forEach(ply => {
             ply.status = Player.STATUS.PENDING;
         });
@@ -124,13 +164,13 @@ class Room {
         };
 
         this.broadcast(round);
-        this.timerFunction = this._prepareRound.bind(this);
+        this.timerCallback = this._prepareRound.bind(this);
 
         // roundTime default = 30
         this._startTimer(this.roundTime);
     }
 
-    _endGame() {
+    private _endGame(): void {
         const winner = this.getPlayers()
             .sort((v1, v2) => v2.points - v1.points)[0];
 
@@ -147,7 +187,7 @@ class Room {
         this.broadcast(end);
     }
 
-    getSize() {
+    public getSize(): number {
         return this.players.size;
     }
 
@@ -155,7 +195,7 @@ class Room {
      * 
      * @returns {Array<{id, nickname, points, status}>}
      */
-    getPlayers() {
+    public getPlayers() {
         return Array
             .from(this.players)
             .map(([id, player]) => {
@@ -167,7 +207,7 @@ class Room {
      * @param {Number} status 
      * @returns {Array<Player>}
      */
-    _getPlayersByStatus(status) {
+    private _getPlayersByStatus(status: number) {
         return Array
             .from(this.players)
             .filter(([id, player]) => {
@@ -175,15 +215,19 @@ class Room {
             });
     }
 
+    public get hasPassword() {
+        return this.password !== undefined;
+    }
+
     /**
      * This will return data that is available to the public.
      */
-    get public() {
+    public get public() {
         return {
             id: this.id,
             name: this.name,
-            requirePassword: this.hasPassword,
-            isPrivate: this.isPrivate,
+            passwordRequired: this.hasPassword,
+            isPrivate: this.particular,
         };
     }
     
@@ -198,26 +242,18 @@ class Room {
         };
     }
 
-    /**
-     * 
-     * @param {Number} id 
-     * @returns {Player | undefined}
-     */
-    _getPlayer(id) { return this.players.get(id) }
+    private _getPlayer(id: number) {
+        return this.players.get(id);
+    }
 
-    /**
-     * 
-     * @param {*} message 
-     * @param {Player} player 
-     */
-    _handleMessage(message, player) {
-        const type = message.type;
-        const body = message.body;
+    _handleMessage(message: any, player: Player) {
+        const type: string = message.type;
+        const body: any = message.body;
         // console.log(message);
         
-        const handler = {
+        const handler: MessageHandler = {
             "start": () => {
-                const isOwner = body.owner === this.ownerId;
+                const isOwner = body.owner === this.ownerUID;
 
                 if (!isOwner) {
                     return;
@@ -231,7 +267,7 @@ class Room {
             },
 
             "kick": () => {
-                const isOwner = body.owner === this.ownerId;
+                const isOwner = body.owner === this.ownerUID;
 
                 if (!isOwner) {
                     return;
@@ -253,8 +289,12 @@ class Room {
 
                 const player = this.players.get(id);
 
+                if (player === undefined) {
+                    return;
+                }
+
                 const ratio = pending.length / this.players.size;
-                let status = this.selected.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
+                let status = this.music!.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
                 let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
                 
                 // the player class emits a onchange event and broadcasts to all
@@ -282,26 +322,17 @@ class Room {
         }
 
         try {
-            handler[type]();
+            handler[type as keyof MessageHandler]();
         } catch (error) {
             console.error(`type: ['${type}'] throwed an error:\n`, error);
         }
     }
 
-    /**
-     * 
-     * @param {MessageEvent} e 
-     * @returns {*}
-     */
-    parse(e) {
+    private _parse(e: WebSocket.MessageEvent) {
         return JSON.parse(e.data.toString());
     }
 
-    /**
-     * 
-     * @param {Player} player 
-     */
-    addPlayer(player) {
+    public addPlayer(player: Player) {
         player.ws.on("close", () => {
             console.log(`[Room/${this.id}] ${player.id}/${player.nickname} exited the room`);
             
@@ -310,12 +341,12 @@ class Room {
             }
         });
 
-        player.ws.onmessage = (e) => {
-            const message = this.parse(e);
+        player.ws.onmessage = (e: WebSocket.MessageEvent) => {
+            const message = this._parse(e);
             this._handleMessage(message, player);
         }
 
-        player.onchange(body => {
+        player.onchange((body: any) => {
             // broadcast changes to all;
             // console.log('onchange:', body);
             this.broadcast({ type: "change", body });
@@ -351,17 +382,19 @@ class Room {
     
     /**
      * 
-     * @param {Object} object 
-     * @param {*} ignore 
+     * @param {any} object 
+     * @param {Player} ignore 
      */
-    broadcast(object, ignore) {
+    broadcast(object: any, ignore: Player | undefined = undefined): void {
         if (!object) {
             return;
         }
 
         for (const [id, player] of this.players) {
-            if (ignore && player.id === ignore.id) {
-                continue;
+            if (ignore !== undefined) {
+                if (ignore.id === player.id) {
+                    continue;
+                }
             }
 
             if (!(player instanceof Player)) {
@@ -374,13 +407,7 @@ class Room {
         }
     }
 
-    /**
-     * 
-     * @param {Object} object 
-     * @param {Player} player 
-     * @returns 
-     */
-    send(object, player) {
+    send(object: any, player: Player): void {
         if (!object || !player) {
             return;
         }
@@ -388,7 +415,10 @@ class Room {
         player.send(object);
     }
 
-    removePlayer(id, code = undefined, reason = undefined, kicked = false) {
+    removePlayer(id: number,
+        code: number | undefined = undefined,
+        reason: string | undefined = undefined,
+        kicked = false) {
         const player = this._getPlayer(id);
         player && player.closeWebSocket(code, reason);
 
@@ -412,24 +442,22 @@ class Room {
         }
     }
 
-    onempty(callback) {
+    onempty(callback: Function) {
         this.addEventListener("empty", callback);
     }
 
-    emit(method, payload = null) {
+    emit(method: string, payload: any = null) {
         const callback = this.listeners[method];
         if (typeof callback === 'function') {
             callback(payload);
         }
     }
 
-    addEventListener(method, callback) {
+    addEventListener(method: string, callback: Function) {
         this.listeners[method] = callback;
     }
 
-    removeEventListener(method) {
+    removeEventListener(method: string) {
         delete this.listeners[method];
     }
 }
-
-module.exports = Room;

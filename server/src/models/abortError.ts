@@ -1,4 +1,15 @@
-class AbortError extends Error {
+
+export interface AbortErrorMessage {
+    message: string;
+    code: number;
+}
+
+export interface AbortErrorSanitized {
+    error: AbortErrorMessage;
+    data?: any;
+}
+
+export default class AbortError extends Error {
     /**
      * @type {Number}
      */
@@ -7,16 +18,16 @@ class AbortError extends Error {
     /**
      * @type {?Object}
      */
-    data
+    public data
 
-    constructor(msg, code, data = null) {
+    constructor(msg: string, code: number, data: any = null) {
         super(msg);
         this.code = code;
         this.data = data;
     }
 
     get sanitized() {
-        const info = {
+        const info: AbortErrorSanitized = {
             error: {
                 message: this.message,
                 code: this.code,
@@ -27,5 +38,3 @@ class AbortError extends Error {
         return info;
     }
 }
-
-module.exports = AbortError;

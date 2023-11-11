@@ -14,9 +14,18 @@
 # development
 dev
 
-# assets
-server/assets
+# client
+client/public/favicon.ico
+client/public/*.png
+client/src/assets
+client/public/browserconfig.xml
+client/public/safari-pinned-tab.svg
+client/public/site.webmanifest
+
+# server
+server/src/assets
 server/services/song-downloader/temp_songs
+server/src/dist
 
 # production
 client/build

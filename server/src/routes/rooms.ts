@@ -1,40 +1,38 @@
-const express = require('express');
-const Room = require('../room');
-const router = express.Router();
-const { nullOrUndefined } = require('../utils');
-const AbortMessage = require('../models/abortError');
-const AbortError = require('../models/abortError');
-const Songs = require('../database/songs.controller');
+import { Router, Response, Request, NextFunction } from "express";
+import Room, { RoomConfig } from '../room';
+import { nullOrUndefined } from '../utils';
+import AbortMessage from '../models/abortError';
+import AbortError from '../models/abortError';
+import Songs from '../database/songs.controller';
 
-/**
- * @param {Room} room
- * @param {Response<any, Record<string, any>, number>} res
- */
-const ensureRoomAuthentication = (room, hash, res) => {
+const rooms: Router = Router();
+
+const ensureRoomAuthentication = (room: Room, hash: string, res: Response) => {
     if (room.hasPassword && nullOrUndefined(hash)) {
         res.json(room.public);
         console.log(`[Rooms/${room.id}] Room with password found, password not inserted`);
     }
 
-    if (room.passwordHash !== hash) {
+    if (room.password !== hash) {
         console.log(`[Rooms/${room.id}] Room found, wrong authentication`);
         throw new AbortMessage("Room's password doesn't match", 400, room.public);
     }
 }
 
-router.use("/", (req, res, next) => {
+rooms.use("/", (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.method === 'GET') {
             const { id } = req.query;
             const authorization = req.headers.authorization;
-            const hash = Buffer.from(authorization, 'base64').toString('ascii');
-            const room = req.cluster.getRoom(id);
-            req.room = room;
-    
+
+            const hash = Buffer.from(authorization || "", 'base64').toString('ascii');
+            const room = req.cluster!.getRoom(id as string);
             if (!room) {
                 console.log("[Rooms] Couldn't found room", id);
                 throw new AbortMessage("Room not found", 404);
             }
+            
+            req.room = room;
             
             if (room.hasPassword) {
                 ensureRoomAuthentication(room, hash, res);
@@ -47,31 +45,31 @@ router.use("/", (req, res, next) => {
     }
 })
 
-router.get("/", (req, res) => {
+rooms.get("/", (req: Request, res: Response) => {
     /**
      * @type {Room}
      */
     const room = req.room;
-    res.json(room.private);
+    res.json(room!.private);
 });
 
-router.post("/", async (req, res, next) => {
+rooms.post("/", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const content_type = req.get("Content-Type");
         if (!content_type || content_type !== "application/json") {
             throw new AbortError("Content type not acceptable", 406);
         }
     
-        const { name, passwordHash, isPrivate } = req.body;
+        const config: RoomConfig = req.body;
         const cluster = req.cluster;
+        const songsRepo = req.services!.get(Songs);
     
-        const songs = await Songs.random(10);
-        const room = cluster.createRoom(name, passwordHash, isPrivate, songs);
-    
-        res.json({ id: room.id, ownerId: room.ownerId });
+        const songs = await songsRepo.random(10);
+        const { id, ownerUID } = cluster!.createRoom(config, songs);
+        res.json({ id, ownerUID });
     } catch (err) {
         next(err);
     }
 });
 
-module.exports = router;
+export default rooms;

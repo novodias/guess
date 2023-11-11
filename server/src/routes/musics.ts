@@ -1,13 +1,17 @@
-const path = require("path");
-const fs = require("fs")
-const Cluster = require(`../wss`);
-const express = require('express');
-const AbortError = require("../models/abortError");
-const router = express.Router();
+import { join } from "path";
+import fs from "fs";
+import RoomsCluster from "../wss";
+import AbortError from "../models/abortError";
+import { Request, Response, Router } from "express";
+const musics: Router = Router();
 
-const MUSICS_DIRECTORY = process.env.MUSIC_DIRECTORY;
+if (require.main === undefined) {
+    throw new Error("require main undefined");
+}
+
+const MUSICS_DIRECTORY = join(require.main.path, "assets", "musics");
 // const musicTest = (title, name) => path.join(MUSICS_DIRECTORY, title, name) + '.m4a';
-const music = (partialPath) => path.join(MUSICS_DIRECTORY, partialPath) + '.m4a';
+const music = (partialPath: string) => join(MUSICS_DIRECTORY, partialPath) + '.m4a';
 
 class FileNotFoundError extends Error {
     /**
@@ -30,7 +34,7 @@ class FileNotFoundError extends Error {
     /**
      * @param {Error} err 
      */
-    constructor(err) {
+    constructor(err: any) {
         super(err.message)
         this.name = "FileNotFoundError";
         this.errno = err.errno;
@@ -40,7 +44,7 @@ class FileNotFoundError extends Error {
     }
 }
 
-const checkAsync = (path) => new Promise((resolve, reject) => {
+const checkAsync = (path: string) => new Promise((resolve, reject) => {
     fs.stat(path, function (err, stat) {
         if (err == null) {
             resolve(null);
@@ -51,34 +55,31 @@ const checkAsync = (path) => new Promise((resolve, reject) => {
     });
 });
 
-router.get("/:roomid", async (req, res, next) => {
+musics.get("/:roomid", async (req: Request, res: Response, next) => {
     try {
         const roomId = req.params.roomid;
         const musicHash = req.query.hash;
     
-        /**
-         * @type {Cluster}
-         */
-        const cluster = req.cluster;
+        const cluster: RoomsCluster = req.cluster!;
         const room = cluster.getRoom(roomId);
     
-        if (room === undefined) {
+        if (room === undefined || room.musicDetails === undefined) {
             res.status(404).send("Not found");
             return;
         }
     
-        if (musicHash !== room.musicStorageInfo.hash) {
+        if (musicHash !== room.musicDetails.hash) {
             res.status(401).send("Not authorized");
             return;
         }
     
-        const path = music(room.musicStorageInfo.partialPath);
+        const path = music(room.musicDetails.partialPath);
         await checkAsync(path);
         res.type("audio/mp4");
         res.sendFile(path);
     } catch (err) {
         if (err instanceof FileNotFoundError) {
-            next(new AbortError("Path to file doesn't exist or it is incorrect", 404, err));
+            next(new AbortError("Path to file doesn't exist or it is incorrect", 404));
             console.log("Error trying to found music file: ", err.message, err.code);
         } else {
             next(err);
@@ -86,7 +87,7 @@ router.get("/:roomid", async (req, res, next) => {
     }
 });
 
-// router.get("/:title/:name", async (req, res) => {
+// musics.get("/:title/:name", async (req, res) => {
 //     const {title, name} = req.params;
 //     const musicPath = musicTest(title, name);
 //     try {
@@ -101,4 +102,4 @@ router.get("/:roomid", async (req, res, next) => {
 //     }
 // });
 
-module.exports = router;
+export default musics;

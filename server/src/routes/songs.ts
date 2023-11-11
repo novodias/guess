@@ -1,20 +1,20 @@
-const express = require('express');
-// const moment  = require('moment');
-const AbortError = require('../models/abortError');
-const Songs = require('../database/songs.controller');
-const router  = express.Router();
+import { Router } from 'express';
+import AbortError from '../models/abortError';
+import Songs from '../database/songs.controller';
 
-router.get("/", async (req, res) => {
-    const { name, type, id } = req.query;
+const songs: Router = Router();
 
-    // if (!name) {
-    //     res.status(406).send("Not acceptable - Query 'name' is empty.");
-    // }
-    // const nameFiltered = name.replaceAll('"', '').replaceAll("+", " ");
-    // console.log(nameFiltered);
+interface SongQuery {
+    name: string;
+    type?: string;
+    id: number;
+}
 
+songs.get("/", async (req, res, next) => {
     try {
-        const result = await Songs.find(name, type, id);
+        const query: SongQuery = req.query as any;
+        const songsRepo: Songs = req.services?.get(Songs);
+        const result = await songsRepo.find(query.name, query.type, query.id);
         
         if (result.length <= 0) {
             throw new AbortError("Not found", 404);
@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-// router.post("/create", async (req, res) => {
+// songs.post("/create", async (req, res) => {
 //     const {
 //         title_id,
 //         type,
@@ -58,11 +58,11 @@ router.get("/", async (req, res) => {
 // });
 
 // temporary
-// router.get("/random", async (req, res) => {
+// songs.get("/random", async (req, res) => {
 //     const { total, type } = req.query;
 //     const db = req.db;
 //     const result = await db.get_songs_random(Number.parseInt(total), type);
 //     res.json(result);
 // });
 
-module.exports = router;
+export default songs;

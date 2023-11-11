@@ -1,11 +1,5 @@
 const webSocket = require('ws');
 
-const PlayerStatus = Object.freeze({
-    PENDING: 0,
-    CORRECT: 1,
-    WRONG: 2,
-});
-
 class Player {
 
     static STATUS = Object.freeze({
@@ -100,4 +94,4 @@ class Player {
     }
 }
 
-module.exports = { Player, PlayerStatus };
+module.exports = { Player };
