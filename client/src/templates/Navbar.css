@@ -12,12 +12,12 @@ header {
 #navbar ul {
     /* position: relative; */
     list-style: none;
-    height: 80px;
+    height: 60px;
     margin: 0;
     padding: 0;
     background-color: rgb(215, 220, 228);
     /* border-bottom: 1px solid var(--color-two-shadow); */
-    filter: drop-shadow(0px 2px 5px var(--color-two-shadow));
+    box-shadow: 0px 2px 5px var(--color-two-shadow);
     align-items: center;
 }
 
@@ -28,10 +28,10 @@ header {
     font-weight: 600;
     position: relative;
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.795);
+    color: rgb(255, 255, 255);
     transition: 0.2s;
-    height: 80px;
-    min-width: 80px;
+    height: 60px;
+    min-width: 60px;
     background-color: rgba(92, 88, 88, 0.1);
 }
 
@@ -45,7 +45,6 @@ header {
 }
 
 #navbar a:hover {
-    color: rgb(255, 255, 255);
     background-color: rgba(255, 0, 0, 0.3);
 }
 
