@@ -16,9 +16,7 @@ avatars.get("/:name", async (req, res, next) => {
             root: avatarsPath,
             extensions: ['webp', 'gif', 'jpeg', 'jpg']
         }, (err) => {
-            if (err) {
-                next(err);
-            }
+            if (err) next(err);
         });
     } catch (err) {
         next(err);
