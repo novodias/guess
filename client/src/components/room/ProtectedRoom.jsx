@@ -71,7 +71,7 @@ export default function ProtectedRoom({ children }) {
                     setName(room.name);
                 }
                 
-                if (room.requirePassword) {
+                if (room.passwordRequired) {
                     if (!auth) {
                         logger.debug("Room", id, "needs a password - setAuth to true");
                         setAuth(true);
