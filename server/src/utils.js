@@ -101,7 +101,7 @@ class Logger {
     }
 
     error() {
-        const info = this.formatted("[Error]");
+        const info = this.formatted("Error");
         const args = [info, ...Array.prototype.slice.call(arguments)];
         console.error.apply(console, args);
     }
