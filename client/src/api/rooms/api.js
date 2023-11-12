@@ -36,7 +36,6 @@ export async function getRoomAsync(id, hash = null) {
         });
 
         data = response.data;
-        console.log(data);
     } catch (err) {
         if (err instanceof AxiosError) {
             if (err.response.status === 400) {
@@ -55,14 +54,14 @@ export async function getRoomAsync(id, hash = null) {
     return data;
 }
 
-export async function createRoomAsync(name, isPrivate, hash = null) {
+export async function createRoomAsync(name, particular, hash = null) {
     let data;
 
     try {
         const response = await client.post("/rooms", {
                 name,
-                isPrivate,
-                passwordHash: hash
+                particular,
+                password: hash
             }, {
                 "Content-Type": "application/json",
             },
