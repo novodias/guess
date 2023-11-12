@@ -92,9 +92,9 @@ const HomePage = () => {
         const passwordHash = hasPass ? crypto.MD5(localPassword).toString() : null;
         
         try {
-            const { id, ownerId } = await createRoomAsync(roomName, false, passwordHash);
+            const { id, ownerUID } = await createRoomAsync(roomName, false, passwordHash);
             const state = passwordHash ? { passwordHash } : null;
-            setOwner(ownerId);
+            setOwner(ownerUID);
             navigate(`room/${id}`, { state });
         } catch (error) {
             console.error(error);
