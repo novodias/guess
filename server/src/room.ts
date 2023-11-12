@@ -1,13 +1,13 @@
 import WebSocket from "ws";
 import Song from "./models/song";
-import { Player } from "./player";
+import Player, { PlayerChangeEvent, Players } from "./player";
 import { intFromInterval, makeid } from './utils';
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 export interface RoomConfig {
     name: string;
     password?: string;
-    private: boolean;
+    particular: boolean;
 }
 
 export interface MusicDetails {
@@ -15,20 +15,11 @@ export interface MusicDetails {
     partialPath: string;
 }
 
-export interface RoomOwnerDetails {
-    id: string;
-    name: string;
-    private: boolean;
-    ownerUID: string;
+interface MessageRequestHandler {
+    [k: string]: () => void;
 }
 
-interface MessageHandler {
-    start(): void;
-    kick(): void;
-    submit(): void;
-    chat(): void;
-    joined(): void;
-}
+type MessageKey = keyof MessageRequestHandler;
 
 export default class Room {
 
@@ -48,7 +39,7 @@ export default class Room {
     private listeners: any;
 
     public status: string;
-    public players: Map<number, Player>;
+    public players: Players;
     public rounds: number;
     public roundTime: number;
     public roundPrepare: number;
@@ -59,23 +50,20 @@ export default class Room {
     public musicDetails?: MusicDetails;
 
     public timer?: NodeJS.Timeout;
-    public timerCallback: any;
+    public timerCallback: () => void;
 
     constructor(id: string, config: RoomConfig, songs: Song[]) {
         this.id = id;
         this.name = config.name;
-        this.particular = config.private;
+        this.particular = config.particular;
         this.password = config.password;
-        this.ownerUID = uuid.v4();
+        this.ownerUID = uuid();
         
         this.listeners = {};
         
         // GAME PROPERTIES
         this.status = Room.STATUS.WAITING; // wait owner to start
-        /**
-         * @type {Map<Number, Player>}
-         */
-        this.players = new Map();
+        this.players = new Players();
         
         this.rounds = 0;
         this.roundTime = 30; // make it a option on frontend
@@ -159,7 +147,7 @@ export default class Room {
             type: "round",
             body: {
                 room_status: this.status,
-                players: this.getPlayers()
+                players: this.players.sanitized
             }
         };
 
@@ -171,7 +159,7 @@ export default class Room {
     }
 
     private _endGame(): void {
-        const winner = this.getPlayers()
+        const winner = this.players.sanitized
             .sort((v1, v2) => v2.points - v1.points)[0];
 
         this.status = Room.STATUS.ENDED;
@@ -187,36 +175,8 @@ export default class Room {
         this.broadcast(end);
     }
 
-    public getSize(): number {
-        return this.players.size;
-    }
-
-    /**
-     * 
-     * @returns {Array<{id, nickname, points, status}>}
-     */
-    public getPlayers() {
-        return Array
-            .from(this.players)
-            .map(([id, player]) => {
-                return player.data;
-            });
-    }
-
-    /**
-     * @param {Number} status 
-     * @returns {Array<Player>}
-     */
-    private _getPlayersByStatus(status: number) {
-        return Array
-            .from(this.players)
-            .filter(([id, player]) => {
-                return player.status === status
-            });
-    }
-
     public get hasPassword() {
-        return this.password !== undefined;
+        return this.password !== undefined && this.password !== null;
     }
 
     /**
@@ -227,7 +187,7 @@ export default class Room {
             id: this.id,
             name: this.name,
             passwordRequired: this.hasPassword,
-            isPrivate: this.particular,
+            particular: this.particular,
         };
     }
     
@@ -238,20 +198,16 @@ export default class Room {
         return {
             id: this.id,
             name: this.name,
-            players: this.getPlayers(),
+            players: this.players.sanitized,
         };
     }
 
-    private _getPlayer(id: number) {
-        return this.players.get(id);
-    }
-
     _handleMessage(message: any, player: Player) {
-        const type: string = message.type;
+        const type: MessageKey = message.type;
         const body: any = message.body;
         // console.log(message);
         
-        const handler: MessageHandler = {
+        const handler: MessageRequestHandler = {
             "start": () => {
                 const isOwner = body.owner === this.ownerUID;
 
@@ -280,7 +236,7 @@ export default class Room {
             "submit": () => {
                 const id = body.id;
                 const title_id = body.title.id;
-                const pending = this._getPlayersByStatus(Player.STATUS.PENDING);
+                const pending = this.players.withStatus(Player.STATUS.PENDING);
 
                 // if player its not with status pending, ignore
                 // if (!pending.find(p => p.id === id)) {
@@ -322,7 +278,7 @@ export default class Room {
         }
 
         try {
-            handler[type as keyof MessageHandler]();
+            handler[type]();
         } catch (error) {
             console.error(`type: ['${type}'] throwed an error:\n`, error);
         }
@@ -346,11 +302,10 @@ export default class Room {
             this._handleMessage(message, player);
         }
 
-        player.onchange((body: any) => {
+        player.onchange = (e: PlayerChangeEvent) => {
             // broadcast changes to all;
-            // console.log('onchange:', body);
-            this.broadcast({ type: "change", body });
-        })
+            this.broadcast({ type: "change", body: e });
+        };
 
         this.players.set(player.id, player);
 
@@ -366,7 +321,7 @@ export default class Room {
 
         const players = {
             type: "players",
-            body: this.getPlayers(),
+            body: this.players.sanitized,
         };
 
         // sends to player who's joined all the players
@@ -419,13 +374,12 @@ export default class Room {
         code: number | undefined = undefined,
         reason: string | undefined = undefined,
         kicked = false) {
-        const player = this._getPlayer(id);
+        const player = this.players.get(id);
         player && player.closeWebSocket(code, reason);
 
         this.players.delete(id);
 
-        const size = this.getSize();
-        if (size === 0 && typeof this.listeners["empty"] === 'function') {
+        if (this.players.size === 0 && typeof this.listeners["empty"] === 'function') {
             // emits empty and then the cluster deletes the room
             this._clearTimer();
             this.emit("empty", this.id);

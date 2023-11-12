@@ -1,7 +1,7 @@
 import http from 'http';
-import webSocket from 'ws';
+import {WebSocket, WebSocketServer, RawData} from 'ws';
 import Room, { RoomConfig } from './room';
-import { Player } from './player';
+import Player from './player';
 import { Logger, intFromInterval } from './utils';
 import Song from './models/song';
 
@@ -24,7 +24,7 @@ export default class RoomsCluster {
 
     private static _instance: RoomsCluster;
     private logger: Logger | null;
-    private wss: webSocket.Server;
+    private wss: WebSocketServer;
     private rooms: Map<string, Room>;
 
     constructor(server: http.Server, port: number) {
@@ -35,7 +35,7 @@ export default class RoomsCluster {
         RoomsCluster._instance = this;
 
         this.logger = null;
-        this.wss = new webSocket.Server({
+        this.wss = new WebSocketServer({
             server: server,
             path: "/socket",
         });
@@ -86,19 +86,14 @@ export default class RoomsCluster {
         this.rooms.delete(id);
     }
 
-    /**
-     * 
-     * @param {webSocket.WebSocket} ws 
-     * @param {*} body 
-     */
-    _setupClient(ws: webSocket.WebSocket) {
+    private _setupClient(ws: WebSocket) {
         // Doesn't look pretty, but it works,
         // this allows to do the message event inside the room
         // Prevents adding room_id to the body for every message
         // Makes more easy to do stuff inside the room
         // which is where the stuff is happening.
 
-        const _onMessage = (data: webSocket.RawData) => {
+        const _onMessage = (data: RawData) => {
             const message = JSON.parse(data.toString());
             this.logger?.debug(message);
             
@@ -123,7 +118,7 @@ export default class RoomsCluster {
                 return;
             }
 
-            const id = room.getSize();
+            const id = room.players.size;
             const player = new Player(ws, id, body.nickname, 0, Player.STATUS.PENDING);
 
             // remove the callback here
