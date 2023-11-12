@@ -8,7 +8,7 @@ import Songs from '../database/songs.controller';
 const rooms: Router = Router();
 
 const ensureRoomAuthentication = (room: Room, hash: string, res: Response) => {
-    if (room.hasPassword && nullOrUndefined(hash)) {
+    if (nullOrUndefined(hash)) {
         res.json(room.public);
         console.log(`[Rooms/${room.id}] Room with password found, password not inserted`);
     }
@@ -22,11 +22,11 @@ const ensureRoomAuthentication = (room: Room, hash: string, res: Response) => {
 rooms.use("/", (req: Request, res: Response, next: NextFunction) => {
     try {
         if (req.method === 'GET') {
-            const { id } = req.query;
+            const id = req.query.id as string;
             const authorization = req.headers.authorization;
 
             const hash = Buffer.from(authorization || "", 'base64').toString('ascii');
-            const room = req.cluster!.getRoom(id as string);
+            const room = req.cluster!.getRoom(id);
             if (!room) {
                 console.log("[Rooms] Couldn't found room", id);
                 throw new AbortMessage("Room not found", 404);
@@ -46,9 +46,6 @@ rooms.use("/", (req: Request, res: Response, next: NextFunction) => {
 })
 
 rooms.get("/", (req: Request, res: Response) => {
-    /**
-     * @type {Room}
-     */
     const room = req.room;
     res.json(room!.private);
 });
@@ -65,8 +62,8 @@ rooms.post("/", async (req: Request, res: Response, next: NextFunction) => {
         const songsRepo = req.services!.get(Songs);
     
         const songs = await songsRepo.random(10);
-        const { id, ownerUID } = cluster!.createRoom(config, songs);
-        res.json({ id, ownerUID });
+        const roomInfo = cluster!.createRoom(config, songs);
+        res.json(roomInfo);
     } catch (err) {
         next(err);
     }
