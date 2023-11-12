@@ -70,10 +70,6 @@ if (process.env.HTTPS === 'true') {
 //     next();
 // });
 
-/**
- * @param {Response<any, Record<string, any>, number>} res 
- * @param {AbortError} abortObject
- */
 function abort(res: Response, abortObject: AbortError) {
     res.status(abortObject.code).json(abortObject.sanitized);
 }
@@ -81,8 +77,8 @@ function abort(res: Response, abortObject: AbortError) {
 const api = express.Router();
 const services = new ServiceBuilder()
     .add(GuessRepository.instance)
-    .add(new Songs())
-    .add(new Titles())
+    .add(new Songs(GuessRepository.instance))
+    .add(new Titles(GuessRepository.instance))
     .add(new RoomsCluster(server, PORT))
     .build();
 
