@@ -11,10 +11,11 @@ import bodyParser from 'body-parser';
 import { readFileSync } from 'fs';
 import path from 'path';
 import AbortError from "./models/abortError";
-import { compareArrays, filterName, iterableAnyNullOrUndefined, loggerFactory } from './utils';
+import { compareArrays, filterName, iterableAnyNullOrUndefined } from './utils';
+import { loggerFactory } from './logger';
 import RoomsCluster from "./wss";
 import { GuessRepository } from "./database/db";
-import { ServiceBuilder, ServiceProvider } from './provider';
+import { ServiceBuilder } from './provider';
 import subdomain from 'express-subdomain';
 import Titles from './database/titles.controller';
 import Title from './models/title';
@@ -33,10 +34,9 @@ const app: Application = express()
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: false }));
 
-const buildPath = path.join(__dirname, "client", "build");
 if (process.env.NODE_ENV === 'production') {
+    const buildPath = path.join(__dirname, "client", "build");
     app.use(express.static(buildPath));
-
     app.get("(/*)?", async (req, res, next) => {
         res.sendFile(path.join(buildPath, 'index.html'));
     });
@@ -76,6 +76,7 @@ function abort(res: Response, abortObject: AbortError) {
 
 const api = express.Router();
 const services = new ServiceBuilder()
+    .useLogger(true)
     .add(GuessRepository.instance)
     .add(new Songs(GuessRepository.instance))
     .add(new Titles(GuessRepository.instance))
@@ -84,7 +85,7 @@ const services = new ServiceBuilder()
 
 api.use((req: Request, res: Response, next: NextFunction) => {
     req.services = services;
-    req.cluster = services.get(RoomsCluster) as RoomsCluster;
+    req.cluster = services.getRequired(RoomsCluster);
     res.abort = (abortMsg: AbortError) => abort(res, abortMsg);
     next();
 });
@@ -93,13 +94,13 @@ api.get("/", (req, res) => {
     res.send("Ok");
 });
 
-api.get("/secret", async (req, res, next) => {
-    try {
-        throw new AbortError("You found my secret page :)", 500);
-    } catch (err) {
-        next(err);
-    }
-});
+// api.get("/secret", async (req, res, next) => {
+//     try {
+//         throw new AbortError("You found my secret page :)", 500);
+//     } catch (err) {
+//         next(err);
+//     }
+// });
 
 api.post("/error", (req, res) => {
     logger.debug(req.body);
@@ -205,8 +206,8 @@ api.post("/create", async (req: Request, res: Response, next: NextFunction) => {
             song_name, youtube_id
         } = req.body;
 
-        const titlesRepo: Titles = req.services!.get(Titles);
-        const songsRepo: Songs = req.services!.get(Songs);
+        const titlesRepo: Titles = req.services.getRequired(Titles);
+        const songsRepo: Songs = req.services.getRequired(Songs);
     
         const title = await getOrAddTitle(titlesRepo, { title_id, title_name, title_type, title_tags });
         await ensureSongExists(songsRepo, title, { song_name, youtube_id });
@@ -243,7 +244,7 @@ const clientErrorHandler = (err: Error, req: Request, res: Response, next: NextF
 
 const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
     res.status(500);
-    if (process.env.NODE_ENV == 'development.local') {
+    if (process.env.NODE_ENV == 'development') {
         res.send(`<div>
             <p>Something went wrong, sorry!</p>
             <p>${err.stack || ''}</p>

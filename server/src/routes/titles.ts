@@ -13,7 +13,7 @@ interface TitleQuery {
 titles.get("/", async (req, res, next) => { 
     try {
         const query: TitleQuery = req.query as any;
-        const titlesRepo: Titles = req.services?.get(Titles);
+        const titlesRepo: Titles = req.services.getRequired(Titles);
 
         let result: Title[] | undefined = undefined;
         if (query.type === undefined) {
@@ -37,7 +37,7 @@ titles.post("/create", async (req, res, next) => {
             throw new AbortError("Not acceptable", 406);
         }
         
-        const titlesRepo: Titles = req.services?.get(Titles);
+        const titlesRepo: Titles = req.services.getRequired(Titles);
         const result = await titlesRepo.add(title, type, tags);
         res.json(result);
     } catch (err) {

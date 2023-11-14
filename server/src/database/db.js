@@ -1,6 +1,6 @@
 const pg = require('pg');
-const Song = require('../models/song');
 const Title = require('../models/title');
+const { default: Song } = require('../models/song');
 
 class GuessRepository {
     /**

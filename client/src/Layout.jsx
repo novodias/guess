@@ -10,14 +10,17 @@ export default function Layout() {
     return (
         <>
             <SettingsProvider>
-                <Header />
                 <PopupProvider>
-                    <RoomProvider>
-                        <main>
-                            <Outlet />
-                            <PopupList />
-                        </main>
-                    </RoomProvider>
+                    <Header />
+                        <RoomProvider>
+                            <main>
+                                <section className='main-content'>
+                                    <Outlet />
+                                </section>
+                            </main>
+                        </RoomProvider>
+                    <footer></footer>
+                    <PopupList />
                 </PopupProvider>
             </SettingsProvider>
         </>

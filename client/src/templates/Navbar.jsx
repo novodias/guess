@@ -7,7 +7,7 @@ import { AddRounded } from '@mui/icons-material';
 const Navbar = () => {
     return (
         <nav id='navbar'>
-            <ul className='flex-row'>
+            <ul className='row'>
                 <li>
                     <LogoRitmovu />                    
                 </li>

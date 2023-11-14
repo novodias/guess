@@ -1,4 +1,5 @@
 const { GuessRepository } = require("./db");
+const { default: Song } = require('../models/song');
 
 class Songs {
 

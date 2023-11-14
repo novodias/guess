@@ -2,7 +2,8 @@ import http from 'http';
 import {WebSocket, WebSocketServer, RawData} from 'ws';
 import Room, { RoomConfig } from './room';
 import Player from './player';
-import { Logger, intFromInterval } from './utils';
+import { intFromInterval } from './utils';
+import { ILogger } from './logger';
 import Song from './models/song';
 
 const generateRoomCode = () => {
@@ -23,7 +24,7 @@ const generateRoomCode = () => {
 export default class RoomsCluster {
 
     private static _instance: RoomsCluster;
-    private logger: Logger | null;
+    private logger: ILogger | null;
     private wss: WebSocketServer;
     private rooms: Map<string, Room>;
 
@@ -96,7 +97,6 @@ export default class RoomsCluster {
         const _onMessage = (data: RawData) => {
             const message = JSON.parse(data.toString());
             this.logger?.debug(message);
-            
 
             // only accept a joined type message upon joining
             const body = message.body;

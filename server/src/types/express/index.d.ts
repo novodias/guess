@@ -8,8 +8,8 @@ export {}
 declare global {
     namespace Express {
         export interface Request {
-            cluster?: RoomsCluster;
-            services?: ServiceProvider;
+            cluster: RoomsCluster;
+            services: ServiceProvider;
             room?: Room
         }
 

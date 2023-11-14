@@ -1,5 +1,5 @@
 #popup-wrapper {
-    position: absolute;
+    position: fixed;
     transform: translate(-50%, 50%);
     left: 50%;
     bottom: -20px;

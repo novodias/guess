@@ -4,7 +4,7 @@ import Songs from '../database/songs.controller';
 
 const songs: Router = Router();
 
-interface SongQuery {
+interface SongRequest {
     name: string;
     type?: string;
     id: number;
@@ -12,8 +12,8 @@ interface SongQuery {
 
 songs.get("/", async (req, res, next) => {
     try {
-        const query: SongQuery = req.query as any;
-        const songsRepo: Songs = req.services?.get(Songs);
+        const query: SongRequest = req.query as any;
+        const songsRepo: Songs = req.services.getRequired(Songs);
         const result = await songsRepo.find(query.name, query.type, query.id);
         
         if (result.length <= 0) {

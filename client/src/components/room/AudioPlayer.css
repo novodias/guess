@@ -79,8 +79,8 @@
 }
 
 #audio-ui button {
-    height: 28px;
-    width: 20px;
+    height: 35px;
+    width: 35px;
     display: grid;
     place-content: center;
     background-color: #dadfe4;

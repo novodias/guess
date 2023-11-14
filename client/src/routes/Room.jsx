@@ -1,11 +1,11 @@
 import logger from '../utils';
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 // import useWebSocket from 'react-use-websocket';
 
 import './Room.css';
 import { SettingsContext } from '../context/SettingsProvider';
-import { Chat, CopyLink, Difficulty, Guest, OwnerButton } from '../components/room/Export';
-import { LogoutRounded } from '@mui/icons-material';
+import { Chat, CopyLink, Difficulty, GuestContainer, OwnerButton } from '../components/room/Export';
 import { useRoomContext } from '../context/RoomProvider';
 import { error } from '../api/export';
 import InputTitles from '../components/InputTitles';
@@ -15,15 +15,6 @@ import AudioPlayer from '../components/room/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
 import { usePopupDispatchContext } from '../context/PopupProvider';
-
-function Crown() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-        style={{filter: "drop-shadow(gray -1px -1px 0px)"}}>
-            <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
-        </svg>
-    );
-}
 
 function updateGuest(player, stat) {
     if (player.id === stat.id) {
@@ -36,6 +27,7 @@ function updateGuest(player, stat) {
 }
 
 function RoomPage() {
+    let navigate = useNavigate();
     const { username, showAudioVisualizer } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
@@ -129,9 +121,23 @@ function RoomPage() {
             }
             console.log("Connected");
         },
+        /**
+         * @param {CloseEvent} e
+         */
         onClose: (e) => {
             console.log("Close:", e.reason);
             // TODO: show a popup saying that lost connection?
+            if (e.code === 3000) {
+                add({
+                    text: "You were kicked from the room",
+                    hasButton: false,
+                    gap: 10,
+                    orient: "bottom",
+                    waitForClick: false,
+                });
+            }
+
+            navigate('/');
         },
         onError: (e) => {
             if (process.env.NODE_ENV === 'development') {
@@ -143,13 +149,13 @@ function RoomPage() {
         }
     });
 
-    const KickPerson = (personId) => {
+    const KickPerson = useCallback((personId) => {
         if (id === personId) {
             return;
         }
 
         sendMessage("kick", { owner, id: personId });
-    }
+    }, [id, owner, sendMessage]);
 
     const SendChatMessage = (text) => {
         sendMessage("chat", { text, nickname: username });
@@ -160,38 +166,18 @@ function RoomPage() {
         setReadOnly(true);
     }
 
-    // const StartMatch = () => {
-    //     sendMessage("start", { owner });
-    // }
-
-    function GuestContainer({v, inFirstPlace}) {
-        const btn_kick = showKickBtn && owner;
-        return (
-            <li className='row'>
-                {owner && id !== v.id && <div className='btn-kick' style={{ display: btn_kick ? 'block' : 'none' }}>
-                    <button onClick={() => KickPerson(v.id)}>
-                        <LogoutRounded htmlColor='white' />
-                    </button>
-                </div>}
-                <div className='crown'>
-                    {inFirstPlace ? <Crown /> : null}
-                </div>
-                <Guest {...v} />
-            </li>
-        )
-    }
-
-    function Scoreboard() {
-        return (
-            <ul id='scoreboard'>
-                {
-                    players
-                        .sort((v1, v2) => v2.points - v1.points)
-                        .map((v, i) => <GuestContainer key={i} v={v} inFirstPlace={i === 0} />)
-                }
-            </ul>
-        )
-    }
+    const Players = useCallback(() => {
+        return players
+            .sort((v1, v2) => v2.points - v1.points)
+            .map((v, i) => <GuestContainer key={i}
+                guest={v}
+                owner={owner}
+                clientId={id}
+                inFirstPlace={i === 0}
+                kickEnabled={showKickBtn}
+                KickPerson={KickPerson}
+            />)
+    }, [id, owner, players, showKickBtn, KickPerson]);
 
     function GameCanvas() {
         if (!showAudioVisualizer) {
@@ -234,7 +220,9 @@ function RoomPage() {
         <div id='room'>
             <div id='guests-container' className='col container'>
                 <div className='header-container'><h2>Players</h2></div>
-                <Scoreboard />
+                <ul id='scoreboard'>
+                    <Players />
+                </ul>
                 <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
                 {/* <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button> */}
             </div>

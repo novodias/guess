@@ -60,7 +60,7 @@ musics.get("/:roomid", async (req: Request, res: Response, next) => {
         const roomId = req.params.roomid;
         const musicHash = req.query.hash;
     
-        const cluster: RoomsCluster = req.cluster!;
+        const cluster: RoomsCluster = req.cluster;
         const room = cluster.getRoom(roomId);
     
         if (room === undefined || room.musicDetails === undefined) {

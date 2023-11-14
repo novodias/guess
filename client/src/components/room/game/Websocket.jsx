@@ -26,7 +26,11 @@ const webSocketAddress = (process.env.NODE_ENV === 'development' ?
 
 /**
  * 
- * @param {{OnMessage, OnOpen, OnClose, OnError}} props 
+ * @param {Object} props 
+ * @param {OnMessage} props.OnMessage
+ * @param {OnOpen} props.OnOpen
+ * @param {OnClose} props.OnClose
+ * @param {OnError} props.OnError
  * @returns {sendMessage}
  */
 export default function useGameWebSocket({ onMessage, onOpen, onClose, onError }) {    

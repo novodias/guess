@@ -1,7 +1,7 @@
 {
   "name": "ritmovu-app-server",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
   "main": "src/dist/index.js",
   "scripts": {
     "start": "NODE_ENV=production node src/dist/index.js",
