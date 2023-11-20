@@ -1,8 +1,8 @@
 import React from 'react';
 
-export default function Container({children, headerText, isContent}) {
+export default function Container({children, headerText, isContent, className}) {
     return (
-        <div className='container'>
+        <div className={`container${' ' + className}`}>
             {headerText !== undefined && <div className='header-container'>
                 <h2>{headerText}</h2>
             </div>}

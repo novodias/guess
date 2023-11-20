@@ -1,13 +1,15 @@
 import React from 'react';
 import InputTitles from '../InputTitles';
 import { MovieRounded } from '@mui/icons-material';
+import Container from '../Container';
 
 const types = ['Animes', 'Games', 'Movies', 'Series', 'Musics'];
 
 export default function TitleContainer({ id, type, setTag, onDropdownClick, setSearchQuery }) {    
     return (
-        <div className='container col'>
-            <h2><MovieRounded /> Select a title</h2>
+        <Container className={'col'} 
+            headerText={(<><MovieRounded /> Select a title</>)}
+            isContent={true}>
             <h3>If not found, the title will be created with the song.</h3>
             <div className='titles-form'>
                 <input readOnly value={id} type='text' name='title_id' />
@@ -22,6 +24,6 @@ export default function TitleContainer({ id, type, setTag, onDropdownClick, setS
                         readOnly={false} onText={setSearchQuery} />
                 </div>
             </div>
-        </div>
+        </Container>
     );
 }

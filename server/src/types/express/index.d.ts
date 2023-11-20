@@ -1,7 +1,7 @@
 import AbortError from "../../models/abortError";
 import { ServiceProvider } from "../../provider";
 import Room from "../../room";
-import RoomsCluster from "../../wss"
+import RoomsCluster from "../../cluster"
 
 export {}
 

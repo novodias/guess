@@ -23,9 +23,9 @@ client/public/safari-pinned-tab.svg
 client/public/site.webmanifest
 
 # server
-server/src/assets
+server/assets
 server/services/song-downloader/temp_songs
-server/src/dist
+server/dist
 
 # production
 client/build

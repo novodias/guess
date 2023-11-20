@@ -1,6 +1,6 @@
 const pg = require('pg');
-const Title = require('../models/title');
-const { default: Song } = require('../models/song');
+const Title = require('../models/title.model');
+const { default: Song } = require('../models/song.model');
 
 class GuessRepository {
     /**
@@ -199,7 +199,7 @@ class GuessRepository {
     }
 
     /**
-     * @returns {Song}
+     * @returns {Song | null}
      */
     async get_song_by_youtube_id(id) {
         const query = {
@@ -218,7 +218,11 @@ class GuessRepository {
             client.release();
         }
 
-        return Song.instantiate(result.rows[0]) || null;
+        if (result !== null && result.length > 0) {
+            return Song.instantiate(result.rows[0]);
+        }
+
+        return null;
     }
 
     /**

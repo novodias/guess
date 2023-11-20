@@ -15,11 +15,18 @@ function intFromInterval(min, max) {
  * @returns 
  */
 function compareArrays(arr1, arr2) {
+    if (nullOrUndefined(arr1) && !nullOrUndefined(arr2)) {
+        return false;
+    } else if (!nullOrUndefined(arr1) && nullOrUndefined(arr2)) { 
+        return false;
+    }
+
     let i = arr1.length;
     if (i != arr2.length) return false;
     while (i--) {
         if (arr1[i] !== arr2[i]) return false;
     }
+    
     return true;
     // return arr1.toString() === arr2.toString();
 }

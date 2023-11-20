@@ -28,7 +28,7 @@ function updateGuest(player, stat) {
 
 function RoomPage() {
     let navigate = useNavigate();
-    const { username, showAudioVisualizer } = useContext(SettingsContext);
+    const { username, showAudioVisualizer, avatar } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
     const { id, players, chat, music } = useGameContext();
@@ -116,7 +116,8 @@ function RoomPage() {
             if (id === null) {
                 sendMessage("joined", {
                     nickname: username,
-                    room_id: roomId
+                    room_id: roomId,
+                    avatar: avatar
                 });
             }
             console.log("Connected");

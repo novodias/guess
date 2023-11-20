@@ -1,6 +1,7 @@
 import './Tags.css'
 import React, { useRef, useState } from 'react';
 import { AddBoxRounded, CloseRounded } from '@mui/icons-material';
+import Container from '../Container';
 
 export default function TagsContainer({ tags, setTags }) {
     const [tagText, setTagText] = useState('');
@@ -71,14 +72,15 @@ export default function TagsContainer({ tags, setTags }) {
     }
 
     return (
-        <div className='tags-container container col'>
-            <h2><AddBoxRounded /> Tags</h2>
+        <Container className='tags-container col'
+            headerText={(<><AddBoxRounded /> Tags</>)}
+            isContent={true}>
             <h3>Tags can be helpful to find a title.</h3>
             <div className='tags-input-container col' onClick={_focusInput}>
                 <input type='text' value={tagText} ref={inputRef}
                     onChange={_onChange} onKeyUp={_onKeyUp} onKeyDown={_onKeyDown} />
                 <TagsWrapper />
             </div>
-        </div>
+        </Container>
     )
 }

@@ -4,7 +4,9 @@ import Room, { RoomConfig } from './room';
 import Player from './player';
 import { intFromInterval } from './utils';
 import { ILogger } from './logger';
-import Song from './models/song';
+import Song from './models/song.model';
+import { RedisClientType, createClient } from 'redis';
+import RoomStandard from './room';
 
 const generateRoomCode = () => {
     let initialCode = "";
@@ -24,9 +26,10 @@ const generateRoomCode = () => {
 export default class RoomsCluster {
 
     private static _instance: RoomsCluster;
-    private logger: ILogger | null;
+    private logger?: ILogger;
     private wss: WebSocketServer;
     private rooms: Map<string, Room>;
+    // private client: RedisClientType;
 
     constructor(server: http.Server, port: number) {
         if (RoomsCluster._instance) {
@@ -35,43 +38,46 @@ export default class RoomsCluster {
 
         RoomsCluster._instance = this;
 
-        this.logger = null;
+        this.rooms = new Map();
+        
         this.wss = new WebSocketServer({
             server: server,
             path: "/socket",
         });
-        this.rooms = new Map();
-        this._addEvents();
+        this.wss.on('connection', ws => {
+            this._setupClient(ws);
+        });
     }
 
     createRoom(config: RoomConfig, musics: Song[]) {
         const id = generateRoomCode();
-        const room = new Room(id, config, musics);
+        const room = new RoomStandard(id, config, musics);
         
-        room.onempty((id: string) => {
-            this.logger?.log(`Deleted room: ${id}`);
-            this.deleteRoom(id);
-            // room = null;
-        });
+        // timer
+        const timerDeleteRoom = () => {
+            if (!this.rooms.has(id)) return;
+            if (room.players.size !== 0) return;
+            
+            if (this.deleteRoom(room.id)) {
+                this.logger?.log("Deleted room:", id, "due to inactivity");
+            } else {
+                this.logger?.log("Hasn't able to delete room with timer:", id);
+            }
+        }
+        
+        const timer = setTimeout(timerDeleteRoom, 60 * 1000);
+
+        room.onempty = () => {
+            if (this.deleteRoom(id)) {
+                this.logger?.log("Deleted room:", id);
+            } else {
+                this.logger?.log("Hasn't able to delete room:", id);
+            }
+
+            clearTimeout(timer);
+        }
 
         this.rooms.set(id, room);
-
-        // timer
-        // const timerDeleteRoom = (time) => {
-        //     const tRoom = this.getRoom(id);
-        //     if (tRoom === undefined) {
-        //         return;
-        //     }
-
-        //     if (tRoom.getSize() === 0) {
-        //         this.deleteRoom(tRoom.id);
-        //         console.log(`[Rooms] Deleted room ${tRoom.id} due to inactivity`);
-        //     } else {
-        //         setTimeout(timerDeleteRoom, time);
-        //         console.log(`[Rooms] Setting timer to room ${tRoom.id} in case of inactivity`);
-        //     }
-        // }
-        // setTimeout(timerDeleteRoom, 5 * 60 * 1000);
         
         return {
             id,
@@ -84,16 +90,10 @@ export default class RoomsCluster {
     }
 
     deleteRoom(id: string) {
-        this.rooms.delete(id);
+        return this.rooms.delete(id);
     }
 
-    private _setupClient(ws: WebSocket) {
-        // Doesn't look pretty, but it works,
-        // this allows to do the message event inside the room
-        // Prevents adding room_id to the body for every message
-        // Makes more easy to do stuff inside the room
-        // which is where the stuff is happening.
-
+    private _setupClient(ws: WebSocket): void {
         const _onMessage = (data: RawData) => {
             const message = JSON.parse(data.toString());
             this.logger?.debug(message);
@@ -119,26 +119,12 @@ export default class RoomsCluster {
             }
 
             const id = room.players.size;
-            const player = new Player(ws, id, body.nickname, 0, Player.STATUS.PENDING);
-
-            // remove the callback here
-            ws.emit('remove', ws);
+            const player = new Player(ws, id, body.nickname, 0, Player.STATUS.PENDING, body.avatar);
             
             // addPlayer handles the rest;
             room.addPlayer(player);
         };
 
-        ws.on('remove', ws => {
-            ws.off('message', _onMessage);
-            this.logger?.debug("[Cluster] Player joined, removed event message");
-        });
-
-        ws.on('message', _onMessage);
-    }
-
-    _addEvents() {
-        this.wss.on('connection', ws => {
-            this._setupClient(ws);
-        });
+        ws.once('message', _onMessage);
     }
 }

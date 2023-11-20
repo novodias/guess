@@ -12,7 +12,7 @@ export const client = axios.create({
  * 
  * @param {string} name 
  * @param {string} song_name 
- * @returns 
+ * @returns {string}
  */
 export function getMusicUrl(name, song_name) {
     name = name.replace(":", "").replace("'", "");
@@ -22,6 +22,22 @@ export function getMusicUrl(name, song_name) {
 
 export function getMusic(roomid, hash) {
     return `cdn/musics/${roomid}?hash=${hash}`;
+}
+
+/**
+ * @returns {Promise<{
+ * total: number, 
+ * avatars: string[]
+ * }> | undefined}
+ */
+export async function getAvatars() {
+    try {
+        const response = await axios.get("cdn/avatars/all");
+        const { total, result } = response.data;
+        return { total, avatars: result };
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 /**

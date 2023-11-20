@@ -81,7 +81,7 @@ export const GuestContainer = ({ clientId, guest, inFirstPlace, owner, kickEnabl
     )
 }
 
-const Guest = ({ nickname, points, status }) => {
+const Guest = ({ nickname, points, status, avatar }) => {
     const Status = () => {
         if (status === GuestStatus.Correct) {
             return (<CheckCircleIcon className='guest-status' />);
@@ -92,18 +92,9 @@ const Guest = ({ nickname, points, status }) => {
         return (<CloseIcon className='guest-status' />);
     }
 
-    // const GuestBg = () => {
-    //     if (status === GuestStatus.Correct) {
-    //         return 'guest-correct';
-    //     } else if (status === GuestStatus.Wrong) {
-    //         return 'guest-wrong';
-    //     }
-    //     return '';
-    // }
-
     return (
         <div className='guest-info'>
-            <img className='avatar' src='cdn/avatars/8'
+            <img className='avatar' src={'cdn/avatars/' + avatar}
                 width={44} height={44} alt='Avatar'></img>
             <div>
                 <span>{nickname}</span>

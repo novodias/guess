@@ -19,6 +19,7 @@ export interface PlayerData {
     nickname: string;
     points: number;
     status: PlayerStatus;
+    avatar: number;
 }
 
 export default class Player {
@@ -30,15 +31,17 @@ export default class Player {
     public nickname: string;
     public points: number;
     public status: PlayerStatus;
+    public avatar: number;
 
     private listeners: any;
 
-    constructor(ws: WebSocket, id: number, nickname: string, points: number, status: PlayerStatus) {
+    constructor(ws: WebSocket, id: number, nickname: string, points: number, status: PlayerStatus, avatar: number) {
         this.ws = ws;
         this.id = id;
         this.nickname = nickname;
         this.points = points;
         this.status = status;
+        this.avatar = avatar;
 
         this.listeners = {};
     }
@@ -54,7 +57,8 @@ export default class Player {
             id: this.id,
             nickname: this.nickname,
             points: this.points,
-            status: this.status
+            status: this.status,
+            avatar: this.avatar
         };
     }
 

@@ -1,4 +1,4 @@
-const Title = require("../models/title");
+const Title = require("../models/title.model");
 const { GuessRepository } = require("./db");
 
 class Titles {

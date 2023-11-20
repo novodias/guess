@@ -1,11 +1,12 @@
 import { MusicNoteRounded } from '@mui/icons-material';
+import Container from '../Container';
 
 export default function SongContainer({songName, setSongName, youtubeId, setYoutubeId}) {
     return (
-        <div className='container col songs-container'>
-            <h2><MusicNoteRounded /> Add a new song</h2>
+        <Container className='col songs-container'
+            headerText={(<><MusicNoteRounded /> Add a new song</>)}
+            isContent={true}>
             <h3>Make sure to not add a copyrighted music/song since most of them block embeds.</h3>
-
             <label htmlFor='input_name'>Name</label>
             <h3>Insert the name of the song here</h3>
             <input id='input_name' type='text' name='song_name'
@@ -18,6 +19,6 @@ export default function SongContainer({songName, setSongName, youtubeId, setYout
                 autoComplete="off" placeholder='Ex.: dQw4w9WgXcQ' value={youtubeId}
                 onInput={setYoutubeId} />
             <button className='btn'>Send</button>
-        </div>
+        </Container>
     );
 }

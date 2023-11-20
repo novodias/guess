@@ -1,20 +1,37 @@
 import { join } from 'path';
 import { Router } from 'express';
+import config from '../config';
+import { readdir } from 'fs/promises';
 
 const avatars: Router = Router({ caseSensitive: true });
-if (require.main === undefined) {
-    throw new Error("require main undefined");
+const avatarsPath: string = join(config.assetsDir, "avatars");
+
+const getAllAvatars = async () => {
+    const files = await readdir(avatarsPath, {
+        withFileTypes: true
+    });
+
+    return files.filter((v) => v.isFile())
+        .map((v) => v.name);
 }
 
-const assetsPath: string = join(require.main.path, "assets");
-const avatarsPath: string = join(assetsPath, "avatars");
+avatars.get("/all", async (req, res, next) => {
+    try {
+        const result = await getAllAvatars();
+        const total = result.length;
+        res.json({ total, result });
+    } catch (err) {
+        next(err);
+    }
+});
 
 avatars.get("/:name", async (req, res, next) => {
     try {
         const { name } = req.params;
         res.sendFile(name, {
             root: avatarsPath,
-            extensions: ['webp', 'gif', 'jpeg', 'jpg']
+            extensions: ['webp', 'gif', 'jpeg', 'jpg'],
+            lastModified: false
         }, (err) => {
             if (err) next(err);
         });

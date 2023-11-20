@@ -25,3 +25,13 @@ export default class logger {
         this.log("debug", () => console.log("[DEBUG]", ...args));
     }
 }
+
+/**
+ * 
+ * @param {number} min 
+ * @param {number} max 
+ * @returns {number}
+ */
+export function next(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}

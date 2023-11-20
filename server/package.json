@@ -2,11 +2,12 @@
   "name": "ritmovu-app-server",
   "version": "1.0.0",
   "private": true,
-  "main": "src/dist/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "NODE_ENV=production node src/dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "dev": "NODE_ENV=development ts-node-dev src/index.ts",
-    "build": "npx tsc"
+    "build": "npx tsc",
+    "prod": "npm run build && npm start"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "express-subdomain": "^1.0.5",
     "moment": "^2.29.4",
     "pg": "^8.11.1",
+    "redis": "^4.6.10",
     "uuid": "^9.0.0",
     "ws": "^8.13.0"
   },

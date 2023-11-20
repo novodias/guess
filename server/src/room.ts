@@ -1,8 +1,9 @@
 import WebSocket from "ws";
-import Song from "./models/song";
+import Song from "./models/song.model";
 import Player, { PlayerChangeEvent, Players } from "./player";
 import { intFromInterval, makeid } from './utils';
 import { v4 as uuid } from 'uuid';
+import EventEmitter from "events";
 
 export interface RoomConfig {
     name: string;
@@ -15,31 +16,30 @@ export interface MusicDetails {
     partialPath: string;
 }
 
-interface MessageRequestHandler {
-    [k: string]: () => void;
-}
+// interface MessageRequestHandler {
+//     [k: string]: () => void;
+// }
+// type MessageKey = keyof MessageRequestHandler;
 
-type MessageKey = keyof MessageRequestHandler;
-
-export default class Room {
-
-    static STATUS = Object.freeze({
+abstract class Room {
+    static readonly STATUS = Object.freeze({
         WAITING: 'waiting',
         PREPARING: 'preparing',
         STARTED: 'started',
         ENDED: 'ended'
     });
 
-    public id: string;
-    public name: string;
-    public particular: boolean;
-    public password?: string;
-    public ownerUID: string;
+    public readonly id: string;
+    public readonly name: string;
+    public readonly particular: boolean;
+    public readonly password?: string;
+    public readonly ownerUID: string;
+    public readonly players: Players;
 
-    private listeners: any;
+    public listeners: any;
+    public messageEventEmitter: EventEmitter;
 
     public status: string;
-    public players: Players;
     public rounds: number;
     public roundTime: number;
     public roundPrepare: number;
@@ -77,23 +77,129 @@ export default class Room {
         
         // timer
         this.timer = undefined;
-        this.timerCallback = this._prepareRound;
+
+        this.messageEventEmitter = new EventEmitter();
 
         // todo: don't allow clients to connect if status is not 'waiting';
         // todo: kicked players (don't allow back in);
     }
 
-    private _selectRandomSong(): void {
-        const rnd = intFromInterval(0, this.musics.length - 1);
+    protected _handleMessage(message: any, player: Player) {
+        const type: string = message.type as string;
+        const body: any = message.body;
         
-        this.music = this.musics[rnd];
+        try {
+            this.messageEventEmitter.emit(type, body, player);
+        } catch (error) {
+            console.error(`type: ['${type}'] throwed an error:\n`, error);
+        }
+    }
+
+    public get hasPassword() {
+        return this.password !== undefined && this.password !== null;
+    }
+
+    /**
+     * This will return data that is available to the public.
+     */
+    public get public() {
+        return {
+            id: this.id,
+            name: this.name,
+            passwordRequired: this.hasPassword,
+            particular: this.particular,
+        };
+    }
+    
+    /**
+     * This will return data that is available to people that joined the room.
+     */
+    public get private() {
+        return {
+            id: this.id,
+            name: this.name,
+            players: this.players.sanitized,
+        };
+    }
+
+    protected _parse(e: WebSocket.MessageEvent) {
+        return JSON.parse(e.data.toString());
+    }
+}
+
+export default class RoomStandard extends Room {
+
+    constructor(id: string, config: RoomConfig, songs: Song[]) {
+        super(id, config, songs);
+        this.setupMessageEventEmitter();
+        this.timerCallback = this._prepareRound;
+    }
+
+    private setupMessageEventEmitter(): void {
+        this.messageEventEmitter.once("start", (body) => {
+            const isOwner = body.owner === this.ownerUID;
+
+            if (!isOwner) {
+                return;
+            }
+
+            if (this.status !== Room.STATUS.WAITING) {
+                return;
+            }
+
+            this._prepareRound();
+        });
+
+        this.messageEventEmitter.on("kick", (body) => {
+            const isOwner = body.owner === this.ownerUID;
+
+            if (!isOwner) {
+                return;
+            }
+
+            this.removePlayer(
+                body.id,
+                3000,
+                "You got kicked from the room.",
+                true
+            );
+        });
+
+        this.messageEventEmitter.on("chat", (body, player: Player) => {
+            this.broadcast({
+                type: "chat",
+                body: { text: body.text, nickname: player.nickname }
+            });
+        });
+
+        this.messageEventEmitter.on("submit", (body, player: Player) => {
+            if (this.music === undefined) return;
+            
+            const title_id = body.title.id;
+            const pending = this.players.withStatus(Player.STATUS.PENDING);
+            
+            const ratio = pending.length / this.players.size;
+            let status = this.music.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
+            let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
+            
+            // the player class emits a onchange event and broadcasts to all
+            player.set(points, status);
+        });
+    }
+
+    private _randomMusic(): Song {
+        const rnd = intFromInterval(0, this.musics.length - 1);
+        const music = this.musics[rnd];
+        
         this.musicDetails = {
             hash: makeid(9),
-            partialPath: this.music.partialPath
+            partialPath: music.partialPath
         };
-
         this.musics = this.musics.filter((_, idx) => idx !== rnd);
-        console.log(`[Room/${this.id}] Hash: ${this.musicDetails.hash} / Selected song:`, this.music.name);
+
+        console.log(`[Room/${this.id}] Hash: ${this.musicDetails.hash} / Selected song:`, music.name);
+        
+        return music;
     }
 
     private _clearTimer(): void {
@@ -116,9 +222,9 @@ export default class Room {
     
         this.rounds += 1;
         this.status = Room.STATUS.PREPARING;
-        this._selectRandomSong();
-        const start_at = intFromInterval(5, this.music!.duration - 30);
-
+        this.music = this._randomMusic();
+        
+        const start_at = intFromInterval(5, this.music.duration - 30);
         const prepare = {
             type: "prepare",
             body: {
@@ -131,8 +237,6 @@ export default class Room {
 
         this.broadcast(prepare);
         this.timerCallback = this._startRound.bind(this);
-
-        // roundPrepare default = 5
         this._startTimer(this.roundPrepare);
     }
 
@@ -153,8 +257,6 @@ export default class Room {
 
         this.broadcast(round);
         this.timerCallback = this._prepareRound.bind(this);
-
-        // roundTime default = 30
         this._startTimer(this.roundTime);
     }
 
@@ -173,120 +275,7 @@ export default class Room {
         };
 
         this.broadcast(end);
-    }
-
-    public get hasPassword() {
-        return this.password !== undefined && this.password !== null;
-    }
-
-    /**
-     * This will return data that is available to the public.
-     */
-    public get public() {
-        return {
-            id: this.id,
-            name: this.name,
-            passwordRequired: this.hasPassword,
-            particular: this.particular,
-        };
-    }
-    
-    /**
-     * This will return data that is available to people that joined the room.
-     */
-    get private() {
-        return {
-            id: this.id,
-            name: this.name,
-            players: this.players.sanitized,
-        };
-    }
-
-    _handleMessage(message: any, player: Player) {
-        const type: MessageKey = message.type;
-        const body: any = message.body;
-        // console.log(message);
-        
-        const handler: MessageRequestHandler = {
-            "start": () => {
-                const isOwner = body.owner === this.ownerUID;
-
-                if (!isOwner) {
-                    return;
-                }
-
-                if (this.status !== Room.STATUS.WAITING) {
-                    return;
-                }
-
-                this._prepareRound();
-            },
-
-            "kick": () => {
-                const isOwner = body.owner === this.ownerUID;
-
-                if (!isOwner) {
-                    return;
-                }
-
-                // console.log("kick:", body);
-                this.removePlayer(body.id, 3000, "You got kicked from the room.", true);
-            },
-
-            "submit": () => {
-                const id = body.id;
-                const title_id = body.title.id;
-                const pending = this.players.withStatus(Player.STATUS.PENDING);
-
-                // if player its not with status pending, ignore
-                // if (!pending.find(p => p.id === id)) {
-                //     return;
-                // }
-
-                const player = this.players.get(id);
-
-                if (player === undefined) {
-                    return;
-                }
-
-                const ratio = pending.length / this.players.size;
-                let status = this.music!.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
-                let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
-                
-                // the player class emits a onchange event and broadcasts to all
-                player.set(points, status);
-
-                // if pending is 1, that means it is the last that just submitted - prepare new round
-                // disable this for now.
-                // if (pending.length === 1) {
-                //     this._clearTimer();
-                //     this._prepareRound();
-                // }
-            },
-
-            // self explanatory
-            "chat": () => {
-                this.broadcast({
-                    type: "chat",
-                    body: { text: body.text, nickname: player.nickname }
-                });
-            },
-
-            "joined": () => {
-                console.log("Someone tried to join");
-            }
-        }
-
-        try {
-            handler[type]();
-        } catch (error) {
-            console.error(`type: ['${type}'] throwed an error:\n`, error);
-        }
-    }
-
-    private _parse(e: WebSocket.MessageEvent) {
-        return JSON.parse(e.data.toString());
-    }
+    }    
 
     public addPlayer(player: Player) {
         player.ws.on("close", () => {
@@ -309,11 +298,6 @@ export default class Room {
 
         this.players.set(player.id, player);
 
-        // const joined = {
-        //     type: "joined",
-        //     body: player.getPlayerData(),
-        // };
-
         const you = {
             type: "yourid",
             body: { id: player.id }
@@ -334,12 +318,6 @@ export default class Room {
         this.broadcast(players);
     }
 
-    
-    /**
-     * 
-     * @param {any} object 
-     * @param {Player} ignore 
-     */
     broadcast(object: any, ignore: Player | undefined = undefined): void {
         if (!object) {
             return;
@@ -350,10 +328,6 @@ export default class Room {
                 if (ignore.id === player.id) {
                     continue;
                 }
-            }
-
-            if (!(player instanceof Player)) {
-                continue;
             }
 
             if (player.ws.readyState === player.ws.OPEN) {
@@ -371,9 +345,9 @@ export default class Room {
     }
 
     removePlayer(id: number,
-        code: number | undefined = undefined,
-        reason: string | undefined = undefined,
-        kicked = false) {
+                code: number | undefined = undefined,
+                reason: string | undefined = undefined,
+                kicked = false) {
         const player = this.players.get(id);
         player && player.closeWebSocket(code, reason);
 
@@ -396,8 +370,8 @@ export default class Room {
         }
     }
 
-    onempty(callback: Function) {
-        this.addEventListener("empty", callback);
+    set onempty(value: () => void) {
+        this.addEventListener("empty", value);
     }
 
     emit(method: string, payload: any = null) {

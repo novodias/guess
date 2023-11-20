@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import AbortError from '../models/abortError';
 import Titles from '../database/titles.controller';
-import Title from '../models/title';
+import Title from '../models/title.model';
 
 const titles: Router = Router();
 

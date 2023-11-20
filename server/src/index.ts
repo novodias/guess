@@ -5,6 +5,8 @@ dotenv.config({ path: '.env.local', override: true });
 dotenv.config({ path: `.env.${process.env.NODE_ENV}`, override: true });
 dotenv.config({ path: `.env.${process.env.NODE_ENV}.local`, override: true });
 
+import https from 'https'
+import http from 'http'
 import express, { Application, Request, Response, NextFunction } from "express";
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -13,14 +15,14 @@ import path from 'path';
 import AbortError from "./models/abortError";
 import { compareArrays, filterName, iterableAnyNullOrUndefined } from './utils';
 import { loggerFactory } from './logger';
-import RoomsCluster from "./wss";
+import RoomsCluster from "./cluster";
 import { GuessRepository } from "./database/db";
 import { ServiceBuilder } from './provider';
 import subdomain from 'express-subdomain';
 import Titles from './database/titles.controller';
-import Title from './models/title';
+import Title from './models/title.model';
 import Songs from './database/songs.controller';
-import Song from './models/song';
+import Song from './models/song.model';
 import routers from "./routes/exports";
 
 const PORT: number = parseInt(process.env.PORT || "") || 3001;
@@ -34,32 +36,32 @@ const app: Application = express()
     .use(bodyParser.json())
     .use(bodyParser.urlencoded({ extended: false }));
 
-if (process.env.NODE_ENV === 'production') {
-    const buildPath = path.join(__dirname, "client", "build");
-    app.use(express.static(buildPath));
-    app.get("(/*)?", async (req, res, next) => {
-        res.sendFile(path.join(buildPath, 'index.html'));
-    });
-}
+// if (process.env.NODE_ENV === 'production') {
+//     const buildPath = path.join(__dirname, "client", "build");
+//     app.use(express.static(buildPath));
+//     app.get("(/*)?", async (req, res, next) => {
+//         res.sendFile(path.join(buildPath, 'index.html'));
+//     });
+// }
 
 let server;
 if (process.env.HTTPS === 'true') {
     try {
-        const options = {
+        const options: https.ServerOptions = {
             key: readFileSync(process.env.HTTPS_KEY || ""),
-            cert: readFileSync(process.env.HTTPS_CERT || "")
+            cert: readFileSync(process.env.HTTPS_CERT || ""),
         };
     
-        server = require('https').createServer(options, app);
+        server = https.createServer(options, app);
     
         logger.log("Https enabled");
     } catch (error) {
         logger.error(error);
-        server = require('http').createServer(app);
+        server = http.createServer(app);
         logger.log("Something went wrong, using Http instead.");
     }
 } else {
-    server = require('http').createServer(app);
+    server = http.createServer(app);
 }
 
 // app.use(function (request, response, next) {
@@ -107,8 +109,8 @@ api.post("/error", (req, res) => {
     res.send("Ok");
 });
 
-function hasInvalidBody(body: Array<any>) {
-    return iterableAnyNullOrUndefined([...body]);
+function hasInvalidBody(body: any) {
+    return iterableAnyNullOrUndefined([...Object.values(body)]);
 }
 
 /**
@@ -140,7 +142,7 @@ async function getOrAddTitle(titlesRepo: Titles, {title_id, title_name, title_ty
  */
 async function ensureSongExists(songsRepo: Songs, title: Title, { song_name, youtube_id }: any) {
     const foundYtId = await songsRepo.findWithYoutubeId(youtube_id);
-    if (!foundYtId) {
+    if (foundYtId) {
         logger.debug("[SongsController] Youtube ID found, ignoring create", youtube_id);
         throw new AbortError("A song with the youtube ID sent already exists.", 400);
     }
@@ -156,38 +158,47 @@ async function ensureSongExists(songsRepo: Songs, title: Title, { song_name, you
  * @param {Songs} songsRepo 
  */
 async function addSong(songsRepo: Songs, title: Title, {song_name, youtube_id}: any) {
-    const serviceResponse: globalThis.Response = await fetch("http://127.0.0.1:5000/fetch", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            title_name: title.nameFiltered,
-            song_name: filterName(song_name),
+    try {
+        const serviceResponse: globalThis.Response = await fetch("http://127.0.0.1:5000/fetch", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                title_name: title.nameFiltered,
+                song_name: filterName(song_name),
+                youtube_id: youtube_id
+            })
+        });
+        
+        if (serviceResponse.status !== 201) {
+            logger.error("Service song downloader not running");
+            throw new AbortError("API to download songs is not available", 500);
+        }
+    
+        const { duration, /* partial_path */ } = await serviceResponse.json();
+        
+        const data: any = {
+            title_id: title.id,
+            type: title.type,
+            song_name: song_name,
+            song_duration: duration,
             youtube_id: youtube_id
-        })
-    });
+        };
     
-    if (serviceResponse.status !== 201) {
-        throw new Error("Check service song downloader");
-    }
-
-    const { duration, /* partial_path */ } = await serviceResponse.json();
+        if (hasInvalidBody(data)) {
+            throw new Error("Something went wrong fetching the song details");
+        }
     
-    const data: any = {
-        title_id: title.id,
-        type: title.type,
-        song_name: song_name,
-        song_duration: duration,
-        youtube_id: youtube_id
-    };
-
-    if (hasInvalidBody(data)) {
-        throw new Error("Something went wrong fetching the song details");
+        const song = new Song(data);
+        return songsRepo.add(song);
+    } catch (err) {
+        if (err instanceof TypeError) {
+            logger.error("Service song downloader not running");
+            throw new AbortError("API to download songs is not available", 500);
+        }
     }
-
-    const song = new Song(data);
-    return songsRepo.add(song);
+    
 }
 
 api.post("/create", async (req: Request, res: Response, next: NextFunction) => {
@@ -247,7 +258,7 @@ const errorHandler = (err: Error, req: Request, res: Response, next: NextFunctio
     if (process.env.NODE_ENV == 'development') {
         res.send(`<div>
             <p>Something went wrong, sorry!</p>
-            <p>${err.stack || ''}</p>
+            <p>${err.message + ' ' + err.stack || ''}</p>
         </div>`);
     } else {
         res.send(`

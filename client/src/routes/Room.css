@@ -336,6 +336,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    gap: 3px;
 }
 
 .chat-container span > h3 {
@@ -347,6 +348,10 @@
     margin: 0;
     word-wrap: break-word;
     overflow-wrap: break-word;
+}
+
+.chat-message span > img {
+    margin: 0px 2px;
 }
 
 #chat li {
