@@ -1,13 +1,26 @@
 import './Home.css';
-import crypto from 'crypto-js';
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTotalAvatars, useSettingsContext, useSettingsDispatchContext } from '../context/SettingsProvider';
-import { RoomDispatchContext } from '../context/RoomProvider';
+import { useRoomDispatchContext } from '../context/RoomProvider';
 import { createRoomAsync } from '../api/export';
 import NavigationIcon from '@mui/icons-material/Navigation';
+import Checkbox from '../components/elements/Checkbox';
+import TextInput from '../components/elements/TextInput';
+import usePassword from '../hooks/usePassword';
 
-function JoinContainer({ room, onInput, onKeyUp, redirectPage }) {
+function JoinContainer() {
+    let navigate = useNavigate();
+    const [id, setId] = useState('');
+
+    const navigateRoom = () => navigate(`/room/${id}`);
+    const onRoomInput = (e) => setId(e);
+    const onKeyUp = (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            navigateRoom();
+        }
+    }
+
     return (
         <div className='col container join-container'>
             <div className='header-container'>
@@ -17,11 +30,11 @@ function JoinContainer({ room, onInput, onKeyUp, redirectPage }) {
                 <label htmlFor='join-room-input'>Room code</label>
                 <h3>Insert the code below</h3>
                 <div className='input-btn-grouped row'>
-                    <input id='join-room-input' value={room}
+                    <input id='join-room-input' value={id}
                         placeholder='Ex.: ABC12345' type='text'
-                        onInput={onInput} autoComplete='off'
+                        onInput={onRoomInput} autoComplete='off'
                         onKeyUp={onKeyUp} />
-                    <button className="btn" onClick={redirectPage}>
+                    <button className="btn" onClick={navigateRoom}>
                         <NavigationIcon style={{rotate: "90deg"}}/>
                     </button>
                 </div>
@@ -105,12 +118,11 @@ function SettingsContainer() {
         });
     }
 
-    const setAudioVisualizer = (e) => {
-        const value = e.target.checked;
+    const setAudioVisualizer = (checked) => {
         setSettings(stg => {
             return {
                 ...stg,
-                showAudioVisualizer: value
+                showAudioVisualizer: checked
             }
         });
     }
@@ -122,68 +134,53 @@ function SettingsContainer() {
                 <AvatarContainer />
             </div>
             <div className='col inner-container'>
-                <label htmlFor="input-set-username">Nickname</label>
-                <h3>Insert your nickname below</h3>
-                <input type='text' id='input-set-username' placeholder="Guest"
-                    value={username} onInput={(e) => setUsername(e)} autoComplete='off' />
-                <div className='row' style={{ marginTop: '20px', alignItems: 'center' }}>
-                    <input type="checkbox" id='checkbox-visualizer'
-                        checked={showAudioVisualizer}
-                        onChange={setAudioVisualizer} />
-                    <label htmlFor='checkbox-visualizer' style={{margin: '0', flexGrow: '1'}}>Show audio visualizer</label>
-                </div>
+                <TextInput id="input-set-username" labelText='Nickname' helpText='Your nickname below'
+                    autoComplete='off' placeholder='Guest' value={username}
+                    onInput={(value) => setUsername(value)} />
+                <Checkbox id='checkbox-visualizer' checked={showAudioVisualizer}
+                    onChecked={setAudioVisualizer} text='Show audio visualizer'
+                    style={{ marginTop: '20px', alignItems: 'center' }} />
             </div>
         </div>
     )
 }
 
-const HomePage = () => {
-    const { username } = useSettingsContext();
-
-    const { setOwner } = useContext(RoomDispatchContext);
-
-    // join
-    const [room, setRoom] = useState('');
-    
-    // create
-    const [name, setName] = useState('');
-    const [hasPass, setHasPass] = useState(false);
-    const [localPassword, setLocalPassword] = useState('');
-
+function CreateContainer() {
     let navigate = useNavigate();
 
-    const redirectPage = () => {
-        navigate(`/room/${room}`);
-    };
-    
-    const _onInput = (event) => {
-        setRoom(event.target.value);
-    };
+    const { username } = useSettingsContext();
+    const { setOwner } = useRoomDispatchContext();
 
-    const _onKeyUp = (event) => {
-        if (event.key === 'Enter' || event.keyCode === 13) {
-            redirectPage();
-        }
+    const { password, setPassword, hashed } = usePassword();
+    const [passwordEnabled, setPasswordEnabled] = useState(false);
+    const [roomName, setRoomName] = useState('');
+
+    const onPasswordChecked = (checked) => {
+        setPasswordEnabled(checked);
     }
 
-    const _onChangeCheckBoxPassword = (e) => {
-        const checked = e.target.checked;
-        setHasPass(checked);
+    function PasswordInput() {
+        if (!passwordEnabled) return null;
+        return (
+            <TextInput id='create-room-password-input' labelText='Password' helpText="Room's password below"
+                autoComplete='off' type='password' onEnter={setupRoom}
+                value={password} onInput={(value) => setPassword(value)} />
+        )
     }
 
     const setupRoom = async () => {
-        let roomName;
-        if (!name || name === '') {
-            roomName = `${username}'s room`;
+        let l_roomName;
+        if (!roomName || roomName === '') {
+            l_roomName = `${username}'s room`;
         } else {
-            roomName = name;
+            l_roomName = roomName;
         }
 
-        const passwordHash = hasPass ? crypto.MD5(localPassword).toString() : null;
+        const passwordHash = passwordEnabled ? hashed() : null;
         
         try {
-            const { id, ownerUID } = await createRoomAsync(roomName, false, passwordHash);
-            const state = passwordHash ? { passwordHash } : null;
+            const { id, ownerUID } = await createRoomAsync(l_roomName, false, passwordHash);
+            const state = passwordEnabled ? { passwordHash } : null;
             setOwner(ownerUID);
             navigate(`room/${id}`, { state });
         } catch (error) {
@@ -192,43 +189,36 @@ const HomePage = () => {
     }
 
     return (
+        <div className='col container create-wrapper'>
+            <div className='header-container'>
+                <h2>Create a room</h2>
+            </div>
+            <div className='col inner-container'>
+                <TextInput id='create-room-input' labelText='Name' helpText="Room's name below"
+                    autoComplete='off' placeholder={`${username}'s room`} onEnter={setupRoom}
+                    value={roomName} onInput={(value) => setRoomName(value)} />
+                <Checkbox id='checkbox-has-password' checked={passwordEnabled}
+                    onChecked={onPasswordChecked} text='Use password'
+                    style={{margin: '0', flexGrow: '1'}} />
+                <PasswordInput />
+                
+                <button className='btn' onClick={setupRoom}>Create</button>
+            </div>
+        </div>
+    )
+}
+
+const HomePage = () => {
+    return (
         <div className='home-container'>
             <SettingsContainer />
-            <JoinContainer onInput={_onInput} onKeyUp={_onKeyUp} 
-                room={room} redirectPage={redirectPage} />
-
+            <JoinContainer />
             <div className="col container rooms-wrapper">
                 <div className='header-container'>
                     <h2>Find a room</h2>
                 </div>
             </div>
-            
-            <div className='col container create-wrapper'>
-                <div className='header-container'>
-                    <h2>Create a room</h2>
-                </div>
-                <div className='col inner-container'>
-                    <label htmlFor="create-room-input">Name</label>
-                    <h3>Insert the room's name below</h3>
-                    <input type='text' id='create-room-input' placeholder={`${username}'s room`}
-                        value={name} onInput={(e) => setName(e.target.value)} autoComplete='off' />
-                    
-                    <div className='row' style={{ marginTop: '20px', alignItems: 'center' }}>
-                        <input type="checkbox" id='checkbox-has-password' value={hasPass} onChange={_onChangeCheckBoxPassword} />
-                        <label htmlFor='checkbox-has-password' style={{margin: '0', flexGrow: '1'}}>Use a password</label>
-                    </div>
-                    
-                    {hasPass &&
-                    <>
-                        <label htmlFor="create-room-password-input">Password</label>
-                        <h3>Insert the room's password below</h3>
-                        <input type='password' id='create-room-password-input' autoComplete='off'
-                            value={localPassword} onInput={(e) => setLocalPassword(e.target.value)} />
-                    </>}
-                    
-                    <button className='btn' onClick={setupRoom}>Create</button>
-                </div>
-            </div>
+            <CreateContainer />
         </div>
     );
 }
