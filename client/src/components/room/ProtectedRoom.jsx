@@ -1,4 +1,3 @@
-import crypto from 'crypto-js';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { useRoomContext, useRoomDispatchContext } from '../../context/RoomProvider';
@@ -7,17 +6,23 @@ import Spinner from '../Spinner';
 import logger from '../../utils';
 import { usePopupDispatchContext } from '../../context/PopupProvider';
 import { RoomAuthError } from '../../api/rooms/api';
+import usePassword from '../../hooks/usePassword';
 
+/**
+ * @param {Object} props 
+ * @param {string} props.name 
+ * @param {Promise<any>} props.loadRoom 
+ */
 function AuthenticateRoom({ name, loadRoom }) {
-    const [password, setPassword] = useState(null);
+    // const [password, setPassword] = useState(null);
+    const {password, setPassword, hashed} = usePassword();
     
     function _onChange(e) {
         setPassword(e.target.value);
     }
 
     async function handleSubmit() {
-        const hash = crypto.MD5(password).toString();
-        loadRoom(hash);
+        await loadRoom(hashed());
     }
 
     return (
