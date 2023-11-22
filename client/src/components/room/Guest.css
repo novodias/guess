@@ -38,6 +38,7 @@
     overflow: hidden;
     font-weight: bold;
     font-size: 1.1em;
+    width: 150px;
 }
 
 .guest-info i {
