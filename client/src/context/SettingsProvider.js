@@ -17,14 +17,18 @@ function SettingsProvider({ children }) {
 
     useEffect(() => {
         async function setAvatar() {
-            const { total, /* avatars */ } = await getAvatars();
-            totalAvatars = total;
-            setSettings(stg => {
-                return {
-                    ...stg,
-                    avatar: next(1, total)
-                }
-            });
+            try {
+                const { total, /* avatars */ } = await getAvatars();
+                totalAvatars = total;
+                setSettings(stg => {
+                    return {
+                        ...stg,
+                        avatar: next(1, total)
+                    }
+                });
+            } catch (error) {
+                totalAvatars = 0;
+            }
         }
 
         setAvatar();
