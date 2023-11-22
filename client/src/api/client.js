@@ -36,7 +36,7 @@ export async function getAvatars() {
         const { total, result } = response.data;
         return { total, avatars: result };
     } catch (err) {
-        console.error(err);
+        throw err;
     }
 }
 
