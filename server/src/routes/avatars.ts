@@ -15,11 +15,16 @@ const getAllAvatars = async () => {
         .map((v) => v.name);
 }
 
+let avatarsFiles: string[];
+
 avatars.get("/all", async (req, res, next) => {
     try {
-        const result = await getAllAvatars();
-        const total = result.length;
-        res.json({ total, result });
+        if (avatarsFiles === undefined) {
+            avatarsFiles = await getAllAvatars();
+        }
+
+        const total = avatarsFiles.length;
+        res.json({ total, result: avatarsFiles });
     } catch (err) {
         next(err);
     }
