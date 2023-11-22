@@ -147,6 +147,8 @@
     box-shadow: 0px 0px 15px var(--color-two-shadow);
     border: 1px solid rgb(171, 181, 190);
     border-radius: var(--border-btn-radius);
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .avatars-selectable-container > .avatar-selectable,
