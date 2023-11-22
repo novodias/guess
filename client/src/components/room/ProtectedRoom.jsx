@@ -21,8 +21,14 @@ function AuthenticateRoom({ name, loadRoom }) {
         setPassword(e.target.value);
     }
 
-    async function handleSubmit() {
+    async function submit() {
         await loadRoom(hashed());
+    }
+
+    function onKeyUp(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            submit();
+        }
     }
 
     return (
@@ -35,12 +41,12 @@ function AuthenticateRoom({ name, loadRoom }) {
                 <label htmlFor="create-room-password-input" style={{marginTop: "20px"}}>Password</label>
                 <h3>Insert the room's password below</h3>
                 <input type='password' id='create-room-password-input'
-                    value={password} onChange={_onChange}
+                    value={password} onChange={_onChange} onKeyUp={onKeyUp}
                     style={{ fontSize: '1.5em' }} autoComplete='off'
                 />
                 <button className='btn'
                     style={{ alignSelf: 'flex-end', marginTop: '20px' }}
-                    onClick={handleSubmit}>
+                    onClick={submit}>
                     Enter
                 </button>
             </div>
