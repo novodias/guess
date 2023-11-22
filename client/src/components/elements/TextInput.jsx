@@ -18,7 +18,7 @@ export default function TextInput({ id, labelText, helpText, value, onInput, onE
      */
     function _onInput(e) {
         if (!onInput) return;
-        onInput(e.currentTarget.value);
+        onInput(e.target.value);
     }
 
     /**
