@@ -367,7 +367,7 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
                         <output id="volume-output">{volume}</output>
                         {/* <input type="range" id="volume-slider" max={100} min={0}
                             value={VolumeValue()} onInput={onInputRangeVolume}></input> */}
-                        <Slider min={0} max={100} orient="vertical" value={25} onChange={onInputRangeVolume} />
+                        <Slider min={0} max={100} orient="vertical" value={volume} onChange={onInputRangeVolume} />
                     </div>
                 </div>
             </div>
