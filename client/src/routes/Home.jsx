@@ -14,7 +14,7 @@ function JoinContainer() {
     const [id, setId] = useState('');
 
     const navigateRoom = () => navigate(`/room/${id}`);
-    const onRoomInput = (e) => setId(e);
+    const onRoomInput = (e) => setId(e.target.value);
     const onKeyUp = (e) => {
         if (e.key === 'Enter' || e.keyCode === 13) {
             navigateRoom();
@@ -108,8 +108,7 @@ function SettingsContainer() {
     const { username, showAudioVisualizer } = useSettingsContext();
     const setSettings = useSettingsDispatchContext();
 
-    const setUsername = (e) => {
-        const text = e.target.value;
+    const setUsername = (text) => {
         setSettings(stg => {
             return {
                 ...stg,
