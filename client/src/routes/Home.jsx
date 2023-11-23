@@ -97,7 +97,7 @@ function AvatarContainer() {
     }
 
     return (
-        <div className='avatars-container' onClick={() => setShowAvatars(v => !v)}>
+        <div data-text="Your avatar" className='avatars-container tooltip' onClick={() => setShowAvatars(v => !v)}>
             <img className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar'></img>
             <AvatarsContainer />
         </div>
@@ -198,7 +198,7 @@ function CreateContainer() {
                     value={roomName} onInput={(value) => setRoomName(value)} />
                 <Checkbox id='checkbox-has-password' checked={passwordEnabled}
                     onChecked={onPasswordChecked} text='Use password'
-                    style={{margin: '0', flexGrow: '1'}} />
+                    style={{ marginTop: '20px', alignItems: 'center' }} />
                 <PasswordInput />
                 
                 <button className='btn' onClick={setupRoom}>Create</button>

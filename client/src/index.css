@@ -51,7 +51,7 @@
   --bg-crimsom: #CC2936;
   --bg-crimsom-hover: #cc2937e0;
   --btn-primary-bg: #798897;
-  --btn-primary-bg-hover: #7b95af;
+  --btn-primary-bg-hover: #9aacbe;
   --btn-primary-bg-active: #84a8cc;
 
   --border-container: 1.5px solid var(--color-two-bg);
@@ -204,6 +204,39 @@ footer {
   user-select: none;
 }
 
+.tooltip:before {
+  content: attr(data-text);
+  position: absolute;
+  top: 150%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  padding: 4px;
+  text-align: center;
+  display: none;
+  font-weight: 500;
+  z-index: 20;
+  color: var(--input-color);
+  background-color: rgb(212, 216, 223);
+  border-radius: var(--border-btn-radius);
+}
+
+.tooltip:after {
+  content: "";
+  position: absolute;
+  left:50%;
+  margin-top:-25px;
+  top:150%;
+  transform: translate(-50%, -50%);
+  border: 10px solid rgb(212, 216, 223);
+  border-color: transparent transparent rgb(212, 216, 223) transparent;
+  display: none;
+}
+
+.tooltip:hover:before, .tooltip:hover:after {
+  display: block;
+}
+
 input[type="text"] {
   display: inline-block;
   font-size: 2.2em;
@@ -276,20 +309,23 @@ input[type="checkbox"]:checked::before {
 
 .btn {
   display: block;
-  font-family: "Roboto-Regular";
+  font-family: "Roboto";
   font-size: 1.2em;
   padding: 10px 16px;
   background-color: transparent;
   color: black;
-  border: 1px solid rgb(128, 128, 128);
-  border-radius: 8px;
+  border: 1px solid var(--color-three);
+  border-radius: 4px;
   transition: all 0.2s;
   cursor: pointer;
   user-select: none;
+  box-shadow: 0px 0px 0px var(--color-two-shadow);
 }
 
 .btn:hover {
-  background-color: var(--btn-primary-bg-hover);
+  /* background-color: var(--btn-primary-bg-hover); */
+  box-shadow: 0px 5px 5px var(--color-two-shadow);
+  transform: translateY(-2px);
 }
 
 .btn:active {
