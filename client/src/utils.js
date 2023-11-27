@@ -35,3 +35,13 @@ export default class logger {
 export function next(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+/**
+ * @param {number} min 
+ * @param {number} max 
+ * @param {number} value 
+ * @returns {number}
+ */
+export function clamp(min, max, value) {
+    return Math.min(Math.max(value, min), max);
+}
