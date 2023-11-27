@@ -66,9 +66,11 @@ abstract class Room {
         this.players = new Players();
         
         this.rounds = 0;
-        this.roundTime = 30; // make it a option on frontend
+        // this.roundTime = 30; // make it a option on frontend
+        this.roundTime = 10;
         this.roundPrepare = 5; // make it a option on frontend
-        this.roundsMax = 10; // make it a option on frontend
+        // this.roundsMax = 10; // make it a option on frontend
+        this.roundsMax = 3;
 
         // songs
         this.musics = songs; // has 10 here - use maxRounds to get the right amount
@@ -261,15 +263,16 @@ export default class RoomStandard extends Room {
     }
 
     private _endGame(): void {
-        const winner = this.players.sanitized
-            .sort((v1, v2) => v2.points - v1.points)[0];
+        const winners = this.players.sanitized
+            .sort((v1, v2) => v2.points - v1.points)
+            .slice(0, 3);
 
         this.status = Room.STATUS.ENDED;
         
         const end = {
             type: "end",
             body: {
-                winner,
+                winners,
                 room_status: this.status,
             }
         };
