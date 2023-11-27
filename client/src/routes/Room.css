@@ -8,6 +8,10 @@
     margin-bottom: 50px;
 }
 
+#room > .modal {
+    z-index: 999;
+}
+
 #room #audio-ui {
     width: 80%;
     box-sizing: border-box;
@@ -18,11 +22,11 @@
 }
 
 #room #audio-ui .volume-values-wrapper {
-    z-index: 998;
+    z-index: 10;
 }
 
 #room #audio-ui button {
-    z-index: 999;
+    z-index: 11;
 }
 
 #guests-container {
@@ -136,7 +140,7 @@
 }
 
 .timer-start {
-    animation: start_timer 30s forwards ease-out;
+    animation: start_timer 10s forwards ease-out;
 }
 
 .timer-goback {
@@ -274,7 +278,7 @@
     /* align-items: center; */
     display: flex;
     justify-content: center;
-    z-index: 997;
+    z-index: 5;
 }
 
 .dropdown-input-container > #title-input {
@@ -291,7 +295,7 @@
     width: 100%;
     left: 0;
     top: calc(100% + 1px);
-    z-index: 998;
+    z-index: 5;
 }
 
 .game-container > .dropdown-input-container > .dropdown ul {
@@ -382,7 +386,7 @@
 .chat-textbox-container > span {
     position: absolute;
     opacity: 0.1;
-    z-index: -999;
+    z-index: -5;
     transform: translate(-50%, -50%) scale(2.4);
     top: 55%;
     left: 50%;
@@ -396,7 +400,7 @@
     outline-width: 2px;
     padding: 5px;
     resize: none;
-    z-index: 999;
+    z-index: 20;
 }
 
 textarea:focus + span {

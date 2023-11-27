@@ -15,6 +15,7 @@ import AudioPlayer from '../components/room/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
 import { usePopupDispatchContext } from '../context/PopupProvider';
+import ResultsModal from '../components/room/Results';
 
 function updateGuest(player, stat) {
     if (player.id === stat.id) {
@@ -24,6 +25,14 @@ function updateGuest(player, stat) {
     } else {
         return player;
     }
+}
+
+function Results({result}) {
+    if (result === undefined) {
+        return null;
+    }
+
+    return <ResultsModal {...result} />
 }
 
 function RoomPage() {
@@ -41,6 +50,7 @@ function RoomPage() {
 
     const [showKickBtn, setShowKickBtn] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [result, setResult] = useState(undefined);
     
     const [timerClass, setTimerClass] = useState('');
     const StartTimer = () => setTimerClass("timer-start");
@@ -100,6 +110,12 @@ function RoomPage() {
             gameManager.configurePlayback({ play: true });
         },
         "end": (body) => {
+            const winners = body.winners;
+            setResult({
+                first: winners[0],
+                second: winners[1],
+                third: winners[2]
+            });
             gameManager.configurePlayback({ play: false });
             RevertTimer();
         }
@@ -109,7 +125,7 @@ function RoomPage() {
         onMessage: (e) => {
             const message = JSON.parse(e.data);
             const { type, body } = message;
-            logger.debug("Message received: ", body);
+            logger.debug("Message received [" + type + "]:", body);
             messageHandler[type](body);
         },
         onOpen: () => {
@@ -136,6 +152,16 @@ function RoomPage() {
                     orient: "bottom",
                     waitForClick: false,
                 });
+            } else {
+                if (e.reason) {
+                    add({
+                        text: e.reason,
+                        hasButton: false,
+                        gap: 10,
+                        orient: "bottom",
+                        waitForClick: false,
+                    });
+                }
             }
 
             navigate('/');
@@ -219,6 +245,7 @@ function RoomPage() {
 
     return (
         <div id='room'>
+            <Results result={result} />
             <div id='guests-container' className='col container'>
                 <div className='header-container'><h2>Players</h2></div>
                 <ul id='scoreboard'>

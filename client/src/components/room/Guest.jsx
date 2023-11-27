@@ -6,10 +6,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import PendingIcon from '@mui/icons-material/Pending';
 import { LogoutRounded } from '@mui/icons-material';
 
-function Crown() {
+export function Crown({ width, height, style }) {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-        style={{filter: "drop-shadow(gray -1px -1px 0px)"}}>
+        <svg xmlns="http://www.w3.org/2000/svg" width={width || "24"} height={height || "24"} viewBox="0 0 24 24"
+        style={style || {filter: "drop-shadow(gray -1px -1px 0px)"}}>
             <path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1Z" />
         </svg>
     );

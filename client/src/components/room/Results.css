@@ -1,0 +1,85 @@
+.winners {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    min-height: 100%;
+    margin-top: 2rem;
+}
+
+.winners > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    position: relative;
+    opacity: 0;
+}
+
+.winners > div > span {
+    font-weight: 500;
+    font-size: 1.2rem;
+}
+
+.winners > div > i {
+    opacity: 0.5;
+}
+
+.winners > div > img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: gray;
+    pointer-events: none;
+}
+
+.winners > div > svg {
+    position: relative;
+    top: -160px;
+    filter: none !important;
+}
+
+.first {
+    margin-top: 0;
+    animation: show-up 500ms forwards 500ms normal;
+}
+
+.first > svg {
+    color: goldenrod;
+}
+
+.second {
+    margin-top: 75px;
+    animation: show-up 500ms forwards 800ms normal;
+}
+
+.second > svg {
+    color: silver;
+}
+
+.third {
+    margin-top: 100px;
+    animation: show-up 500ms forwards 1100ms normal;
+}
+
+.third > svg {
+    color: chocolate;
+}
+
+.waves {
+    position: absolute;
+    top: 0px;
+    opacity: 0.4;
+    z-index: -5;
+}
+
+@keyframes show-up {
+    from {
+        opacity: 0;
+        top: 50px;
+    }
+
+    to {
+        opacity: 1;
+        top: 0px;
+    }
+}
