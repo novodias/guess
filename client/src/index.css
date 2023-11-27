@@ -54,6 +54,8 @@
   --btn-primary-bg-hover: #9aacbe;
   --btn-primary-bg-active: #84a8cc;
 
+  --border-all: border: 1px solid var(--color-three);
+  --box-shadow-any: 0px 0px 15px var(--color-two-shadow);
   --border-container: 1.5px solid var(--color-two-bg);
   --border-container-radius: 0px;
   --border-btn: 1px solid rgb(128, 128, 128);
