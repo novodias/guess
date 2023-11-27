@@ -144,6 +144,15 @@ function SettingsContainer() {
     )
 }
 
+function PasswordInput({ password, setPassword, passwordEnabled, setupRoom }) {
+    if (!passwordEnabled) return null;
+    return (
+        <TextInput id='create-room-password-input' labelText='Password' helpText="Room's password below"
+            autoComplete='off' type='password' onEnter={setupRoom}
+            value={password} onInput={(value) => setPassword(value)} />
+    )
+}
+
 function CreateContainer() {
     let navigate = useNavigate();
 
@@ -156,15 +165,6 @@ function CreateContainer() {
 
     const onPasswordChecked = (checked) => {
         setPasswordEnabled(checked);
-    }
-
-    function PasswordInput() {
-        if (!passwordEnabled) return null;
-        return (
-            <TextInput id='create-room-password-input' labelText='Password' helpText="Room's password below"
-                autoComplete='off' type='password' onEnter={setupRoom}
-                value={password} onInput={(value) => setPassword(value)} />
-        )
     }
 
     const setupRoom = async () => {
@@ -199,8 +199,8 @@ function CreateContainer() {
                 <Checkbox id='checkbox-has-password' checked={passwordEnabled}
                     onChecked={onPasswordChecked} text='Use password'
                     style={{ marginTop: '20px', alignItems: 'center' }} />
-                <PasswordInput />
-                
+                <PasswordInput password={password} setPassword={setPassword}
+                    passwordEnabled={passwordEnabled} setupRoom={setupRoom} />
                 <button className='btn' onClick={setupRoom}>Create</button>
             </div>
         </div>
