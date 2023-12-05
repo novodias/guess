@@ -1,42 +1,64 @@
 import React, { useEffect, useRef } from 'react';
 import './Test.css';
-import { Animation } from '../animation';
+import { AnimationNodeHelper } from '../animation';
+import { useNotificationDispatchContext } from '../context/NotificationProvider';
+import Container from '../components/Container';
 
 export default function AudioPlayerTestPage() {
     /**
      * @type {import('react').MutableRefObject<HTMLDivElement>}
      */
-    const divRef = useRef(undefined);
+    // const divRef = useRef(undefined);
+    const { add } = useNotificationDispatchContext();
 
-    useEffect(() => {
-        divRef.current.style.top = '0px';
-        divRef.current.style.left = '0px';
+    const onClickAddNotification = (e) => {
+        add({
+            text: "This is a notification test",
+            gap: 10,
+            orient: "bottom",
+            waitForClick: true,
+            // hasButton: true,
+            // buttonText: "Start",
+            // onButtonClick: function () {
+            //     alert("test");
+            // }
+        });
+    }
+
+    // useEffect(() => {
+    //     const node = divRef.current;
+
+    //     const { stop, pause, resume, reverse } = AnimationNodeHelper.move(
+    //         node,
+    //         { x: 0, y: 0 },
+    //         { x: 500, y: 400 },
+    //         2500,
+    //         "easeInOut"
+    //     );
         
-        const animation = new Animation(divRef.current);
-        animation.ease = 'easeOutCubic';
-        animation.onframe = ({percent}) => {
-            animation.node.style.top = (500 * percent) + 'px';
-            animation.node.style.left = (800 * percent) + 'px';
-        }
+    //     node.onclick = () => reverse();
+    //     node.onmouseenter = () => {
+    //         // console.log("onmouseenter");
+    //         pause();
+    //     }
+    //     node.onmouseleave = () => resume();
 
-        animation.onstart = () => {
-            console.log("start");
-        }
-        animation.onend = () => {
-            console.log("end");
-        }
-        animation.start(5000, 1000, 0);
-
-        divRef.current.onclick = () => animation.reverse();
-
-        return () => {
-            animation.stop();
-        }
-    }, []);
+    //     return () => {
+    //         stop();
+    //     }
+    // }, []);
     
+    // return (
+    //     <div className='test' ref={divRef}>
+    //         Animation Test
+    //     </div>
+    // )
+
     return (
-        <div className='test' ref={divRef}>
-            Animation Test
-        </div>
+        <Container isContent={false} headerText={"Notification"}>
+            <button className="btn" onClick={onClickAddNotification}>
+                Create notification
+            </button>
+        </Container>
     )
 }
