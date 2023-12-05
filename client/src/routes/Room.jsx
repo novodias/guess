@@ -14,7 +14,7 @@ import { useGameContext, useGameDispatchContext } from '../context/GameProvider'
 import AudioPlayer from '../components/room/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
-import { usePopupDispatchContext } from '../context/PopupProvider';
+import { useNotificationDispatchContext } from '../context/NotificationProvider';
 import ResultsModal from '../components/room/Results';
 
 function updateGuest(player, stat) {
@@ -43,8 +43,8 @@ function RoomPage() {
     const { id, players, chat, music } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
     
-    const { add, remove } = usePopupDispatchContext();
-    const [startPopup, setStartPopup] = useState(null);
+    const { add, remove } = useNotificationDispatchContext();
+    const [startNotification, setStartNotification] = useState(null);
 
     const canvasRef = useCanvasRef();
 
@@ -143,7 +143,7 @@ function RoomPage() {
          */
         onClose: (e) => {
             console.log("Close:", e.reason);
-            // TODO: show a popup saying that lost connection?
+            // TODO: show a notification saying that lost connection?
             if (e.code === 3000) {
                 add({
                     text: "You were kicked from the room",
@@ -219,7 +219,7 @@ function RoomPage() {
     }, []);
 
     useEffect(() => {
-        if (startPopup === null && owner) {
+        if (startNotification === null && owner) {
             const idx = add({
                 text: "Click here to begin",
                 hasButton: true,
@@ -232,16 +232,16 @@ function RoomPage() {
                 buttonText: "Start",
             });
 
-            setStartPopup(idx);
+            setStartNotification(idx);
         }
         
         return () => {
-            if (startPopup !== null) {
-                console.log("remove start popup:", startPopup);
-                remove(startPopup);
+            if (startNotification !== null) {
+                console.log("remove start notification:", startNotification);
+                remove(startNotification);
             }
         }
-    }, [owner, sendMessage, add, startPopup, remove]);
+    }, [owner, sendMessage, add, startNotification, remove]);
 
     return (
         <div id='room'>

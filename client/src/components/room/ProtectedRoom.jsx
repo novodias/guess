@@ -4,7 +4,7 @@ import { useRoomContext, useRoomDispatchContext } from '../../context/RoomProvid
 import { LockRounded } from '@mui/icons-material';
 import Spinner from '../Spinner';
 import logger from '../../utils';
-import { usePopupDispatchContext } from '../../context/PopupProvider';
+import { useNotificationDispatchContext } from '../../context/NotificationProvider';
 import { RoomAuthError } from '../../api/rooms/api';
 import usePassword from '../../hooks/usePassword';
 
@@ -60,7 +60,7 @@ export default function ProtectedRoom({ children }) {
     // const navigate = useNavigate();
     const { setName } = useRoomDispatchContext();
     const { getRoom, name } = useRoomContext();
-    const { add } = usePopupDispatchContext();
+    const { add } = useNotificationDispatchContext();
     
     const [auth, setAuth] = useState(false);
     const [loading, setLoading] = useState(true);

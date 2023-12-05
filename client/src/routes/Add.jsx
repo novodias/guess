@@ -5,7 +5,7 @@ import TagsContainer from '../components/add/Tags'
 import TitleContainer from '../components/add/Title'
 import SongContainer from '../components/add/Song'
 import { createAsync } from '../api/export';
-import { usePopupDispatchContext } from '../context/PopupProvider';
+import { useNotificationDispatchContext } from '../context/NotificationProvider';
 
 export default function AddPage() {
     const [id, setId] = useState(0);
@@ -16,7 +16,7 @@ export default function AddPage() {
     const [songName, setSongName] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     // const [success, setSuccess] = useState(null);
-    const { add } = usePopupDispatchContext();
+    const { add } = useNotificationDispatchContext();
 
     const _onDropdownClick = ({ id, type, name, tags }) => {
         setId(id);

@@ -1,11 +1,11 @@
-#popup-wrapper {
+#notification-wrapper {
     position: fixed;
     transform: translate(-50%, 50%);
     left: 50%;
     bottom: -20px;
 }
 
-#popup-wrapper > .popup {
+#notification-wrapper > .notification {
     position: absolute;
     width: 300px;
     height: 41px;
@@ -15,7 +15,7 @@
     align-items: center;
 }
 
-.popup {
+.notification {
     padding: 6px;
     border-radius: var(--border-btn-radius);
     color: white;
@@ -25,15 +25,15 @@
     box-shadow: -4px -4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.popup:hover {
+.notification:hover {
     background-color: #008149;
 }
 
-.popup > button {
+.notification > button {
     align-self: flex-end;
 }
 
-.popup > .btn {
+.notification > .btn {
     background-color: rgba(0, 0, 0, 0.0);
     color: white;
     outline: none;
@@ -42,10 +42,10 @@
     transition: background-color 200ms linear;
 }
 
-.popup:hover > .btn {
+.notification:hover > .btn {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-#popup-wrapper > .popup > span {
+#notification-wrapper > .notification > span {
     user-select: none;
 }

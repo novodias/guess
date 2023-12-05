@@ -2,15 +2,15 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { SettingsProvider } from './context/SettingsProvider';
 import { RoomProvider } from './context/RoomProvider';
-import { PopupProvider } from './context/PopupProvider';
-import PopupList from './components/PopupList';
+import { NotificationProvider } from './context/NotificationProvider';
+import NotificationContainer from './components/NotificationContainer';
 import Header from './templates/Header';
 
 export default function Layout() {
     return (
         <>
             <SettingsProvider>
-                <PopupProvider>
+                <NotificationProvider>
                     <Header />
                         <RoomProvider>
                             <main>
@@ -20,8 +20,8 @@ export default function Layout() {
                             </main>
                         </RoomProvider>
                     <footer></footer>
-                    <PopupList />
-                </PopupProvider>
+                    <NotificationContainer />
+                </NotificationProvider>
             </SettingsProvider>
         </>
     )
