@@ -11,7 +11,7 @@
     border-radius: 4px;
     box-shadow: var(--box-shadow-any);
     overflow: hidden;
-    
+    z-index: 99;
     animation: normal forwards ease-out modal-spawn 500ms running;
     transform: translate(-50%, -50%) scale(0.8);
     /* opacity: 0; */

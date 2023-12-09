@@ -1,6 +1,5 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useRef, MutableRefObject } from "react";
-import { createPortal } from 'react-dom'
 import './Modal.css';
 import { CloseRounded } from '@mui/icons-material'
 
@@ -13,14 +12,13 @@ function Modal({ className, children }) {
         modalRef.current.remove();
     }
 
-    return createPortal(
-        <div className={`modal${' ' + className}`} ref={modalRef}>
+    return (
+        <div className={`modal${(' ' + className || '')}`} ref={modalRef}>
             <span className="modal-close" onClick={close}>
                 <CloseRounded />
             </span>
             {children}
-        </div>,
-        document.body
+        </div>
     )
 }
 
