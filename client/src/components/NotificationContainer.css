@@ -7,7 +7,7 @@
 
 #notification-wrapper > .notification {
     position: absolute;
-    width: 300px;
+    min-width: 300px;
     height: 41px;
     transform: translate(-50%, 50%);
     display: flex;
@@ -29,17 +29,20 @@
     background-color: #008149;
 }
 
-.notification > button {
-    align-self: flex-end;
-}
-
 .notification > .btn {
-    background-color: rgba(0, 0, 0, 0.0);
+    background-color: rgba(0, 0, 0, 0.1);
     color: white;
     outline: none;
     border: none;
     padding: 6px;
-    transition: background-color 200ms linear;
+    align-self: center;
+    transition: transform 100ms ease-out;
+    transform: scale(1.01);
+}
+
+.notification > .btn:hover {
+    box-shadow: none;
+    transform: scale(1.11);
 }
 
 .notification:hover > .btn {
@@ -48,4 +51,7 @@
 
 #notification-wrapper > .notification > span {
     user-select: none;
+    flex-grow: 1;
+    text-align: center;
+    font-size: 1.2rem;
 }
