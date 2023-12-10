@@ -14,9 +14,7 @@ export default function Layout() {
                     <Header />
                         <RoomProvider>
                             <main>
-                                <section className='main-content'>
-                                    <Outlet />
-                                </section>
+                                <Outlet />
                             </main>
                         </RoomProvider>
                     <footer></footer>
