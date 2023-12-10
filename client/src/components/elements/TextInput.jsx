@@ -32,11 +32,11 @@ export default function TextInput({ id, labelText, helpText, value, onInput, onE
     }
     
     return (
-        <>
+        <div className='input-container marker-focus'>
             <label htmlFor={id}>{labelText}</label>
-            <h3>{helpText}</h3>
+            <p className="help">{helpText}</p>
             <input id={id} type={type || "text"} placeholder={placeholder} autoComplete={autoComplete}
                 value={value} onInput={_onInput} onKeyUp={onKeyUp} />
-        </>
+        </div>
     )
 }
