@@ -1,0 +1,251 @@
+/* main */
+.home.container {
+    display: grid;
+    position: relative;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    width: 800px;
+    height: 80%;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.cell {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cell > *:not(.header) {
+    margin-left: 15px;
+}
+
+.cell > .input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.2rem;
+}
+
+.cell > .buttons-group:not(:last-child) {
+    margin-bottom: 1rem;
+    margin-top: 0;
+}
+
+.header {
+    margin-bottom: 1rem;
+}
+
+.header h1 {
+    margin: 0;
+    margin-left: 15px;
+}
+
+/* join */
+.cell.join > .marker {
+    background-color: #009C58 !important;
+}
+
+/* join > rooms */
+#rooms {
+    position: relative;
+    margin-left: 15px;
+}
+
+#rooms::before {
+    content: "";
+    position: absolute;
+    left: -15px;
+    width: 5px;
+    height: 100%;
+    background-color: var(--text-faded-color);
+    transition: background-color 200ms linear;
+}
+
+.room-header > h2 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#rooms > .list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 1.3rem;
+}
+
+.room-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.search-bar {
+    gap: 10px;
+    align-items: center;
+}
+
+.search-bar > .refresh {
+    cursor: pointer;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper > input {
+    width: 70%;
+    float: right;
+}
+
+.search-wrapper > span {
+    position: absolute;
+    transform: translate(0%, -50%);
+    top: 50%;
+    right: 10px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+#room-search {
+    font-size: 1.1em;
+    padding: 8px 12px;
+}
+
+.list > li {
+    position: relative;
+    padding: 8px 6px;
+    display: flex;
+    align-items: center;
+}
+
+.list > li > .name {
+    flex-grow: 1;
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+/* create */
+.cell.create > .marker {
+    background-color: #845BFF !important;
+}
+
+.cell.create {
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* settings */
+#options {
+    position: relative;
+    gap: 10px;
+    margin-right: 20px;
+}
+
+#options > * {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radius);
+    background-color: rgb(194, 198, 202);
+    display: grid;
+    place-content: center;
+    box-shadow: var(--bx-shadow);
+}
+
+.cog {
+    position: relative;
+    font-size: 44px;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+}
+
+.cog.tooltip::before {
+    font-size: 16px;
+}
+
+.cog > .icon {
+    font-size: inherit;
+    user-select: none;
+    transition: transform 100ms linear;
+}
+
+.cog:hover > .icon {
+    transform: rotate(45deg);
+}
+
+#settings {
+    display: none;
+    position: absolute !important;
+    top: 0px;
+    left: 60px;
+    width: 0px;
+    height: 0px;
+    z-index: 999;
+    width: 400px;
+    height: fit-content;
+}
+
+.darken:hover {
+    filter: brightness(50%);
+}
+
+.avatars-container {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    right: 0px;
+    /* margin: 0 25px; */
+    user-select: none;
+}
+
+.avatars-container img {
+    pointer-events: none;
+}
+
+.avatars-container > .your-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+}
+
+.avatars-container > .avatars-selectable-container {
+    position: absolute;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px;
+    width: 270px;
+    height: 280px;
+    z-index: 999;
+    border-radius: var(--border-radius);
+    top: 0px;
+    left: 60px;
+}
+
+.avatars-selectable-container > .avatar-selectable,
+.avatars-selectable-container > .avatar-selectable > img {
+    width: calc(300px / 6);
+    height: calc(300px / 6);
+}
+
+.avatar-selectable {
+    cursor: pointer;
+    transition: border-radius 150ms linear;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.avatar-selectable:hover {
+    border-radius: 2px;
+}
+
+.avatars-selectable-container > .avatar-selectable > img {
+    pointer-events: none;
+}
