@@ -1,0 +1,211 @@
+.col {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.container {
+    background-color: var(--background-color);
+    border: 1px solid var(--container-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--bx-shadow);
+    box-sizing: content-box;
+    transition: border 100ms linear;
+    overflow: hidden;
+}
+
+.container:hover,
+.container:focus,
+.container:focus-within {
+    border: 1px solid var(--container-color-active);
+}
+
+.marker {
+    width: 0px;
+    overflow: visible;
+    position: relative;
+}
+
+.marker.m-animated {
+    transition: width 300ms ease-out, 
+                background-color 400ms linear,
+                color 100ms ease-out;
+}
+
+.marker::before {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 100%;
+    background-color: var(--text-faded-color);
+}
+
+.marker.m-animated::before {
+    transition: background-color 200ms linear;
+}
+
+/* .marker-focus {
+    width: 100%;
+} */
+
+.marker-focus::before {
+    content: "";
+    width: 5px;
+    height: 0%;
+    position: absolute;
+    left: -15px;
+    transition: height 200ms ease-out;
+    background-color: var(--text-faded-color);
+}
+
+*:hover > .marker.m-animated,
+*:focus > .marker.m-animated,
+*:focus-within > .marker.m-animated {
+    width: 100%;
+    color: white;
+    background-color: #ff3254;
+}
+
+*:hover > .marker.m-animated::before,
+*:focus > .marker.m-animated::before,
+*:focus-within > .marker.m-animated::before {
+    background-color: white;
+}
+
+* > .marker-focus:focus::before,
+* > .marker-focus:focus-within::before {
+    height: 100%;
+}
+
+div.separator {
+    border-style: solid;
+    border-width: 1px;
+    color: rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: visible;
+    margin-bottom: 2rem;
+}
+
+div.separator[data-collapse] {
+    transition: color 100ms linear;
+    cursor: pointer;
+}
+
+div.separator[data-collapse]::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 0, 0, .1);
+    border-top: 0;
+    border-right: 0;
+    border-bottom-left-radius: 4px;
+    transform: translate(-50%, -50%);
+    transition: border-color 100ms linear,
+                transform 200ms ease-out, top 100ms linear;
+}
+
+div.separator[data-collapse="collapsed"]::before {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+div.separator[data-collapse="uncollapsed"]::before {
+    transform: translate(-50%, -50%) rotate(135deg);
+    top: 15px;
+}
+
+div.separator[data-collapse]:hover {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+div.separator[data-collapse]:hover::before {
+    border-color: rgba(0, 0, 0, 0.4);
+}
+
+*[collapse="collapsed"] {
+    height: 0%;
+    opacity: 0;
+    transition: height 500ms ease-out,
+                opacity 300ms linear;
+}
+
+*[collapse="uncollapsed"] {
+    height: 100%;
+    opacity: 1;
+    transition: height 500ms ease-out, 
+                opacity 300ms linear;
+}
+
+.selectable {
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-color);
+    background-color: var(--input-background);
+    border-radius: var(--border-radius);
+    box-shadow: 0px 0px 0px transparent;
+    transition: background-color 100ms linear,
+                box-shadow 100ms linear,
+                transform 100ms linear;
+}
+
+.selectable:hover {
+    transform: scale(1.021);
+    box-shadow: 0px 5px 10px var(--container-color-active);
+    background-color: var(--input-background-active);
+}
+
+.selectable:active {
+    transform: scale(0.981);
+    box-shadow: 0px 0px 0px var(--container-color-active);
+}
+
+.input-container > .help {
+    margin: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-faded-color);
+}
+
+.input-container > .btn {
+    float: right;
+}
+
+.tooltip:before {
+    content: attr(data-text);
+    position: absolute;
+    top: 150%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    padding: 4px;
+    text-align: center;
+    display: none;
+    font-weight: 500;
+    z-index: 20;
+    color: var(--input-color);
+    background-color: rgb(212, 216, 223);
+    border-radius: var(--border-radius);
+}
+
+.tooltip:after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    margin-top: -25px;
+    top: 150%;
+    transform: translate(-50%, -50%);
+    border: 10px solid rgb(212, 216, 223);
+    border-color: transparent transparent rgb(212, 216, 223) transparent;
+    display: none;
+}
+
+.tooltip:hover:before,
+.tooltip:hover:after {
+    display: block;
+}

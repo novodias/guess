@@ -1,0 +1,170 @@
+@import "normalize.css";
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: normal;
+    src: local("Roboto-Regular"),
+        url("../assets/fonts/Roboto/Roboto-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 100;
+    src: local("Roboto-Light") url("../assets/fonts/Roboto/Roboto-Light.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 500;
+    src: local("Roboto-Medium"),
+        url("../assets/fonts/Roboto/Roboto-Medium.ttf") format("truetype");
+}
+
+:root {
+    --border-radius: 8px;
+    --background-color: #DCE1E9;
+    --input-background: #d0d4db;
+    --input-background-active: #c9ccd1;
+    --container-color: #ccd3df;
+    --container-color-active: #bac1cc;
+    --container-shadow: #c5cad1;
+    --bx-shadow: 0px 0px 15px var(--container-shadow);
+    --none-bx-shadow: 0px 0px 15px transparent;
+    --text-color: #494141;
+    --text-faded-color: #49414175;
+    
+    /* colors */
+    --primary-color: #CC2936;
+    --primary-hover-hover: #cc2937e0;
+    
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+    font-family: "Roboto-Regular", "sans-serif";
+}
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+#root {
+    height: 100vh;
+}
+
+footer {
+    margin: 3.5rem auto;
+}
+
+body {
+    background: var(--background-color);
+    color: var(--text-color);
+    height: 100vh;
+}
+
+main {
+    padding: 0 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+label {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+input {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+input[type="text"] {
+    font-size: 1.4rem;
+    padding: 10px 12px;
+    border: none;
+    outline: none;
+    border-radius: var(--border-radius);
+    background-color: var(--input-background);
+    transition: background-color 100ms linear;
+}
+
+input[type="password"] {
+    font-size: 1.4rem;
+    padding: 10px 12px;
+    border: none;
+    outline: none;
+    border-radius: var(--border-radius);
+    background-color: var(--input-background);
+    transition: background-color 100ms linear;
+}
+
+textarea {
+    display: inline-block;
+    font-size: 0.8em;
+    color: var(--text-color);
+    background: transparent;
+    outline: solid 1px rgb(128, 128, 128);
+    border-radius: 8px;
+    border: 0px;
+    padding: 5px 25px;
+}
+
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgb(128, 128, 128);
+    cursor: pointer;
+    margin: 0;
+    margin-right: 10px;
+    text-align: center;
+
+    display: grid;
+    place-content: center;
+}
+
+input[type="checkbox"]::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--text-color);
+    opacity: 0;
+    transition: 0.2s;
+}
+
+input[type="checkbox"]:hover::before {
+    content: "";
+    opacity: 0.3;
+}
+
+input[type="checkbox"]:checked::before {
+    content: "";
+    opacity: 1;
+}
+
+input[type="text"][type="password"]:focus,
+input[type="text"][type="password"]:focus-within {
+    background-color: var(--input-background-active);
+}
+
+ul,
+li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+@import "btn.css";
+@import "misc.css";

@@ -1,0 +1,37 @@
+.btn {
+    all: unset;
+    padding: 8px 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: calc(var(--border-radius) * 0.4);
+    background-color: var(--input-background);
+    transform: scale(1.01);
+    outline: 2px solid transparent;
+    box-shadow: 0px 0px 0px transparent;
+    transition: transform 100ms linear, 
+                box-shadow 100ms linear, 
+                background-color 200ms linear, 
+                outline 200ms linear;
+}
+
+.btn:hover {
+    transform: translateY(-5px);
+    background-color: var(--input-background-active);
+    outline: 2px solid var(--text-faded-color);
+    box-shadow: 0px 5px 15px var(--container-color-active);    
+}
+
+.btn:active {
+    transform: scale(0.94);
+    background-color: var(--text-faded-color);
+    box-shadow: var(--none-bx-shadow);
+    box-shadow: 0px 0px 15px var(--container-color-active)
+}
+
+.buttons-group {
+    display: flex;
+    align-self: flex-end;
+    flex-direction: row-reverse;
+    justify-items: center;
+    margin-top: auto;
+}
