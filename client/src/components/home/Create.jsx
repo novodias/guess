@@ -23,14 +23,6 @@ export default function Create() {
     const { password, setPassword, hashed } = usePassword();
     const [roomName, setRoomName] = useState('');
 
-    const getPassword = () => {
-        if (!password || password === "" || password === " ") {
-            return null;
-        }
-
-        return hashed();
-    }
-
     const setupRoom = async () => {
         let l_roomName;
         if (!roomName || roomName === '') {
@@ -40,8 +32,8 @@ export default function Create() {
         }
         
         try {
-            const hash = getPassword();
-            const state = hash ? { hash } : null;
+            const hash = hashed();
+            const state = hash ? { passwordHash: hash } : null;
             const { id, ownerUID } = await createRoomAsync(l_roomName, false, hash);
             setOwner(ownerUID);
             navigate(`room/${id}`, { state });
