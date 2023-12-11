@@ -86,12 +86,22 @@
 }
 
 .search-bar {
-    gap: 10px;
+    gap: 5px;
     align-items: center;
 }
 
-.search-bar > .refresh {
+.search-bar > .icon {
     cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: background-color 100ms linear;
+}
+
+.search-bar > .icon:hover {
+    background-color: var(--input-background);
+}
+
+.search-bar > .icon {
+    padding: 8px;
 }
 
 .search-wrapper {
