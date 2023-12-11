@@ -108,7 +108,7 @@ function SettingsContainer() {
                 <Settings className='icon' />
             </div>
             <div ref={settingsRef} id='settings' className='container cell settings'>
-                <div class="header marker m-animated">
+                <div className="header marker m-animated">
                     <h1>Settings</h1>
                 </div>
                 <TextInput id="input-set-username" labelText='Nickname' helpText='Your nickname below'
