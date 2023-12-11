@@ -17,7 +17,7 @@
 
 .notification {
     padding: 6px;
-    border-radius: var(--border-btn-radius);
+    border-radius: var(--border-radius);
     color: white;
     background-color: #009C58;
     scale: 100%;
