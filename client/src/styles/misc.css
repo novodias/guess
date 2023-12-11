@@ -131,6 +131,7 @@ div.separator[data-collapse]:hover::before {
 *[collapse="collapsed"] {
     height: 0%;
     opacity: 0;
+    pointer-events: none;
     transition: height 500ms ease-out,
                 opacity 300ms linear;
 }
@@ -208,4 +209,9 @@ div.separator[data-collapse]:hover::before {
 .tooltip:hover:before,
 .tooltip:hover:after {
     display: block;
+}
+
+.icon {
+    display: grid;
+    place-content: center;
 }
