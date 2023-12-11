@@ -3,15 +3,15 @@ import { MD5 } from 'crypto-js';
 
 
 export default function usePassword() {
-    const [password, setPassword] = useState('');
+    const [value, set] = useState('');
 
     function hashed() {
-        if (!password || password === "") {
+        if (!value || value === "") {
             return null;
         }
         
-        return MD5(password).toString();
+        return MD5(value).toString();
     }
 
-    return { password, setPassword, hashed };
+    return { value, set, hashed };
 }

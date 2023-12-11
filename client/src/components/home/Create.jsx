@@ -8,7 +8,8 @@ import TextInput from '../elements/TextInput';
 
 function PasswordInput({ password, setPassword, setupRoom }) {
     return (
-        <TextInput id='create-room-password-input' labelText='Password' helpText="Leave empty to not use a password"
+        <TextInput id='create-room-password-input' labelText='Password'
+            helpText="Leave empty to not use a password"
             autoComplete='off' type='password' onEnter={setupRoom}
             value={password} onInput={(value) => setPassword(value)} />
     )
@@ -20,21 +21,24 @@ export default function Create() {
     const { username } = useSettingsContext();
     const { setOwner } = useRoomDispatchContext();
 
-    const { password, setPassword, hashed } = usePassword();
+    const password = usePassword();
     const [roomName, setRoomName] = useState('');
+    const validRoomName = () => {
+        let name;
+        if (!roomName || roomName === '') {
+            name = `${username}'s room`;
+        } else {
+            name = roomName;
+        }
+        return name;
+    }
 
     const setupRoom = async () => {
-        let l_roomName;
-        if (!roomName || roomName === '') {
-            l_roomName = `${username}'s room`;
-        } else {
-            l_roomName = roomName;
-        }
-        
         try {
-            const hash = hashed();
+            const name = validRoomName();
+            const hash = password.hashed();
             const state = hash ? { passwordHash: hash } : null;
-            const { id, ownerUID } = await createRoomAsync(l_roomName, false, hash);
+            const { id, ownerUID } = await createRoomAsync(name, false, hash);
             setOwner(ownerUID);
             navigate(`room/${id}`, { state });
         } catch (error) {
@@ -50,8 +54,8 @@ export default function Create() {
             <TextInput id='create-room-input' labelText='Name' helpText="Insert your room's name below."
                 autoComplete='off' placeholder={`${username}'s room`} onEnter={setupRoom}
                 value={roomName} onInput={(value) => setRoomName(value)} />
-            <PasswordInput password={password}
-                setPassword={setPassword}
+            <PasswordInput password={password.value}
+                setPassword={password.set}
                 setupRoom={setupRoom} />
             <div className="buttons-group">
                 <button className='btn' onClick={setupRoom}>Create</button>
