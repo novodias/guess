@@ -40,7 +40,7 @@ function RoomsSection() {
                     <div className='search-bar row'>
                         <div className='search-wrapper'>
                             <input type='text' id='room-search' placeholder='Find' />
-                            <span className='search icon'>
+                            <span className='search'>
                                 <SearchRounded />
                             </span>
                         </div>
