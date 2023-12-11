@@ -66,9 +66,21 @@ footer {
 }
 
 body {
-    background: var(--background-color);
+    background-color: var(--background-color);
     color: var(--text-color);
     height: 100vh;
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+    z-index: -999;
+    background-image: url('../assets/imgs/background.png');
 }
 
 main {
@@ -76,6 +88,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
+    /* height: 100vh; */
 }
 
 label {
@@ -164,6 +177,17 @@ li {
     list-style: none;
     margin: 0;
     padding: 0;
+}
+
+.bg-visual {
+    position: absolute;
+    top: 0;
+    opacity: 0.3;
+    z-index: -999;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 @import "btn.css";
