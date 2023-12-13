@@ -21,7 +21,7 @@ function AvatarContainer() {
 
     const total = getTotalAvatars();
 
-    function Avatar(num) {
+    function Avatar({num}) {
         const url = `cdn/avatars/${num}`;
 
         return (
@@ -35,7 +35,7 @@ function AvatarContainer() {
     const SelectableAvatars = () => {
         const avatars = [];
         for (let i = 1; i < total; i++) {
-            avatars.push(Avatar(i));
+            avatars.push(<Avatar key={i} num={i} />);
         }
         return avatars;
     }
