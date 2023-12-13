@@ -1,8 +1,10 @@
-import React, { /* useEffect, */  useRef, useState } from 'react';
+// eslint-disable-next-line no-unused-vars
+import React, { useCallback, useEffect, useRef, useState, MutableRefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TextInput from '../elements/TextInput';
 import Collapse from '../elements/Collapse';
-import { SearchRounded, RefreshRounded } from '@mui/icons-material'
+import { SearchRounded, RefreshRounded, ArrowLeftRounded, ArrowRightRounded } from '@mui/icons-material'
+import { findRoomAsync, getPublicRoomsAsync } from '../../api/rooms/api';
 
 function CodeSection() {
     let navigate = useNavigate();
@@ -17,19 +19,117 @@ function CodeSection() {
             <TextInput id="input-code" labelText='Room code' helpText="Insert the room's code below"
                     autoComplete='off' placeholder='ABC12345' value={id}
                     onInput={onCodeInput} onEnter={onEnter} />
-            <div class="buttons-group">
-                <button class="btn" onClick={() => join()}>Join</button>
+            <div className="buttons-group">
+                <button className="btn" onClick={() => join()}>Join</button>
             </div>
         </>
     )
 }
 
+/**
+ * @param {Object} props 
+ * @param {import('../../api/rooms/api').PublicRoom} props.room 
+ */
+function RoomItem({ room }) {
+    let navigate = useNavigate();
+
+    const onClick = () => {
+        navigate(`/room/${room.id}`);
+    }
+
+    return (
+        <li className='selectable' onClick={onClick}>
+            <span className='name'>{room.name}</span>
+            <span>
+                <b>{room.size}</b>/15
+            </span>
+        </li>
+    )
+}
+
 function RoomsSection() {
+    /**
+     * @type {MutableRefObject<HTMLButtonElement>}
+     */
+    const refreshRef = useRef(undefined);
     const roomsRef = useRef(undefined);
     
-    // const [rooms, setRooms] = useState([]);
-    // useEffect(() => {
-    // }, [])
+    /**
+     * @type {MutableRefObject<HTMLButtonElement>}
+     */
+    const rightRef = useRef(undefined);
+    /**
+     * @type {MutableRefObject<HTMLButtonElement>}
+     */
+    const leftRef = useRef(undefined);
+    const [page, setPage] = useState(0);
+    const [rooms, setRooms] = useState([]);
+    const count = 10;
+
+    const get = useCallback(async () => {
+        try {
+            refreshRef.current.classList.add("rotating");
+
+            const start = count * page;
+            const data = await getPublicRoomsAsync(start, count);
+            setRooms(data.rooms);
+
+            if (page <= 0) {
+                leftRef.current.disabled = true;
+            } else {
+                leftRef.current.disabled = false;
+            }
+            
+            if (!data.more) {
+                rightRef.current.disabled = true;
+            } else {
+                rightRef.current.disabled = false;
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setTimeout(() => (refreshRef.current.classList.remove("rotating")), 1000 * 2);
+        }
+    }, [page]);
+    
+    useEffect(() => {
+        get();
+    }, [get]);
+
+    const right = () => {
+        setPage(p => {
+            return ++p;
+        });
+    }
+
+    const left = () => {
+        setPage(p => {
+            if (p <= 0) {
+                return 0;
+            }
+
+            return --p;
+        });
+    }
+
+    /**
+     * @param {import('react').FormEvent} e
+     */
+    const onInput = async (e) => {
+        const text = e.target.value;
+        
+        if (!text || text === '') {
+            get();
+            return;
+        }
+        
+        try {
+            const rooms = await findRoomAsync(text);
+            setRooms(rooms);
+        } catch (error) {
+            console.error(rooms);
+        }
+    }
     
     return (
         <>
@@ -39,25 +139,28 @@ function RoomsSection() {
                     <h2>Rooms</h2>
                     <div className='search-bar row'>
                         <div className='search-wrapper'>
-                            <input type='text' id='room-search' placeholder='Find' />
+                            <input type='text' id='room-search' placeholder='Find' onInput={onInput} />
                             <span className='search'>
                                 <SearchRounded />
                             </span>
                         </div>
-                        <span className='refresh icon'>
-                            <RefreshRounded />
-                        </span>
+                        <button className='refresh btn icon' onClick={get}>
+                            <RefreshRounded ref={refreshRef} />
+                        </button>
                     </div>
                 </div>
-                <ul class="list">
-                    {/* just a example */}
-                    <li class="selectable">
-                        <span class="name">Guest's room</span>
-                        <span>
-                            <b>7</b>/15
-                        </span>
-                    </li>
+                <ul className="list">
+                    {rooms.map((r, i) => <RoomItem key={i} room={r} />)}
                 </ul>
+                <div className="row page-selector">
+                    <button className='btn icon' onClick={left} ref={leftRef}>
+                        <ArrowLeftRounded />
+                    </button>
+                    <span><b>{page + 1}</b></span>
+                    <button className='btn icon' onClick={right} ref={rightRef}>
+                        <ArrowRightRounded />
+                    </button>
+                </div>
             </div>
         </>
     )

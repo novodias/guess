@@ -7,6 +7,27 @@ import Songs from '../database/songs.controller';
 
 const rooms: Router = Router();
 
+rooms.get("/all", async (req, res, next) => {
+    try {
+        const start = parseInt(req.query.start as string);
+        const count = parseInt(req.query.count as string);
+        const object = req.cluster.getRooms(start, count);
+        res.json(object);
+    } catch (err) {
+        next(err);
+    }
+});
+
+rooms.get("/find", async (req, res, next) => {
+    try {
+        const { name } = req.query;
+        const rooms = req.cluster.query(name as string);
+        res.json(rooms);
+    } catch (err) {
+        next(err);
+    }
+});
+
 const ensureRoomAuthentication = (room: Room, hash: string, res: Response) => {
     if (nullOrUndefined(hash)) {
         res.json(room.public);

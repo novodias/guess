@@ -89,6 +89,53 @@ export default class RoomsCluster {
         return this.rooms.get(id);
     }
 
+    getRooms(start: number, count: number) {
+        if (start < 0) start = 0;
+        
+        let moreAvailable = true;
+        const publicRooms: any[] = [];
+        
+        if (start > this.rooms.size - 1) {
+            moreAvailable = false;
+            return {
+                rooms: publicRooms,
+                more: moreAvailable
+            };
+        }
+
+        // if (count > this.rooms.size) count -= (count - this.rooms.size) + start + 1; 
+
+        const rooms = Array.from(this.rooms.values());
+        for (let i = start; i < count; i++) {
+            if (typeof rooms[i] !== 'undefined') {
+                publicRooms.push(rooms[i].public);
+
+                if (i === count - 1) {
+                    if (typeof rooms[i + 1] === 'undefined') {
+                        moreAvailable = false;
+                    }
+                }
+            } else {
+                moreAvailable = false;
+                break;
+            }
+        }
+
+        return {
+            rooms: publicRooms,
+            more: moreAvailable
+        };
+    }
+
+    query(name: string) {
+        const nameLowerCase = name.toLowerCase();
+            
+        const roomsFound = Array.from(this.rooms.values())
+            .filter(r => r.name.toLowerCase().includes(nameLowerCase));
+
+        return roomsFound.map(r => r.public);;
+    }
+
     deleteRoom(id: string) {
         return this.rooms.delete(id);
     }

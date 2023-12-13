@@ -54,6 +54,48 @@ export async function getRoomAsync(id, hash = null) {
     return data;
 }
 
+/**
+ * @typedef {Object} PublicRoom
+ * @property {string} id
+ * @property {string} name
+ * @property {number} size
+ * @property {boolean} passwordRequired
+ * @property {boolean} particular
+ */
+
+/**
+ * @param {number} start 
+ * @param {number} count
+ * @returns {Promise<{rooms: PublicRoom[], more: boolean}>}
+ */
+export async function getPublicRoomsAsync(start, count) {
+    try {
+        const res = await client.get('/rooms/all', {
+            params: { start, count }
+        });
+
+        return res.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * @param {string} name 
+ * @returns {Promise<PublicRoom[]>}
+ */
+export async function findRoomAsync(name) {
+    try {
+        const res = await client.get("/rooms/find", {
+            params: { name }
+        });
+
+        return res.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export async function createRoomAsync(name, particular, hash = null) {
     let data;
 

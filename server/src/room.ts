@@ -108,6 +108,7 @@ abstract class Room {
         return {
             id: this.id,
             name: this.name,
+            size: this.players.size,
             passwordRequired: this.hasPassword,
             particular: this.particular,
         };

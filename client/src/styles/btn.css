@@ -1,3 +1,8 @@
+button {
+    all: unset;
+    cursor: pointer;
+}
+
 .btn {
     all: unset;
     padding: 8px 12px;
@@ -26,6 +31,27 @@
     background-color: var(--text-faded-color);
     box-shadow: var(--none-bx-shadow);
     box-shadow: 0px 0px 15px var(--container-color-active)
+}
+
+.btn.icon {
+    all: unset;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    transition: background-color 100ms linear;
+}
+
+.btn.icon:hover {
+    background-color: var(--input-background);
+}
+
+.btn.icon:active {
+    background-color: var(--input-background-active);
+}
+
+.btn[disabled] {
+    pointer-events: none;
+    opacity: 0.3;
 }
 
 .buttons-group {
