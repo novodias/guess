@@ -15,10 +15,10 @@ import usePassword from '../../hooks/usePassword';
  */
 function AuthenticateRoom({ name, loadRoom }) {
     // const [password, setPassword] = useState(null);
-    const {password, setPassword, hashed} = usePassword();
+    const {value, set, hashed} = usePassword();
     
     function _onChange(e) {
-        setPassword(e.target.value);
+        set(e.target.value);
     }
 
     async function submit() {
@@ -41,7 +41,7 @@ function AuthenticateRoom({ name, loadRoom }) {
                 <label htmlFor="create-room-password-input" style={{marginTop: "20px"}}>Password</label>
                 <h3>Insert the room's password below</h3>
                 <input type='password' id='create-room-password-input'
-                    value={password} onChange={_onChange} onKeyUp={onKeyUp}
+                    value={value} onChange={_onChange} onKeyUp={onKeyUp}
                     style={{ fontSize: '1.5em' }} autoComplete='off'
                 />
                 <button className='btn'
