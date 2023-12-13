@@ -1,27 +1,37 @@
 import { join } from 'path';
 import { Router } from 'express';
 import config from '../config';
-import { readdir } from 'fs/promises';
+import { readdirSync } from 'fs';
+// import { readdir } from 'fs/promises';
 
 const avatars: Router = Router({ caseSensitive: true });
 const avatarsPath: string = join(config.assetsDir, "avatars");
 
-const getAllAvatars = async () => {
-    const files = await readdir(avatarsPath, {
-        withFileTypes: true
+// const getAllAvatars = async () => {
+//     const files = await readdir(avatarsPath, {
+//         withFileTypes: true
+//     });
+
+//     return files.filter((v) => v.isFile())
+//         .map((v) => v.name);
+// }
+
+const avatarsFiles: string[] = (function () {
+    const files = readdirSync(avatarsPath, {
+        withFileTypes: true,
+        recursive: false
     });
 
-    return files.filter((v) => v.isFile())
-        .map((v) => v.name);
-}
-
-let avatarsFiles: string[];
+    return files
+        .filter(v => v.isFile())
+        .map(v => v.name);
+})();
 
 avatars.get("/all", async (req, res, next) => {
     try {
-        if (avatarsFiles === undefined) {
-            avatarsFiles = await getAllAvatars();
-        }
+        // if (avatarsFiles === undefined) {
+        //     avatarsFiles = await getAllAvatars();
+        // }
 
         const total = avatarsFiles.length;
         res.json({ total, result: avatarsFiles });
