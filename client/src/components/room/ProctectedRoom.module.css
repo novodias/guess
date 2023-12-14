@@ -1,0 +1,21 @@
+.container {
+    padding: 20px;
+    width: 500px;
+}
+
+.header {
+    width: auto !important;
+}
+
+.container > *:not(.header) {
+    margin-left: 15px;
+}
+
+.roomname {
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.buttons-group {
+    margin-top: 15px !important;
+}

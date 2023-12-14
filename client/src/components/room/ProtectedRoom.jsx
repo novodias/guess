@@ -7,6 +7,7 @@ import logger from '../../utils';
 import { useNotificationDispatchContext } from '../../context/NotificationProvider';
 import { RoomAuthError } from '../../api/rooms/api';
 import usePassword from '../../hooks/usePassword';
+import styles from './ProctectedRoom.module.css';
 
 /**
  * @param {Object} props 
@@ -32,23 +33,21 @@ function AuthenticateRoom({ name, loadRoom }) {
     }
 
     return (
-        <div className='col container'>
-            <div className='header-container' style={{color: "white", background: "crimson"}}>
-                <h2><LockRounded /> The room requires a password</h2>
+        <div className={`col container ${styles.container}`}>
+            <div className={`header marker ${styles.header}`}>
+                <h1><LockRounded /> Password required</h1>
             </div>
-            <div className='col inner-container'>
-                <h2 style={{marginLeft: "0px"}}>{name}</h2>
+            <h2 className={styles.roomname}>{name}</h2>
+            <div className='input-container'>
                 <label htmlFor="create-room-password-input" style={{marginTop: "20px"}}>Password</label>
-                <h3>Insert the room's password below</h3>
+                <p className='help'>Insert the room's password below</p>
                 <input type='password' id='create-room-password-input'
                     value={value} onChange={_onChange} onKeyUp={onKeyUp}
                     style={{ fontSize: '1.5em' }} autoComplete='off'
                 />
-                <button className='btn'
-                    style={{ alignSelf: 'flex-end', marginTop: '20px' }}
-                    onClick={submit}>
-                    Enter
-                </button>
+            </div>
+            <div className={`buttons-group ${styles["buttons-group"]}`}>
+                <button className={`btn`} onClick={submit}>Enter</button>
             </div>
         </div>
     );
