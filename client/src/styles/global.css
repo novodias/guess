@@ -1,4 +1,6 @@
 @import "normalize.css";
+@import "btn.css";
+@import "misc.css";
 
 @font-face {
     font-family: "Roboto";
@@ -38,7 +40,7 @@
     
     /* colors */
     --primary-color: #CC2936;
-    --primary-hover-hover: #cc2937e0;
+    --primary-color-hover: #cc2937e0;
     
 }
 
@@ -189,6 +191,3 @@ li {
     overflow: hidden;
     pointer-events: none;
 }
-
-@import "btn.css";
-@import "misc.css";
