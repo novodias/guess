@@ -1,6 +1,57 @@
 import React, { useState, createContext, useContext, useCallback } from 'react';
 
 /**
+ * @typedef {Object} NotificationObject
+ * @property {string} uid
+ * @property {("bottom"|"top")} orient
+ * @property {number} gap
+ * @property {boolean} clickable
+ * @property {function(MouseEvent)|null} action 
+ * @property {{string}|null} button 
+ */
+
+export function NotificationBuilder() {
+    /**
+     * @type {NotificationObject}
+     */
+    const notification = {
+        uid: crypto.randomUUID(),
+        orient: "bottom",
+        gap: 10,
+        clickable: false,
+        action: null,
+        button: null
+    };
+
+    const builder = {
+        text: (text) => {
+            notification.text = text
+            return builder;
+        },
+        clickable: (callback) => {
+            notification.clickable = true;
+            if (callback) {
+                notification.action = callback;
+            }
+            return builder;
+        },
+        button: (text, callback) => {
+            notification.button = { text };
+            notification.clickable = true;
+            if (callback) {
+                notification.action = callback;
+            }
+            return builder;
+        },
+        build: () => {
+            return notification;
+        }
+    }
+    
+    return builder; 
+}
+
+/**
  * @typedef NotificationProps
  * @property {string} uid
  * @property {string} text
@@ -32,6 +83,7 @@ const NotificationContext = createContext(undefined);
  * @typedef {Object} NotificationDispatch
  * @property {AddNotification} add
  * @property {React.Dispatch<React.SetStateAction<NotificationProps[]>>} setNotifications
+ * @property {function(NotificationObject)} pushNotification
  */
 
 /**
@@ -45,22 +97,24 @@ export function NotificationProvider({ children }) {
     /**
      * @param {NotificationProps} props
      */
-    const add = useCallback(({ text, orient, gap,
-        hasButton, buttonText,
-        onButtonClick, waitForClick }) => {
+    const add = useCallback(({ text, orient, hasButton, buttonText, onButtonClick, waitForClick }) => {
         const notification = {
             uid: crypto.randomUUID(),
             text,
             orient,
-            gap,
-            hasButton,
-            buttonText,
-            onButtonClick,
-            waitForClick,
-            close: false
+            gap: 10,
+            action: onButtonClick,
+            clickable: waitForClick,
         }
 
+        notification.button = hasButton !== null ? { text: buttonText } : null;
+
         setNotifications(p => [...p, notification]);
+        return notification.uid;
+    }, []);
+
+    const pushNotification = useCallback(notification => {
+        setNotifications(p => [...p], notification);
         return notification.uid;
     }, []);
 
@@ -73,7 +127,7 @@ export function NotificationProvider({ children }) {
 
     return (
         <NotificationContext.Provider value={{notifications}}>
-            <NotificationDispatchContext.Provider value={{remove, add}}>
+            <NotificationDispatchContext.Provider value={{remove, add, pushNotification}}>
                 {children}
             </NotificationDispatchContext.Provider>
         </NotificationContext.Provider>

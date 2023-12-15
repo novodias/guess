@@ -9,17 +9,15 @@ import { AnimationNodeHelper } from '../animation';
  * @param {("bottom"|"top")} props.orient 
  * @param {number} props.gap 
  * @param {number} props.batchNumber 
- * @param {boolean} props.hasButton 
- * @param {string} props.buttonText 
- * @param {function(MouseEvent)} props.onButtonClick 
- * @param {function()} props.onDone 
- * @param {boolean} props.waitForClick 
+ * @param {{text: string}} props.button
+ * @param {function(MouseEvent)} props.action 
+ * @param {boolean} props.clickable 
  * 
  */
-export default function Notification({
-    text, orient, gap, batchNumber, uid,
-    hasButton, buttonText, onButtonClick, /** onDone,*/
-    waitForClick }) {
+export default function Notification({ batchNumber, uid,
+    text, orient, gap, 
+    button, action, clickable
+}) {
     /**
      * @type {React.MutableRefObject<HTMLDivElement>}
      */
@@ -30,20 +28,20 @@ export default function Notification({
     const { remove } = useNotificationDispatchContext();
 
     const onClick = (e) => {
-        if (onButtonClick) {
-            onButtonClick(e);
+        if (action) {
+            action(e);
             _out();
         }
     }
     
     function Button() {
-        if (!hasButton) {
+        if (!button) {
             return null;
         }
 
         return (
             <button className='btn' onClick={onClick}>
-                {buttonText}
+                {button.text}
             </button>
         )
     }
@@ -53,8 +51,8 @@ export default function Notification({
             animRef.current.stop();
         }
 
-        if (waitForClick) {
-            if (!hasButton) {
+        if (clickable) {
+            if (!button) {
                 notificationRef.current.onclick = null;
                 notificationRef.current.style.cursor = "default";
             }
@@ -75,7 +73,7 @@ export default function Notification({
                 remove(uid);
             }
         );
-    }, [hasButton, orient, remove, uid, waitForClick])
+    }, [button, orient, remove, uid, clickable])
 
     const _in = useCallback(() => {
         const { height } = notificationRef.current.getBoundingClientRect();
@@ -92,20 +90,20 @@ export default function Notification({
             direction,
             (initial) => {
                 if (!initial) return;
-                if (waitForClick === false) {
+                if (clickable === false) {
                     setTimeout(_out, 1000 * 7);
                 }
             }
         );
-    }, [batchNumber, gap, orient, waitForClick, _out]);
+    }, [batchNumber, gap, orient, clickable, _out]);
     
     useEffect(() => {
         if (initialLoad) {
             _in();
             setInitialLoad(false);
 
-            if (waitForClick) {
-                if (!hasButton) {
+            if (clickable) {
+                if (!button) {
                     notificationRef.current.onclick = _out;
                     notificationRef.current.style.cursor = "pointer";
                 }
@@ -114,7 +112,7 @@ export default function Notification({
             animRef.current.stop();
             _in();
         }
-    }, [_in, _out, batchNumber, hasButton, initialLoad, waitForClick]);
+    }, [_in, _out, batchNumber, button, initialLoad, clickable]);
     
     return (
         <div ref={notificationRef} className='notification'>
