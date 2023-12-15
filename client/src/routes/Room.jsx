@@ -14,7 +14,7 @@ import { useGameContext, useGameDispatchContext } from '../context/GameProvider'
 import AudioPlayer from '../components/room/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
-import { useNotificationDispatchContext } from '../context/NotificationProvider';
+import { NotificationBuilder, useNotificationDispatchContext } from '../context/NotificationProvider';
 import ResultsModal from '../components/room/Results';
 
 function updateGuest(player, stat) {
@@ -43,7 +43,7 @@ function RoomPage() {
     const { id, players, chat, music } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
     
-    const { add, remove } = useNotificationDispatchContext();
+    const { add, pushNotification, remove } = useNotificationDispatchContext();
     const [startNotification, setStartNotification] = useState(null);
 
     const canvasRef = useCanvasRef();
@@ -143,26 +143,21 @@ function RoomPage() {
          */
         onClose: (e) => {
             console.log("Close:", e.reason);
-            // TODO: show a notification saying that lost connection?
+            
+            const builder = NotificationBuilder()
+                .clickable();
+            
+            let notification;
+
             if (e.code === 3000) {
-                add({
-                    text: "You were kicked from the room",
-                    hasButton: false,
-                    gap: 10,
-                    orient: "bottom",
-                    waitForClick: false,
-                });
+                notification = builder.text("You were kicked from the room").build();
             } else {
                 if (e.reason) {
-                    add({
-                        text: e.reason,
-                        hasButton: false,
-                        gap: 10,
-                        orient: "bottom",
-                        waitForClick: false,
-                    });
+                    notification = builder.text(e.reason).build();
                 }
             }
+            
+            if (notification) pushNotification(notification);
 
             navigate('/');
         },
@@ -220,17 +215,12 @@ function RoomPage() {
 
     useEffect(() => {
         if (startNotification === null && owner) {
-            const idx = add({
-                text: "Click here to begin",
-                hasButton: true,
-                onButtonClick: () => {
-                    sendMessage("start", { owner });
-                },
-                gap: 10,
-                orient: "bottom",
-                waitForClick: true,
-                buttonText: "Start",
-            });
+            const notification = NotificationBuilder()
+                .text("Click here to begin")
+                .button("Start", () => sendMessage("start", { owner }))
+                .build();
+            
+            const idx = pushNotification(notification);
 
             setStartNotification(idx);
         }
@@ -241,7 +231,7 @@ function RoomPage() {
                 remove(startNotification);
             }
         }
-    }, [owner, sendMessage, add, startNotification, remove]);
+    }, [owner, sendMessage, startNotification, remove]);
 
     return (
         <div id='room'>
@@ -252,7 +242,6 @@ function RoomPage() {
                     <Players />
                 </ul>
                 <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
-                {/* <button className='btn btn-green' style={{ borderRadius: '0px' }} onClick={StartMatch}>Start</button> */}
             </div>
             <div className='col container game-container'>
                 <div className={`timer ${timerClass}`}></div>
