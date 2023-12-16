@@ -114,7 +114,7 @@ export function NotificationProvider({ children }) {
     }, []);
 
     const pushNotification = useCallback(notification => {
-        setNotifications(p => [...p], notification);
+        setNotifications(p => [...p, notification]);
         return notification.uid;
     }, []);
 
