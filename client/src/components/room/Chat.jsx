@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageRounded } from '@mui/icons-material';
+import './Chat.css';
 
 // const getEmoji = (id) => `<img src='/cdn/avatars/${id}' width="44" height="44" alt='Emote ${id}'></img>`
 const getEmoji = (id) => {
@@ -22,9 +23,14 @@ const replaceTextWithEmojis = (message) => {
     return message.split(' ').map((v) => {
         const emoji = emojis[v];
         if (emoji) {
-            return <img src={emoji.src} width="36" height="36" alt={`Emote ${emoji.id}`}></img>
+            return (
+                <div className='tooltip emote-token' data-text={`:${emoji.id}:`}>
+                    <img src={emoji.src} width="36" height="36"
+                        alt={`Emote ${emoji.id}`}></img>
+                </div>
+            )
         } else {
-            return <p>{v}</p>
+            return <span className='message-token'>{v}</span>
         }
     })
 }
@@ -66,6 +72,7 @@ export default function Chat({ messages, onEnter }) {
     return (
         <>
             <div id='chat' className='col'>
+                <div id='anchor'></div>
                 <ul className='remove-ul-li-style'>
                     {
                         messages.map((message, key) => {
@@ -75,7 +82,7 @@ export default function Chat({ messages, onEnter }) {
                                         <h2 style={message.isSystem && { color: "crimson" }}>
                                             {message.nickname}
                                         </h2>
-                                        <span /* dangerouslySetInnerHTML={{__html: replaceTextWithEmojis(message.text)}} */>
+                                        <span>
                                             {replaceTextWithEmojis(message.text)}
                                         </span>
                                     </span>
@@ -84,7 +91,6 @@ export default function Chat({ messages, onEnter }) {
                         })
                     }
                 </ul>
-                <div id='anchor'></div>
             </div>
             <div className='chat-textbox-container'>
                 <textarea autoComplete='false' maxLength={200} value={text}

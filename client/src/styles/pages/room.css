@@ -1,0 +1,233 @@
+#room {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    height: 80vh;
+}
+
+/* #room * {
+    box-shadow: none;
+} */
+
+#room .container {
+    border: none;
+}
+
+#room > .modal {
+    z-index: 999;
+}
+
+.game-container {
+    position: relative;
+    order: 1;
+    z-index: 5;
+    width: 700px;
+    height: 80vh;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-canvas {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: -10;
+}
+
+/* ===== SCOREBOARD ============================================================= */
+
+#guests-container {
+    order: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+    position: relative;
+    padding-right: 20px;
+    margin: 10px 0;
+    left: 20px;
+    width: 300px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    height: 63px;
+}
+
+.header-container > h2 {
+    margin: 0;
+    margin-left: 33px;
+    font-size: 2rem;
+}
+
+#guests-container > .header-container {
+    padding: 0;
+    color: white;
+    background: hsl(209, 97%, 43%);
+}
+
+#guests-container > .header-container > h2 {
+    color: hsl(209, 97%, 90%);
+    /* color: drop-shadow(-3px 3px 0px hsl(209, 97%, 55%)); */
+}
+
+#scoreboard {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+#scoreboard li {
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+}
+
+#scoreboard .btn-kick {
+    width: 36px;
+    height: 63px;
+}
+
+#scoreboard button {
+    border: 0;
+    padding: 0;
+    width: 36px;
+    height: 63px;
+    cursor: pointer;
+    background-color: rgb(158, 26, 53);
+    transition: 0.2s;
+}
+
+#scoreboard button:hover {
+    background-color: rgb(119, 19, 39);
+}
+
+#scoreboard .crown {
+    width: 36px;
+}
+
+#scoreboard .crown svg {
+    color: rgb(245, 182, 9);
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#scoreboard button svg {
+    transition: transform 0.2s;
+}
+
+#scoreboard button:hover svg {
+    transform: scale(1.1);
+}
+
+/* === CHAT & COPY =============================================================== */
+
+.right-wrapper {
+    order: 2;
+    gap: 20px;
+    right: 20px;
+    margin-left: 20px;
+}
+
+.chat-container {
+    flex-grow: 1;
+    width: 280px;
+    padding: 8px;
+    background-color: rgb(214 218 225) !important;
+    overflow: hidden;
+}
+
+.chat-container > .header-container {
+    padding: 0;
+    justify-content: center;
+}
+
+.chat-container > .header-container > h2 {
+    color: var(--text-faded-color);
+    margin-left: 0;
+    /* filter: drop-shadow(-3px 3px 0px #fff); */
+}
+
+.chat-textbox-container {
+    position: relative;
+    min-height: 80px;
+}
+
+.chat-textbox-container > span {
+    position: absolute;
+    opacity: 0.1;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(2.4);
+    top: 55%;
+    left: 50%;
+}
+
+.chat-textbox-container > textarea {
+    font-size: 1em;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    resize: none;
+    padding: 8px;
+    box-shadow: var(--bx-shadow);
+    box-sizing: border-box;
+    background-color: var(--background-color);
+    /* transition: outline 250ms linear; */
+}
+
+.chat-textbox-container > textarea:focus + span ,
+.chat-textbox-container > textarea:focus-within + span {
+    display: none;
+}
+
+.copy-link-container {
+    align-self: center;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+}
+
+.copy-link-container div {
+    width: 100%;
+    align-items: center;
+    overflow: hidden;
+}
+
+.copy-link-container div > * {
+    padding: 8px;
+}
+
+.copy-link-container span {
+    font-weight: bold;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.copy-link-container button {
+    color: var(--text-color);
+    background-color: rgba(200, 200, 200, 0);
+    border: 0;
+    border-left: 1px solid rgb(170, 162, 162);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.copy-link-container button > svg { color: inherit; }
+
+.copy-link-container button:hover {
+    background-color: rgba(200, 200, 200, 0.5);
+}
+
+.copy-link.show {
+    filter: blur(0rem);
+}
+
+.copy-link.hide {
+    filter: blur(0.4rem);
+}

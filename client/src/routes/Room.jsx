@@ -3,7 +3,8 @@ import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import useWebSocket from 'react-use-websocket';
 
-import './Room.css';
+// import './Room.css';
+import '../styles/pages/room.css'
 import { SettingsContext } from '../context/SettingsProvider';
 import { Chat, CopyLink, Difficulty, GuestContainer, OwnerButton } from '../components/room/Export';
 import { useRoomContext } from '../context/RoomProvider';
@@ -16,6 +17,7 @@ import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
 import { NotificationBuilder, useNotificationDispatchContext } from '../context/NotificationProvider';
 import ResultsModal from '../components/room/Results';
+import Timer from '../components/room/game/Timer';
 
 function updateGuest(player, stat) {
     if (player.id === stat.id) {
@@ -40,7 +42,7 @@ function RoomPage() {
     const { username, showAudioVisualizer, avatar } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
 
-    const { id, players, chat, music } = useGameContext();
+    const { id, players, chat, music, timer } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
     
     const { add, pushNotification, remove } = useNotificationDispatchContext();
@@ -51,10 +53,6 @@ function RoomPage() {
     const [showKickBtn, setShowKickBtn] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const [result, setResult] = useState(undefined);
-    
-    const [timerClass, setTimerClass] = useState('');
-    const StartTimer = () => setTimerClass("timer-start");
-    const RevertTimer = () => setTimerClass("timer-start timer-goback");
 
     const messageHandler = {
         "players": (body) => {
@@ -83,6 +81,9 @@ function RoomPage() {
             const { id } = body;
             gameManager.setClientId(id);
         },
+        "timer": (body) => {
+            gameManager.configureTimer(body);
+        },
         "chat": (body) => {
             chatManager.add(body);
         },
@@ -100,11 +101,13 @@ function RoomPage() {
                 play: play
             });
 
-            RevertTimer();
+            gameManager.revertTimer();
+            // RevertTimer();
         },
         "round": (body) => {
             const { players } = body;
-            StartTimer();
+            // StartTimer();
+            gameManager.startTimer();
             setReadOnly(false);
             gameManager.setPlayers(players);
             gameManager.configurePlayback({ play: true });
@@ -117,7 +120,8 @@ function RoomPage() {
                 third: winners[2]
             });
             gameManager.configurePlayback({ play: false });
-            RevertTimer();
+            gameManager.revertTimer();
+            // RevertTimer();
         }
     };
 
@@ -159,7 +163,7 @@ function RoomPage() {
             
             if (notification) pushNotification(notification);
 
-            navigate('/');
+            // navigate('/');
         },
         onError: (e) => {
             if (process.env.NODE_ENV === 'development') {
@@ -227,7 +231,6 @@ function RoomPage() {
         
         return () => {
             if (startNotification !== null) {
-                console.log("remove start notification:", startNotification);
                 remove(startNotification);
             }
         }
@@ -236,15 +239,8 @@ function RoomPage() {
     return (
         <div id='room'>
             <Results result={result} />
-            <div id='guests-container' className='col container'>
-                <div className='header-container'><h2>Players</h2></div>
-                <ul id='scoreboard'>
-                    <Players />
-                </ul>
-                <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} />
-            </div>
             <div className='col container game-container'>
-                <div className={`timer ${timerClass}`}></div>
+                <Timer {...timer} />
                 <Difficulty value={'???'} />
                 <GameCanvas />
                 <AudioPlayer src={music.src}
@@ -255,10 +251,17 @@ function RoomPage() {
                     showAudioVisualizer={showAudioVisualizer} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
             </div>
+            <div id='guests-container' className='col container'>
+                <div className='header-container'><h2>Players</h2></div>
+                <ul id='scoreboard' className='col'>
+                    <Players />
+                </ul>
+                {/* <OwnerButton owner={owner} showKickBtn={showKickBtn} setShowKickBtn={setShowKickBtn} /> */}
+            </div>
             <div className='right-wrapper col'>
                 <CopyLink id={roomId} />
                 <div className='col container chat-container'>
-                    <div className='header-container'><h2>Chat</h2></div>
+                    {/* <div className='header-container'><h2>Chat</h2></div> */}
                     <Chat messages={chat} onEnter={SendChatMessage} />
                 </div>
             </div>
