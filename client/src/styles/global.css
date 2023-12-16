@@ -32,7 +32,8 @@
     --input-background-active: #c9ccd1;
     --container-color: #ccd3df;
     --container-color-active: #bac1cc;
-    --container-shadow: #c5cad1;
+    /* --container-shadow: #c5cad1; */
+    --container-shadow: hsl(215, 12%, 70%);
     --bx-shadow: 0px 0px 15px var(--container-shadow);
     --none-bx-shadow: 0px 0px 15px transparent;
     --text-color: #494141;
