@@ -312,11 +312,20 @@ export default class RoomStandard extends Room {
             body: this.players.sanitized,
         };
 
+        const timer = {
+            type: "timer",
+            body: {
+                timerDuration: this.roundTime,
+                prepareDuration: this.roundPrepare,
+            }
+        }
+
         // sends to player who's joined all the players
         // this.send(players, player);
         
         // send id to the player
         this.send(you, player);
+        this.send(timer, player);
         
         // sends to all players the person who's joined
         this.broadcast(players);
