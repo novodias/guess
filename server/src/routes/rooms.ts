@@ -36,7 +36,7 @@ const ensureRoomAuthentication = (room: Room, hash: string, res: Response) => {
 
     if (room.password !== hash) {
         console.log(`[Rooms/${room.id}] Room found, wrong authentication`);
-        throw new AbortMessage("Room's password doesn't match", 400, room.public);
+        throw new AbortMessage("Room's password doesn't match", 400, {...room.public, message: "Password doesn't match"});
     }
 }
 
@@ -48,6 +48,7 @@ rooms.use("/", (req: Request, res: Response, next: NextFunction) => {
 
             const hash = Buffer.from(authorization || "", 'base64').toString('ascii');
             const room = req.cluster!.getRoom(id);
+            
             if (!room) {
                 console.log("[Rooms] Couldn't found room", id);
                 throw new AbortMessage("Room not found", 404);
