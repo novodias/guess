@@ -4,7 +4,7 @@ import { useRoomContext, useRoomDispatchContext } from '../../context/RoomProvid
 import { LockRounded } from '@mui/icons-material';
 import Spinner from '../Spinner';
 import logger from '../../utils';
-import { useNotificationDispatchContext } from '../../context/NotificationProvider';
+import { NotificationBuilder, useNotificationDispatchContext } from '../../context/NotificationProvider';
 import { RoomAuthError } from '../../api/rooms/api';
 import usePassword from '../../hooks/usePassword';
 import styles from './ProctectedRoom.module.css';
@@ -59,7 +59,7 @@ export default function ProtectedRoom({ children }) {
     // const navigate = useNavigate();
     const { setName } = useRoomDispatchContext();
     const { getRoom, name } = useRoomContext();
-    const { add } = useNotificationDispatchContext();
+    const { pushNotification } = useNotificationDispatchContext();
     
     const [auth, setAuth] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -91,12 +91,11 @@ export default function ProtectedRoom({ children }) {
                 }
     
                 if (!initialLoad) {
-                    add({
-                        text: room.message,
-                        gap: 10,
-                        orient: "bottom",
-                        waitForClick: false,
-                    });
+                    const notification = NotificationBuilder()
+                        .text(room.message)
+                        .build();
+                    
+                    pushNotification(notification);
                 }
             } else {
                 throw err;
@@ -104,7 +103,7 @@ export default function ProtectedRoom({ children }) {
         } finally {
             setLoading(false);
         }
-    }, [add, auth, getRoom, id, initialLoad, name, setName]);
+    }, [auth, getRoom, id, initialLoad, name, setName]);
 
     const LoadWithHash = useCallback(() => {
         if (location.state) {
