@@ -1,0 +1,52 @@
+/* ===== TIMER ========================================================= */
+
+.timer {
+    position: absolute;
+    height: 24px;
+    width: 100%;
+    top: 0px;
+    background-color: rgba(180, 180, 180, 0.301);
+    /* filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.5)); */
+    /* animation: start_timer 30s infinite ease-out; */
+}
+
+/* .timer.start {
+    animation: start_timer 10s forwards ease-out;
+    animation: start_timer attr(data-start s) forwards ease-out;
+    animation-play-state: running;
+}
+
+.timer.stop {
+    animation-play-state: paused;
+}
+
+.timer.revert {
+    animation: go_back_timer attr(data-prepare s) forwards linear;
+    animation-play-state: running;
+} */
+
+@keyframes start_timer {
+    from {
+        width: 0%;
+        background-color: rgba(255, 255, 255, 0.75);
+        filter: drop-shadow(0 0 0.75rem rgba(255, 255, 255, 0.5));
+    }
+    to {
+        width: 100%;
+        background-color: rgba(255, 0, 0, 0.75);
+        filter: drop-shadow(0 0 0.75rem rgba(255, 0, 0, 0.75));
+    }
+}
+
+@keyframes go_back_timer {
+    from {
+        width: 100%;
+        background-color: rgba(255, 0, 0, 0.75);
+        filter: drop-shadow(0 0 0.75rem rgba(255, 0, 0, 0.75));
+    }
+    to {
+        width: 0%;
+        background-color: rgba(255, 255, 255, 0.75);
+        filter: drop-shadow(0 0 0.75rem rgba(255, 255, 255, 0.5));
+    }
+}

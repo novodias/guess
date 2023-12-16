@@ -20,7 +20,14 @@ const GameDispatchContext = createContext(undefined);
  * @param {Number} clientId
  * 
  * @callback ConfigurePlayback
- * @param {{src, play, start_at}} video_object
+ * @param {{src, play, start_at}} playbackConfig
+ * 
+ * @callback ConfigureTimer
+ * @param {{state, timerDuration, prepareDuration}} timerConfig 
+ * 
+ * @callback startTimer
+ * 
+ * @callback revertTimer
  * 
  * @callback SetPlayers
  * @param {Array} players
@@ -40,6 +47,9 @@ const GameDispatchContext = createContext(undefined);
  * @typedef {Object} GameManager
  * @property {SetClientId} setClientId 
  * @property {ConfigurePlayback} configurePlayback
+ * @property {ConfigureTimer} configureTimer
+ * @property {startTimer} startTimer
+ * @property {revertTimer} revertTimer
  * @property {SetPlayers} setPlayers
  * @property {RemovePlayer} removePlayer
  * @property {UpdatePlayers} updatePlayers
@@ -56,6 +66,17 @@ export function GameProvider({ children }) {
     const [players, setPlayers] = useState([]);
     const [chat, setChat] = useState([]);
     const [music, setMusic] = useState({});
+    const [timer, setTimer] = useState({
+        state: "none",
+        timerDuration: '1s',
+        prepareDuration: '1s'
+    });
+
+    const setTimerState = (state) => setTimer(t => {
+        return { ...t, state };
+    });
+    const StartTimer = () => setTimerState("start");
+    const RevertTimer = () => setTimerState("revert");
 
     const chatManager = {
         add: (message) => {
@@ -79,6 +100,15 @@ export function GameProvider({ children }) {
                 ...config
             });
         },
+        configureTimer: ({ timerDuration, prepareDuration }) => {
+            setTimer({
+                ...timer,
+                timerDuration,
+                prepareDuration
+            });
+        },
+        startTimer: () => StartTimer(),
+        revertTimer: () => RevertTimer(),
         // add: (player) => {
         //     setPlayers(array => [...array, player]);
         // },
@@ -102,7 +132,7 @@ export function GameProvider({ children }) {
     }, [music]);
 
     return (
-        <GameContext.Provider value={{ id, players, chat, music }}>
+        <GameContext.Provider value={{ id, players, chat, music, timer }}>
             <GameDispatchContext.Provider value={{ chatManager, gameManager }}>
                 {children}
             </GameDispatchContext.Provider>
