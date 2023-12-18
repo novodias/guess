@@ -1,12 +1,12 @@
 import React from 'react';
 
-export default function Container({children, headerText, isContent, className}) {
+export default function Container({children, header, className}) {
     return (
-        <div className={`container${' ' + className}`}>
-            {headerText !== undefined && <div className='header-container'>
-                <h2>{headerText}</h2>
+        <div className={`container ${(className || '')}`}>
+            {header !== undefined && <div className='header marker'>
+                <h1>{header}</h1>
             </div>}
-            {isContent === true ? <div className='inner-container'>{children}</div> :  children}
+            {children}
         </div>
     )
 }

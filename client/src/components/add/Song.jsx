@@ -4,8 +4,7 @@ import Container from '../Container';
 export default function SongContainer({songName, setSongName, youtubeId, setYoutubeId}) {
     return (
         <Container className='col songs-container'
-            headerText={(<><MusicNoteRounded /> Add a new song</>)}
-            isContent={true}>
+            header={(<><MusicNoteRounded /> Add a new song</>)}>
             <h3>Make sure to not add a copyrighted music/song since most of them block embeds.</h3>
             <label htmlFor='input_name'>Name</label>
             <h3>Insert the name of the song here</h3>

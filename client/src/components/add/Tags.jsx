@@ -73,8 +73,7 @@ export default function TagsContainer({ tags, setTags }) {
 
     return (
         <Container className='tags-container col'
-            headerText={(<><AddBoxRounded /> Tags</>)}
-            isContent={true}>
+            header={(<><AddBoxRounded /> Tags</>)}>
             <h3>Tags can be helpful to find a title.</h3>
             <div className='tags-input-container col' onClick={_focusInput}>
                 <input type='text' value={tagText} ref={inputRef}

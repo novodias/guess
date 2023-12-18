@@ -8,8 +8,7 @@ const types = ['Animes', 'Games', 'Movies', 'Series', 'Musics'];
 export default function TitleContainer({ id, type, setTag, onDropdownClick, setSearchQuery }) {    
     return (
         <Container className={'col'} 
-            headerText={(<><MovieRounded /> Select a title</>)}
-            isContent={true}>
+            header={(<><MovieRounded /> Select a title</>)}>
             <h3>If not found, the title will be created with the song.</h3>
             <div className='titles-form'>
                 <input readOnly value={id} type='text' name='title_id' />
