@@ -133,7 +133,7 @@ div.separator[data-collapse]:hover::before {
     opacity: 0;
     pointer-events: none;
     transition: height 500ms ease-out,
-                opacity 300ms linear;
+                opacity 600ms linear;
 }
 
 *[collapse="uncollapsed"] {
