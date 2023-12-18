@@ -72,8 +72,8 @@ export default function Chat({ messages, onEnter }) {
     return (
         <>
             <div id='chat' className='col'>
-                <div id='anchor'></div>
-                <ul className='remove-ul-li-style'>
+                <div className='chat-header'>Chatroom</div>
+                <ul className='col messages-list'>
                     {
                         messages.map((message, key) => {
                             return <li key={key}>
@@ -90,6 +90,7 @@ export default function Chat({ messages, onEnter }) {
                             </li>
                         })
                     }
+                    {/* <div id='anchor'></div> */}
                 </ul>
             </div>
             <div className='chat-textbox-container'>

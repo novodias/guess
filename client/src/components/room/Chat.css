@@ -1,9 +1,20 @@
 #chat {
+    position: relative;
+    flex-grow: 1;
+    margin-bottom: 10px;
+}
+
+.messages-list {
+    margin-top: 10px;
     flex-grow: 1;
     overflow-y: auto;
-    flex-direction: column-reverse;
-    margin-bottom: 10px;
-    /* max-height: 431.5px; */
+    max-height: 400px;
+    overscroll-behavior-y: contain;
+    scroll-snap-type: y proximity;
+}
+
+.messages-list > li:nth-last-child(1) {
+    scroll-snap-align: end;
 }
 
 .chat-message .tooltip {
@@ -41,35 +52,43 @@
     padding: 10px;
 }
 
-#chat ul {
-    overflow-anchor: none;
-}
-
-#chat::-webkit-scrollbar {
+.messages-list::-webkit-scrollbar {
     width: 10px;
 }
 
-#chat::-webkit-scrollbar-track {
+.messages-list::-webkit-scrollbar-track {
     border-radius: 10px;
     background: rgb(0, 0, 0, 0.05);
 }
 
-#chat::-webkit-scrollbar-track:hover {
+.messages-list::-webkit-scrollbar-track:hover {
     background: var(--input-background-active);
 }
 
-#chat::-webkit-scrollbar-thumb {
+.messages-list::-webkit-scrollbar-thumb {
     background: rgb(0, 0, 0, 0.1);
     border-radius: 50px;
 }
 
-#chat::-webkit-scrollbar-thumb:hover {
+.messages-list::-webkit-scrollbar-thumb:hover {
     background: rgb(0, 0, 0, 0.2);
 }
 
-#anchor {
+/* #anchor {
     overflow-anchor: auto;
-    height: 1px;
+    min-height: 1px;
+} */
+
+#chat > .chat-header {
+    position: relative;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    background-color: var(--background-color);
+    box-shadow: var(--bx-shadow);
+    border-radius: var(--border-radius);
+    padding: 8px 0;
+    font-weight: bold;
 }
 
 #chat h2 {
