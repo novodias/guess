@@ -41,10 +41,11 @@
     right: 8px;
     border-radius: 4px;
     cursor: pointer;
+    background-color: var(--primary-color);
 }
 
 .modal-close:hover {
-    background-color: var(--bg-crimsom);
+    background-color: var(--primary-color-hover);
 }
 
 .modal-header {
