@@ -5,6 +5,7 @@ import TextInput from '../elements/TextInput';
 import Collapse from '../elements/Collapse';
 import { SearchRounded, RefreshRounded, ArrowLeftRounded, ArrowRightRounded } from '@mui/icons-material'
 import { findRoomAsync, getPublicRoomsAsync } from '../../api/rooms/api';
+import useLogger from '../../hooks/useLogger';
 
 function CodeSection() {
     let navigate = useNavigate();
@@ -48,6 +49,8 @@ function RoomItem({ room }) {
 }
 
 function RoomsSection() {
+    const { info, debug } = useLogger("RoomsList");
+    
     /**
      * @type {MutableRefObject<HTMLButtonElement>}
      */
@@ -67,8 +70,10 @@ function RoomsSection() {
     const count = 10;
 
     const get = useCallback(async () => {
+        info("Searching rooms available...");
+
         try {
-            refreshRef.current.classList.add("rotating");
+            refreshRef.current.classList.add("play");
 
             const start = count * page;
             const data = await getPublicRoomsAsync(start, count);
@@ -88,7 +93,8 @@ function RoomsSection() {
         } catch (err) {
             console.error(err);
         } finally {
-            setTimeout(() => (refreshRef.current.classList.remove("rotating")), 1000 * 2);
+            // setTimeout(() => (refreshRef.current.classList.remove("play")), 1000 * 2);
+            refreshRef.current.classList.remove("play")
         }
     }, [page]);
     
@@ -119,6 +125,7 @@ function RoomsSection() {
         const text = e.target.value;
         
         if (!text || text === '') {
+            info("Input empty, fetching all rooms");
             get();
             return;
         }
@@ -127,7 +134,8 @@ function RoomsSection() {
             const rooms = await findRoomAsync(text);
             setRooms(rooms);
         } catch (error) {
-            console.error(rooms);
+            // console.error(rooms);
+            debug(error);
         }
     }
     
@@ -145,7 +153,7 @@ function RoomsSection() {
                             </span>
                         </div>
                         <button className='refresh btn icon' onClick={get}>
-                            <RefreshRounded ref={refreshRef} />
+                            <RefreshRounded ref={refreshRef} className="rotating" />
                         </button>
                     </div>
                 </div>
