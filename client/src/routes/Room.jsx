@@ -53,6 +53,13 @@ function RoomPage() {
     const [showKickBtn, setShowKickBtn] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const [result, setResult] = useState(undefined);
+    
+    const [round, setRound] = useState(0);
+
+    /**
+     * @type {import('react').MutableRefObject<HTMLDivElement>}
+     */
+    const roundRef = useRef(undefined);
 
     const messageHandler = {
         "players": (body) => {
@@ -106,7 +113,11 @@ function RoomPage() {
         },
         "round": (body) => {
             const { players } = body;
-            // StartTimer();
+            
+            setRound(r => ++r);
+            roundRef.current.classList.add('show');
+            setTimeout(() => roundRef.current.classList.remove('show'), 4000);
+
             gameManager.startTimer();
             setReadOnly(false);
             gameManager.setPlayers(players);
@@ -233,14 +244,18 @@ function RoomPage() {
             <Results result={result} />
             <div className='col container game-container'>
                 <Timer {...timer} />
+                <div ref={roundRef} className='round-container'>
+                    <span>Round:</span>
+                    <span><b>{round}</b></span>
+                </div>
                 <Difficulty value={'???'} />
                 {showAudioVisualizer ? <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas> : null}
                 <AudioPlayer src={music.src}
-                    play={music.play}
-                    playButtonDisabled={true}
-                    startTime={music.start_at}
-                    canvasRef={canvasRef}
-                    showAudioVisualizer={showAudioVisualizer} />
+                        play={music.play}
+                        playButtonDisabled={true}
+                        startTime={music.start_at}
+                        canvasRef={canvasRef}
+                        showAudioVisualizer={showAudioVisualizer} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
             </div>
             <div id='guests-container' className='col container'>

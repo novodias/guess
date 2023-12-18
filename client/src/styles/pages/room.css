@@ -41,6 +41,46 @@
     bottom: 20px;
 }
 
+.game-container > .dropdown-input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.game-container > .dropdown-input-container > #title-input {
+    box-sizing: border-box;
+    box-shadow: var(--bx-shadow);
+    background-color: var(--background-color);
+    z-index: 5;
+    text-align: center;
+}
+
+.game-container > .difficulty-container { display: none; }
+
+.round-container {
+    position: absolute;
+    opacity: 0;
+    top: calc(24px + 12px);
+    right: -190px;
+    padding: 12px;
+    padding-right: 50px;
+    box-shadow: var(--bx-shadow);
+    border-radius: var(--border-radius);
+    font-size: 1.5em;
+    transition: right 500ms ease-in-out,
+                opacity 500ms linear;
+}
+
+.round-container.show {
+    opacity: 1;
+    right: -20px;
+}
+
+.round-container > span:nth-child(n-1) {
+    margin-right: 8px;
+}
+
 /* ===== SCOREBOARD ============================================================= */
 
 #guests-container {

@@ -4,36 +4,64 @@
 }
 
 .dropdown {
-    display: none;
     position: absolute;
-    width: 350px;
-    z-index: 100;
+    top: 100%;
+    display: none;
     height: auto;
-    max-height: 0px;
-    overflow-y: auto;
+    max-height: 250px;
+    width: 100%;
     animation: increase_height normal forwards 0.4s ease-out;
 }
 
 .dropdown ul {
+    display: flex;
+    flex-direction: column;
     position: relative;
-    background-color: var(--color-two);
-    border: 1.5px solid var(--color-four);
-    border-top: none;
-    border-bottom-right-radius: 8px;
-    border-bottom-left-radius: 8px;
-    overflow-y: auto;
-    border: 0;
+    width: auto;
     font-size: 1.0em;
+    padding-top: 10px;
+    top: -5px;
+    border: 1px solid var(--container-color-active);
+    border-top: none;
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+    box-shadow: var(--bx-shadow);
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.dropdown ul::-webkit-scrollbar {
+    width: 10px;
+}
+
+.dropdown ul::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: rgb(0, 0, 0, 0.05);
+}
+
+.dropdown ul::-webkit-scrollbar-track:hover {
+    background: var(--input-background-active);
+}
+
+.dropdown ul::-webkit-scrollbar-thumb {
+    background: rgb(0, 0, 0, 0.1);
+    border-radius: 50px;
+}
+
+.dropdown ul::-webkit-scrollbar-thumb:hover {
+    background: rgb(0, 0, 0, 0.2);
 }
 
 .dropdown ul li {
-    padding: 10px;
+    position: relative;
+    background-color: var(--background-color);
     cursor: pointer;
+    text-align: center;
+    padding: 10px;
     transition: 0.1s;
-    text-align: left;
 }
 
 .dropdown ul li:hover {
-    color: white;
-    background-color: var(--color-four);
+    color: black;
+    background-color: var(--container-color-active);
 }
