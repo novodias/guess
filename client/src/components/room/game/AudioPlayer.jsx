@@ -63,13 +63,15 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
     );
 
     useEffect(() => {
-        debug("Sent OffscreenCanvas to worker");
-        const canvas = canvasRef.current;
-        const offscreen = canvas.transferControlToOffscreen();
-        worker.postMessage({ canvas: offscreen }, [offscreen]);
+        if (showAudioVisualizer) {
+            debug("Sent OffscreenCanvas to worker");
+            const canvas = canvasRef.current;
+            const offscreen = canvas.transferControlToOffscreen();
+            worker.postMessage({ canvas: offscreen }, [offscreen]);
+        }
 
         return () => {
-            worker.terminate();
+            if (showAudioVisualizer) worker.terminate();
         }
     }, []);
     
