@@ -226,9 +226,14 @@ div.separator[data-collapse]:hover::before {
 }
 
 .rotating {
-    animation-duration: 1000ms;
+    animation-duration: 600ms;
     animation-name: animation_rotate;
     animation-iteration-count: infinite;
     animation-direction: normal;
     animation-timing-function: linear;
+    animation-play-state: paused;
+}
+
+.rotating.play {
+    animation-play-state: running;
 }
