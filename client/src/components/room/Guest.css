@@ -22,7 +22,7 @@
 }
 
 .guest-info .avatar {
-    border: 2px solid rgb(127, 132, 136);
+    /* border: 2px solid rgb(127, 132, 136); */
     border-radius: 50%;
     background-color: rgb(199, 205, 211);
     pointer-events: none;
@@ -68,11 +68,12 @@
 }
 
 .guest-container[status="correct"] {
-    background-color: var(--bg-green) !important;
+    /* background-color: #009C58 !important; */
+    background-color: hsl(125, 41%, 50%) !important;
 }
 
 .guest-container[status="wrong"] {
-    background-color: var(--bg-crimsom) !important;
+    background-color: var(--primary-color) !important;
 }
 
 /* @keyframes correct-animation {
