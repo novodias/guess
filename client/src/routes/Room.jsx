@@ -1,5 +1,5 @@
 import logger from '../utils';
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import useWebSocket from 'react-use-websocket';
 
@@ -12,7 +12,7 @@ import { error } from '../api/export';
 import InputTitles from '../components/InputTitles';
 import useGameWebSocket from '../components/room/game/Websocket';
 import { useGameContext, useGameDispatchContext } from '../context/GameProvider';
-import AudioPlayer from '../components/room/AudioPlayer';
+import AudioPlayer from '../components/room/game/AudioPlayer';
 import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
 import { NotificationBuilder, useNotificationDispatchContext } from '../context/NotificationProvider';
@@ -45,10 +45,10 @@ function RoomPage() {
     const { id, players, chat, music, timer } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
     
-    const { add, pushNotification, remove } = useNotificationDispatchContext();
+    const { pushNotification, remove } = useNotificationDispatchContext();
     const [startNotification, setStartNotification] = useState(null);
 
-    const canvasRef = useCanvasRef();
+    const canvasRef = useRef(undefined);
 
     const [showKickBtn, setShowKickBtn] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
@@ -205,14 +205,6 @@ function RoomPage() {
             />)
     }, [id, owner, players, showKickBtn, KickPerson]);
 
-    function GameCanvas() {
-        if (!showAudioVisualizer) {
-            return null;
-        }
-
-        return <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas>
-    }
-
     useEffect(() => {
         window.history.replaceState(null, "Room", "/room");
     }, []);
@@ -242,12 +234,12 @@ function RoomPage() {
             <div className='col container game-container'>
                 <Timer {...timer} />
                 <Difficulty value={'???'} />
-                <GameCanvas />
+                {showAudioVisualizer ? <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas> : null}
                 <AudioPlayer src={music.src}
                     play={music.play}
                     playButtonDisabled={true}
                     startTime={music.start_at}
-                    canvasCallback={canvasRef.invoke}
+                    canvasRef={canvasRef}
                     showAudioVisualizer={showAudioVisualizer} />
                 <InputTitles readOnly={readOnly} onDropdownClick={SubmitAnswer} />
             </div>

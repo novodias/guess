@@ -3,8 +3,9 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    border: var(--border-btn);
-    border-radius: var(--border-btn-radius);
+    box-shadow: var(--bx-shadow);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color);
     padding: 8px;
 }
 
@@ -45,7 +46,7 @@
 #audio-ui > .volume-wrapper > .hidden-volume {
     position: absolute;
     display: flex;
-    top: 24px;
+    top: calc(140px * -1);
     width: 100%;
     height: 140px;
     overflow: hidden;
@@ -62,10 +63,12 @@
     /* top: 24px; */
     width: 100%;
     padding: 8px 0px;
-    border-bottom-left-radius: var(--border-btn-radius);
-    border-bottom-right-radius: var(--border-btn-radius);
-    background-color: #bec0c2;
-    transform: translateY(-140px);
+    padding-bottom: 12px;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    /* background-color: #bec0c2; */
+    background-color: var(--container-color);
+    transform: translateY(140px);
     transition: transform 500ms ease-out;
     pointer-events: all;
 }
@@ -85,7 +88,7 @@
     place-content: center;
     background-color: #dadfe4;
     border: none;
-    border-radius: var(--border-btn-radius);
+    border-radius: var(--border-radius);
     transition: background-color 100ms linear;
     cursor: pointer;
     z-index: 10;
@@ -96,6 +99,7 @@
 }
 
 #audio-ui button:disabled, button[disabled] {
+    opacity: 0.4;
     background-color: transparent;
     cursor: default;
 }
