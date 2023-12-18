@@ -59,7 +59,7 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
     const setThumb = useCallback((value) => {
         const dir = orient === 'horizontal' ? 'left' : 'top';
         thumbInvoke((thumb) => {
-            thumb.style[dir] = value + '%';
+            thumb.style[dir] = (100 - value) + '%';
         });
     }, [orient]);
 
@@ -75,8 +75,8 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
     const getValue = (e) => {
         // const { left, width, top, height } = e.currentTarget.getBoundingClientRect();
         const { left, width, top, height } = sliderRef.current.getBoundingClientRect();
-        const x = (e.clientX - left) / width;
-        const y = (e.clientY - top) / height;
+        const x = 1 - ((e.clientX - left) / width);
+        const y = 1 - ((e.clientY - top) / height);
 
         const xValue = clamp(calculate(x));
         const yValue = clamp(calculate(y));
@@ -146,10 +146,7 @@ export default function Slider({ orient, max, min, defaultValue, onChange }) {
     
     return (
         <div ref={sliderRef} className='slider' orient={orient} 
-            onMouseDown={onMouseDown}
-            /** onMouseUp={onMouseUp} */
-            /** onMouseOut={() => setPress(false)} */
-            /** onMouseMove={onMouseMove} */ >
+            onMouseDown={onMouseDown}>
             <span className='range'></span>
             <span ref={thumbRef} className='thumb'></span>
         </div>
