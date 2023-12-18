@@ -15,7 +15,7 @@ export default function Collapse({ targetRef }) {
         if (el) {
             el.setAttribute("collapse", collapseState);
         }
-    }, [isCollapsed, el, collapseState]);
+    }, [el, isCollapsed]);
 
     return (
         <div className='separator'

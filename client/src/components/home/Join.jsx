@@ -142,7 +142,7 @@ function RoomsSection() {
     return (
         <>
             <Collapse targetRef={roomsRef} />
-            <div ref={roomsRef} id='rooms'>
+            <div ref={roomsRef} id='rooms' collapse="collapsed">
                 <div className='room-header'>
                     <h2>Rooms</h2>
                     <div className='search-bar row'>
