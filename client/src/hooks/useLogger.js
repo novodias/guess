@@ -1,21 +1,34 @@
 import { useRef } from "react";
 
-export default function useLogger(name) {
-    const raf = useRef((message, css) => {
-        console.log(`%c[${name}]: ` + message, css);
-    });
+class Logger {
+    constructor(name) {
+        this.name = name;
+    }
 
-    const log = raf.current;
+    /**
+     * @private
+     */
+    log(message, css) {
+        console.log(`%c[${this.name}]: ` + message, css);
+    }
 
-    const debug = (message) => {
+    debug(message) {
         if (import.meta.env.DEV) {
-            log(message, 'color: rgb(160, 106, 160);');
+            this.log(message, 'color: rgb(160, 106, 160);');
         }
     }
 
-    const info = (message) => {
-        log(message, 'color: aquamarine; text-shadow: 1px 1px 2px black');
+    info(message) {
+        this.log(message, 'color: aquamarine; text-shadow: 1px 1px 2px black');
     }
+}
 
-    return { debug, info };
+export default function useLogger(name) {
+    const raf = useRef(new Logger(name));
+    const logger = raf.current;
+    
+    return {
+        info: logger.info.bind(logger),
+        debug: logger.debug.bind(logger)
+    };
 }
