@@ -237,3 +237,14 @@ div.separator[data-collapse]:hover::before {
 .rotating.play {
     animation-play-state: running;
 }
+
+.hide {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 500ms linear;
+}
+
+.show {
+    opacity: 1;
+    transition: opacity 500ms linear;
+}
