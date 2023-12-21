@@ -3,12 +3,15 @@ import { getTotalAvatars, useSettingsContext, useSettingsDispatchContext } from 
 import Checkbox from '../elements/Checkbox';
 import TextInput from '../elements/TextInput';
 import { Settings } from '@mui/icons-material';
+import LazyImage from '../elements/Image';
+import useToggleDisplay from '../../hooks/useToggleDisplay';
 
 function AvatarContainer() {
     const { avatar } = useSettingsContext();
     const setSettings = useSettingsDispatchContext();
-
-    const [showAvatars, setShowAvatars] = useState(false);
+    const avatarsRef = useRef(undefined);
+    const toggleAvatars = useToggleDisplay(avatarsRef, true);
+    // const [showAvatars, setShowAvatars] = useState(false);
 
     const setAvatar = (num) => {
         setSettings(stg => {
@@ -24,10 +27,16 @@ function AvatarContainer() {
     function Avatar({num}) {
         const url = `cdn/avatars/${num}`;
 
+        // const img = {
+        //     src: url,
+        //     alt: "Avatar " + num
+        // }
+
         return (
             <span className='avatar-selectable darken'
                 onClick={() => setAvatar(num)}>
-                <img src={url} alt={'Avatar ' + num}></img>
+                <LazyImage src={url} alt={'Avatar ' + num} />
+                {/* <img src={url} alt={'Avatar ' + num}></img> */}
             </span>
         )
     }
@@ -46,20 +55,32 @@ function AvatarContainer() {
         //     return null;
         // }
 
-        const style = {
-            display: showAvatars ? 'flex' : 'none'
-        };
+        // const style = {
+        //     display: showAvatars ? 'flex' : 'none'
+        // };
 
         return (
-            <div className='row avatars-selectable-container container' style={style}>
+            <div ref={avatarsRef} className={`row avatars-selectable-container container hide`}>
                 <SelectableAvatars />
             </div>
         )
     }
 
+    // const toggleDisplay = () => {
+    //     const el = avatarsRef.current;
+    //     if (el.classList.contains("hide")) {
+    //         el.classList.add("show");
+    //         el.classList.remove("hide");
+    //     } else {
+    //         el.classList.add("hide");
+    //         el.classList.remove("show");
+    //     }
+    // }
+
     return (
-        <div data-text="Your avatar" className='avatars-container tooltip' onClick={() => setShowAvatars(v => !v)}>
-            <img className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar'></img>
+        <div data-text="Your avatar" className={`avatars-container tooltip`} onClick={toggleAvatars}>
+            {/* <img className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar'></img> */}
+            <LazyImage className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar' />
             <AvatarsContainer />
         </div>
     )
@@ -72,6 +93,7 @@ function SettingsContainer() {
      * @type {import('react').MutableRefObject<HTMLElement>}
      */
     const settingsRef = useRef(null);
+    const toggleSettings = useToggleDisplay(settingsRef, true);
 
     const setUsername = (text) => {
         setSettings(stg => {
@@ -91,23 +113,31 @@ function SettingsContainer() {
         });
     }
 
-    const toggleDisplay = () => {
-        const el = settingsRef.current;
-        const isVisible = el.style.display !== 'none';
+    // const toggleDisplay = () => {
+    //     const el = settingsRef.current;
+    //     // const isVisible = el.style.display !== 'none' && el.style.display !== '';
 
-        if (isVisible) {
-            el.style.display = 'none';
-        } else {
-            el.style.display = 'block';
-        }
-    }
+    //     // if (isVisible) {
+    //     //     el.style.display = 'none';
+    //     // } else {
+    //     //     el.style.display = 'block';
+    //     // }
+
+    //     if (el.classList.contains("hide")) {
+    //         el.classList.add("show");
+    //         el.classList.remove("hide");
+    //     } else {
+    //         el.classList.add("hide");
+    //         el.classList.remove("show");
+    //     }
+    // }
 
     return (
         <div>
-            <div data-text="Settings" className="cog tooltip" onClick={toggleDisplay}>
+            <div data-text="Settings" className="cog tooltip" onClick={toggleSettings}>
                 <Settings className='icon' />
             </div>
-            <div ref={settingsRef} id='settings' className='container cell settings'>
+            <div ref={settingsRef} id='settings' className='container cell settings hide'>
                 <div className="header marker m-animated">
                     <h1>Settings</h1>
                 </div>
