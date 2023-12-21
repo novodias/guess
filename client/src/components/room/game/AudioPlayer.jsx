@@ -5,12 +5,7 @@ import AudioVisualizerContext from "../../../audioContext";
 import useLogger from "../../../hooks/useLogger";
 import CanvasWorker from './CanvasWorker';
 import './AudioPlayer.css';
-
-function WebWorker(worker) {
-    const code = worker.toString();
-    const blob = new Blob(['(' + code + ')()']);
-    return new Worker(URL.createObjectURL(blob));
-}
+import useWebWorker from "../../../hooks/useWebWorker";
 
 /**
  * @param {Object} props 
@@ -57,10 +52,7 @@ export default function AudioPlayer({ src, play, startTime, playButtonDisabled, 
     const [audioState, setAudioState] = useState('none');
     const [volume, setVolume] = useState(audioRef.current.volume * 100);
     const [muted, setMuted] = useState(audioRef.current.muted);
-
-    const worker = useMemo(
-        () => WebWorker(CanvasWorker), []
-    );
+    const worker = useWebWorker(CanvasWorker);
 
     useEffect(() => {
         if (showAudioVisualizer) {
