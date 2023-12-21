@@ -191,6 +191,21 @@
     box-shadow: var(--bx-shadow);
 }
 
+#options .hide {
+    transform-origin: top left;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 300ms ease-out, opacity 200ms linear;
+}
+
+#options .show {
+    transform-origin: top left;
+    transform: scale(1);
+    opacity: 1;
+    transition: transform 300ms ease-out, opacity 200ms linear;
+}
+
 .cog {
     position: relative;
     font-size: 44px;
@@ -214,14 +229,13 @@
 }
 
 #settings {
-    display: none;
+    /* display: none; */
     position: absolute !important;
     top: 0px;
     left: 60px;
-    width: 0px;
-    height: 0px;
     z-index: 999;
     width: 400px;
+    padding: 20px;
     height: fit-content;
 }
 
@@ -262,6 +276,11 @@
     border-radius: var(--border-radius);
     top: 0px;
     left: 60px;
+}
+
+.avatars-container > .loader {
+    width: 36px;
+    height: 36px;
 }
 
 .avatars-selectable-container > .avatar-selectable,
