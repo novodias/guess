@@ -26,7 +26,7 @@ const replaceTextWithEmojis = (message) => {
             return (
                 <div className='tooltip emote-token' data-text={`:${emoji.id}:`}>
                     <img src={emoji.src} width="36" height="36"
-                        alt={`Emote ${emoji.id}`}></img>
+                        alt={`Emote ${emoji.id}`} loading='lazy'></img>
                 </div>
             )
         } else {
@@ -34,19 +34,19 @@ const replaceTextWithEmojis = (message) => {
         }
     })
 }
-// const replaceTextWithEmojis = (message) => {
-//     let count = 0;
-//     let text = '';
-//     message.split(' ').forEach((curr) => {
-//         if (emojis[curr]) {
-//             count++;
-//             text += ` ${emojis[curr]}`;
-//         } else {
-//             text += ' <p>' + curr + '</p>';
-//         }
-//     });
-//     return count > 0 ? text : '<p>' + message + '</p>';
-// }
+
+function Message({ message }) {
+    return (
+        <li>
+            <div className='chat-message'>
+                <span>
+                    <h2 style={message.isSystem && { color: "crimson" }}>{message.nickname}</h2>
+                    <span>{replaceTextWithEmojis(message.text)}</span>
+                </span>
+            </div>
+        </li>
+    )
+}
 
 export default function Chat({ messages, onEnter }) {
     const [text, setText] = useState('');
@@ -74,22 +74,7 @@ export default function Chat({ messages, onEnter }) {
             <div id='chat' className='col'>
                 <div className='chat-header'>Chatroom</div>
                 <ul className='col messages-list'>
-                    {
-                        messages.map((message, key) => {
-                            return <li key={key}>
-                                <div className='chat-message'>
-                                    <span>
-                                        <h2 style={message.isSystem && { color: "crimson" }}>
-                                            {message.nickname}
-                                        </h2>
-                                        <span>
-                                            {replaceTextWithEmojis(message.text)}
-                                        </span>
-                                    </span>
-                                </div>
-                            </li>
-                        })
-                    }
+                    {messages.map((message, idx) => <Message key={idx} message={message} />)}
                     {/* <div id='anchor'></div> */}
                 </ul>
             </div>
