@@ -5,7 +5,6 @@ import { getTitlesAsync } from '../api/export';
 import logger from '../utils';
 
 /**
- * 
  * @param {String} v1 
  * @param {String} v2 
  */
@@ -13,9 +12,25 @@ function compareString(v1, v2) {
     return v1.toLowerCase().startsWith(v2.toLowerCase());
 }
 
+/**
+ * @param {String} v1 
+ * @param {String} v2 
+ */
+function includesString(v1, v2) {
+    return v1.toLowerCase().includes(v2.toLowerCase());
+}
+
 function compareTags(array, value) {
-    if (array) {
+    if (array  && array instanceof Array) {
         return array.some(v => compareString(v, value));
+    }
+
+    return false;
+}
+
+function includesTags(array, value) {
+    if (array && array instanceof Array) {
+        return array.some(v => includesString(v, value))
     }
 
     return false;
@@ -27,9 +42,9 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
     const [isFetchEmpty, setIsFetchEmpty] = useState(null);
 
     const filtered = useMemo(() => {
-        return list.filter(title => {
-            return compareString(title.name, query) || compareTags(title.tags, query);
-        });
+        const starts = list.filter(t => compareString(t.name, query) || compareTags(t.tags, query));
+        const includes = list.filter(t => includesString(t.name, query) || includesTags(t.tags, query));
+        return [...starts, ...includes];
     }, [query, list]);
 
     useEffect(() => {
