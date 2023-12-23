@@ -21,6 +21,7 @@
     font-size: 1.0em;
     padding-top: 10px;
     top: -5px;
+    background-color: var(--background-color);
     border: 1px solid var(--container-color-active);
     border-top: none;
     border-bottom-left-radius: var(--border-radius);
@@ -54,7 +55,7 @@
 
 .dropdown ul li {
     position: relative;
-    background-color: var(--background-color);
+    background-color: transparent;
     cursor: pointer;
     text-align: center;
     padding: 10px;
