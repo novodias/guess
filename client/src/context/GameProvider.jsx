@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import logger from '../utils';
-// import logger from '../utils';
+import React, { createContext, useContext, useState } from 'react';
 
 const GameContext = createContext(undefined);
 
@@ -68,8 +66,9 @@ export function GameProvider({ children }) {
     const [music, setMusic] = useState({});
     const [timer, setTimer] = useState({
         state: "none",
-        timerDuration: '1s',
-        prepareDuration: '1s'
+        timerDuration: 1,
+        prepareDuration: 1,
+        endDuration: 1
     });
 
     const setTimerState = (state) => setTimer(t => {
@@ -100,11 +99,12 @@ export function GameProvider({ children }) {
                 ...config
             });
         },
-        configureTimer: ({ timerDuration, prepareDuration }) => {
+        configureTimer: ({ timerDuration, prepareDuration, endDuration }) => {
             setTimer({
                 ...timer,
                 timerDuration,
-                prepareDuration
+                prepareDuration,
+                endDuration
             });
         },
         startTimer: () => StartTimer(),
@@ -126,10 +126,6 @@ export function GameProvider({ children }) {
             }
         }
     };
-
-    useEffect(() => {
-        logger.debug('effect game music context ->', music);
-    }, [music]);
 
     return (
         <GameContext.Provider value={{ id, players, chat, music, timer }}>

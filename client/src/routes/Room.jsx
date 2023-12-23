@@ -13,11 +13,11 @@ import InputTitles from '../components/InputTitles';
 import useGameWebSocket from '../components/room/game/Websocket';
 import { useGameContext, useGameDispatchContext } from '../context/GameProvider';
 import AudioPlayer from '../components/room/game/AudioPlayer';
-import useCanvasRef from '../components/room/game/Canvas';
 import { getMusic } from '../api/client';
 import { NotificationBuilder, useNotificationDispatchContext } from '../context/NotificationProvider';
 import ResultsModal from '../components/room/Results';
 import Timer from '../components/room/game/Timer';
+import useLogger from '../hooks/useLogger';
 
 function updateGuest(player, stat) {
     if (player.id === stat.id) {
@@ -38,6 +38,7 @@ function Results({result}) {
 }
 
 function RoomPage() {
+    const { debug } = useLogger('Room');
     let navigate = useNavigate();
     const { username, showAudioVisualizer, avatar } = useContext(SettingsContext);
     const { owner, roomId } = useRoomContext();
@@ -55,11 +56,17 @@ function RoomPage() {
     const [result, setResult] = useState(undefined);
     
     const [round, setRound] = useState(0);
+    const [title, setTitle] = useState('');
 
     /**
      * @type {import('react').MutableRefObject<HTMLDivElement>}
      */
     const roundRef = useRef(undefined);
+
+    /**
+     * @type {import('react').MutableRefObject<HTMLSpanElement>}
+     */
+    const titleRef = useRef(undefined);
 
     const messageHandler = {
         "players": (body) => {
@@ -123,6 +130,10 @@ function RoomPage() {
             gameManager.setPlayers(players);
             gameManager.configurePlayback({ play: true });
         },
+        "round_result": (body) => {
+            const { title } = body;
+            setTitle(title);
+        },
         "end": (body) => {
             const winners = body.winners;
             setResult({
@@ -140,7 +151,7 @@ function RoomPage() {
         onMessage: (e) => {
             const message = JSON.parse(e.data);
             const { type, body } = message;
-            logger.debug("Message received [" + type + "]:", body);
+            debug("WS Message [" + type + "]:", body);
             messageHandler[type](body);
         },
         onOpen: () => {
@@ -151,13 +162,12 @@ function RoomPage() {
                     avatar: avatar
                 });
             }
-            console.log("Connected");
         },
         /**
          * @param {CloseEvent} e
          */
         onClose: (e) => {
-            console.log("Close:", e.reason);
+            debug("Websocket client closed:", e.reason);
             
             const builder = NotificationBuilder()
                 .clickable();
@@ -167,8 +177,8 @@ function RoomPage() {
             if (e.code === 3000) {
                 notification = builder.text("You were kicked from the room").build();
             } else {
-                if (e.reason) {
-                    notification = builder.text(e.reason).build();
+                if (e.reason && e.reason.message) {
+                    notification = builder.text(e.reason.message).build();
                 }
             }
             
@@ -177,11 +187,12 @@ function RoomPage() {
             // navigate('/');
         },
         onError: (e) => {
-            if (process.env.NODE_ENV === 'development') {
+            if (import.meta.env.DEV) {
                 e.id = id;
                 e.nickname = username;
                 e.date = new Date();
                 error(e);
+                debug(e);
             }
         }
     });
@@ -239,6 +250,20 @@ function RoomPage() {
         }
     }, [owner, sendMessage, startNotification, remove]);
 
+    useEffect(() => {
+        if (title !== '') {
+            const title = titleRef.current;
+            
+            title.classList.remove('hide');            
+            title.classList.add('show');
+
+            setTimeout(() => {
+                title.classList.remove('show');
+                title.classList.add('hide');
+            }, timer.endDuration * 1000);
+        }
+    }, [title]);
+
     return (
         <div id='room'>
             <Results result={result} />
@@ -247,6 +272,9 @@ function RoomPage() {
                 <div ref={roundRef} className='round-container'>
                     <span>Round:</span>
                     <span><b>{round}</b></span>
+                </div>
+                <div ref={titleRef} className='title-container hide'>
+                    {title}
                 </div>
                 <Difficulty value={'???'} />
                 {showAudioVisualizer ? <canvas id='game-canvas' ref={canvasRef} width={500} height={500}></canvas> : null}

@@ -26,6 +26,7 @@ abstract class Room {
         WAITING: 'waiting',
         PREPARING: 'preparing',
         STARTED: 'started',
+        ROUND_ENDED: "round_ended",
         ENDED: 'ended'
     });
 
@@ -42,6 +43,7 @@ abstract class Room {
     public status: string;
     public rounds: number;
     public roundTime: number;
+    public roundEnd: number;
     public roundPrepare: number;
     public roundsMax: number;
 
@@ -66,11 +68,12 @@ abstract class Room {
         this.players = new Players();
         
         this.rounds = 0;
-        // this.roundTime = 30; // make it a option on frontend
-        this.roundTime = 10;
+        this.roundTime = 20; // make it a option on frontend
+        this.roundEnd = 10;
+        // this.roundTime = 10;
         this.roundPrepare = 5; // make it a option on frontend
-        // this.roundsMax = 10; // make it a option on frontend
-        this.roundsMax = 3;
+        this.roundsMax = 10; // make it a option on frontend
+        // this.roundsMax = 3;
 
         // songs
         this.musics = songs; // has 10 here - use maxRounds to get the right amount
@@ -233,6 +236,7 @@ export default class RoomStandard extends Room {
             body: {
                 room_status: this.status,
                 round: this.rounds,
+                roundMax: this.roundsMax,
                 music_hash: this.musicDetails!.hash,
                 start_at,
             }
@@ -241,6 +245,22 @@ export default class RoomStandard extends Room {
         this.broadcast(prepare);
         this.timerCallback = this._startRound.bind(this);
         this._startTimer(this.roundPrepare);
+    }
+
+    private _endRound(): void {
+        this.status = Room.STATUS.ROUND_ENDED;
+        
+        const result = {
+            type: 'round_result',
+            body: {
+                room_status: this.status,
+                title: this.music?.title_name,
+            }
+        }
+
+        this.broadcast(result);
+        this.timerCallback = this._prepareRound.bind(this);
+        this._startTimer(this.roundEnd);
     }
 
     private _startRound(): void {
@@ -259,7 +279,7 @@ export default class RoomStandard extends Room {
         };
 
         this.broadcast(round);
-        this.timerCallback = this._prepareRound.bind(this);
+        this.timerCallback = this._endRound.bind(this);
         this._startTimer(this.roundTime);
     }
 
@@ -316,6 +336,7 @@ export default class RoomStandard extends Room {
             type: "timer",
             body: {
                 timerDuration: this.roundTime,
+                endDuration: this.roundEnd,
                 prepareDuration: this.roundPrepare,
             }
         }
