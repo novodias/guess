@@ -54,6 +54,16 @@ button {
     opacity: 0.3;
 }
 
+.btn > .loader {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--text-faded-color);
+    border-bottom-color: transparent;
+    margin-right: 8px;
+    top: 1px;
+}
+
 .buttons-group {
     display: flex;
     align-self: flex-end;
