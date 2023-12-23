@@ -49,7 +49,6 @@ export default function useGameWebSocket({ onMessage, onOpen, onClose, onError }
 
     const sendMessage = useCallback((type, body) => {
         const data = prepareMessage(type, body);
-        // logger.debug('Sending: ', data);
         sendJsonMessage(data);
     }, [sendJsonMessage]);
 
