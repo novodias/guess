@@ -5,6 +5,9 @@ import { useRoomDispatchContext } from '../../context/RoomProvider';
 import { createRoomAsync } from '../../api/export';
 import usePassword from '../../hooks/usePassword';
 import TextInput from '../elements/TextInput';
+import Button from '../elements/Button';
+import { NotificationBuilder, useNotificationDispatchContext } from '../../context/NotificationProvider';
+import useLogger from '../../hooks/useLogger';
 
 function PasswordInput({ password, setPassword, setupRoom }) {
     return (
@@ -18,8 +21,10 @@ function PasswordInput({ password, setPassword, setupRoom }) {
 export default function Create() {
     let navigate = useNavigate();
 
+    const { info, debug } = useLogger('Create');
     const { username } = useSettingsContext();
     const { setOwner } = useRoomDispatchContext();
+    const { pushNotification } = useNotificationDispatchContext();
 
     const password = usePassword();
     const [roomName, setRoomName] = useState('');
@@ -41,8 +46,16 @@ export default function Create() {
             const { id, ownerUID } = await createRoomAsync(name, false, hash);
             setOwner(ownerUID);
             navigate(`room/${id}`, { state });
-        } catch (error) {
-            console.error(error);
+        } catch (e) {
+            if (e instanceof Error) {
+                info(e.message);
+            }
+            
+            const notification = NotificationBuilder()
+                .text("Something went wrong, please try again later.")
+                .build();
+            
+            pushNotification(notification);
         }
     }
 
@@ -57,9 +70,12 @@ export default function Create() {
             <PasswordInput password={password.value}
                 setPassword={password.set}
                 setupRoom={setupRoom} />
-            <div className="buttons-group">
+            <Button.Group>
+                <Button onClick={setupRoom} withLoading={true}>Create</Button>
+            </Button.Group>
+            {/* <div className="buttons-group">
                 <button className='btn' onClick={setupRoom}>Create</button>
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -45,3 +45,13 @@ export function next(min, max) {
 export function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
 }
+
+export function noop() { }
+
+export function wait(ms) {
+    return new Promise((resolve) => setTimeout(() => resolve(), ms));
+}
+
+export function classFilter(className) {
+    return className ? " " + className : "";
+}
