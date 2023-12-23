@@ -8,6 +8,7 @@ import { NotificationBuilder, useNotificationDispatchContext } from '../../conte
 import { RoomAuthError } from '../../api/rooms/api';
 import usePassword from '../../hooks/usePassword';
 import styles from './ProctectedRoom.module.css';
+import useLogger from '../../hooks/useLogger';
 
 /**
  * @param {Object} props 
@@ -54,9 +55,10 @@ function AuthenticateRoom({ name, loadRoom }) {
 }
 
 export default function ProtectedRoom({ children }) {
+    const { info, debug } = useLogger('RoomAuth');
     const { id } = useParams();
     const location = useLocation();
-    // const navigate = useNavigate();
+
     const { setName } = useRoomDispatchContext();
     const { getRoom, name } = useRoomContext();
     const { pushNotification } = useNotificationDispatchContext();
@@ -66,16 +68,17 @@ export default function ProtectedRoom({ children }) {
     const [initialLoad, setInitialLoad] = useState(true);
 
     const loadRoomAsync = useCallback(async (pass = null) => {
-        logger.debug("Fetching room:", id);
+        debug("Fetching room:", id);
 
         try {
             const room = await getRoom(pass);
             setAuth(false);
+            info("Successfully joined room");
             return room;
         } catch (err) {
             if (err instanceof RoomAuthError) {
                 const room = err.data;
-                console.error(room);
+                console.log(room);
     
                 if (!name) {
                     setName(room.name);
@@ -83,7 +86,7 @@ export default function ProtectedRoom({ children }) {
                 
                 if (room.passwordRequired) {
                     if (!auth) {
-                        logger.debug("Room", id, "needs a password - setAuth to true");
+                        debug("Room", id, "needs a password - setAuth to true");
                         setAuth(true);
                     }
                 } else {
@@ -109,7 +112,7 @@ export default function ProtectedRoom({ children }) {
         if (location.state) {
             const hash = location.state.passwordHash;
             if (hash) {
-                logger.debug("Password hash found - setting up request");
+                debug("Password hash found - setting up request");
                 loadRoomAsync(hash);
             }
         } else if (location.state === null && initialLoad) {
