@@ -30,10 +30,47 @@ function compareTags(array, value) {
 
 function includesTags(array, value) {
     if (array && array instanceof Array) {
-        return array.some(v => includesString(v, value))
+        return array.some(v => includesString(v, value));
     }
 
     return false;
+}
+
+/**
+ * @param {string} query 
+ * @param {Object} title 
+ * @param {string} title.name 
+ * @param {string[]} title.tags 
+ */
+function ensureStartsWith(query, {name, tags}) {
+    return compareString(name, query) || compareTags(tags, query);
+}
+
+/**
+ * @param {string} query 
+ * @param {Object} title 
+ * @param {string} title.name 
+ * @param {string[]} title.tags 
+ */
+function ensureIncludes(query, {name, tags}) {
+    return includesString(name, query) || includesTags(tags, query);
+}
+
+function filterResults(query, titles) {
+    const starts = [];
+    const includes = [];
+
+    for (let i = 0; i < titles.length; i++) {
+        let title = titles[i];
+        
+        if (ensureStartsWith(query, title)) {
+            starts.push(title);
+        } else if (ensureIncludes(query, title)) {
+            includes.push(title);
+        }
+    }
+
+    return starts.concat(includes);
 }
 
 export default function SearchResults({ query, focus, onDropdownClick }) {
@@ -42,9 +79,7 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
     const [isFetchEmpty, setIsFetchEmpty] = useState(null);
 
     const filtered = useMemo(() => {
-        const starts = list.filter(t => compareString(t.name, query) || compareTags(t.tags, query));
-        const includes = list.filter(t => includesString(t.name, query) || includesTags(t.tags, query));
-        return [...starts, ...includes];
+        return filterResults(query, list);
     }, [query, list]);
 
     useEffect(() => {
