@@ -27,38 +27,23 @@ function AvatarContainer() {
     function Avatar({num}) {
         const url = `cdn/avatars/${num}`;
 
-        // const img = {
-        //     src: url,
-        //     alt: "Avatar " + num
-        // }
-
         return (
             <span className='avatar-selectable darken'
                 onClick={() => setAvatar(num)}>
                 <LazyImage src={url} alt={'Avatar ' + num} />
-                {/* <img src={url} alt={'Avatar ' + num}></img> */}
             </span>
         )
     }
 
     const SelectableAvatars = () => {
         const avatars = [];
-        for (let i = 1; i < total; i++) {
+        for (let i = 1; i < total + 1; i++) {
             avatars.push(<Avatar key={i} num={i} />);
         }
         return avatars;
     }
 
     const AvatarsContainer = () => {
-        // this gets the images everytime
-        // if (!showAvatars) {
-        //     return null;
-        // }
-
-        // const style = {
-        //     display: showAvatars ? 'flex' : 'none'
-        // };
-
         return (
             <div ref={avatarsRef} className={`row avatars-selectable-container container hide`}>
                 <SelectableAvatars />
@@ -66,20 +51,8 @@ function AvatarContainer() {
         )
     }
 
-    // const toggleDisplay = () => {
-    //     const el = avatarsRef.current;
-    //     if (el.classList.contains("hide")) {
-    //         el.classList.add("show");
-    //         el.classList.remove("hide");
-    //     } else {
-    //         el.classList.add("hide");
-    //         el.classList.remove("show");
-    //     }
-    // }
-
     return (
         <div data-text="Your avatar" className={`avatars-container tooltip`} onClick={toggleAvatars}>
-            {/* <img className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar'></img> */}
             <LazyImage className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar' />
             <AvatarsContainer />
         </div>
