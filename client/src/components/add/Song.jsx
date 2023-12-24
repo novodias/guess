@@ -26,7 +26,7 @@ export default function SongContainer({songName, setSongName, youtubeId, setYout
             
             <TextInput labelText='Name' helpText='Enter the song name here.' id='songname-input'
                 autoComplete='off' placeholder='Never Gonna Give You Up' value={songName}
-                type='text' onInput={(e) => setSongName(e.target.value)}/>
+                type='text' onInput={(text) => setSongName(text)}/>
             
             {/* <label htmlFor='input_youtube_id'>Youtube ID</label>
             <h3>Insert the ID of the youtube video or video link</h3>

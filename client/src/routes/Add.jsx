@@ -25,8 +25,7 @@ export default function AddPage() {
         setTags(tags || []);
     }
 
-    function matchYoutubeId(e) {
-        const text = e.target.value;
+    function matchYoutubeId(text) {
         if (text.includes('v=')) {
             let video_id = text.split('v=')[1];
             const ampersandPosition = video_id.indexOf('&');
