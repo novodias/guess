@@ -1,3 +1,15 @@
+.dropdown-input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dropdown-input-container > #title-input {
+    z-index: 5;
+    width: 100%;
+}
+
 .title-input-focused {
     display: block;
 }

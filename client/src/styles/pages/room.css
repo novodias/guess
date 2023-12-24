@@ -42,20 +42,13 @@
 }
 
 .game-container > .dropdown-input-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 80%;
 }
 
 .game-container > .dropdown-input-container > #title-input {
-    box-sizing: border-box;
     box-shadow: var(--bx-shadow);
     background-color: var(--background-color);
-    z-index: 5;
     text-align: center;
-    width: 100%;
 }
 
 .game-container > .dropdown-input-container > #title-input[readonly] {
@@ -320,8 +313,10 @@
 
 .copy-link.show {
     filter: blur(0rem);
+    opacity: 1;
 }
 
 .copy-link.hide {
     filter: blur(0.4rem);
+    opacity: 1;
 }
