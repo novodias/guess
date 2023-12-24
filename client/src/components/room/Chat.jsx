@@ -8,7 +8,7 @@ const getEmoji = (id) => {
 }
 
 const emojis = {}
-for (let i = 0; i < 26; i++) {
+for (let i = 0; i < 27; i++) {
     let num = i + 1;
     Object.defineProperty(emojis, `:${num}:`, {
         value: getEmoji(num),
