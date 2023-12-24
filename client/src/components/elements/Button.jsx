@@ -6,7 +6,13 @@ function Button({ children, className, onClick, withLoading }) {
     const [loading, setLoading] = useState(false);
 
     const ClickHandler = async () => {
-        if (!onClick) return;
+        // if (!onClick) return;
+
+        if (typeof onClick === 'undefined') {
+            setLoading(true);
+            wait(2000).then(() => setLoading(false));
+            return;
+        }
 
         if (onClick instanceof Promise) {
             try {
