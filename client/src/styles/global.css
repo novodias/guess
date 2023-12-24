@@ -42,7 +42,8 @@
     /* colors */
     --primary-color: #CC2936;
     --primary-color-hover: #cc2937e0;
-    
+    --green-color: hsl(125, 73%, 35%);
+    --green-color-hover: hsl(125, 51%, 45%);
 }
 
 *,
