@@ -27,13 +27,13 @@
 }
 
 .tags-wrapper > span:hover {
-    background-color: var(--bg-crimsom);
+    background-color: var(--primary-color-hover);
     color: white;
 }
 
 .tags-wrapper > span:active {
     transform: scale(0.95);
-    background-color: var(--bg-crimsom);
+    background-color: var(--primary-color-hover);
     filter: brightness(75%);
     color: white;
 }

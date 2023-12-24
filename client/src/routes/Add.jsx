@@ -1,11 +1,12 @@
-import './Add.css';
+// import './Add.css';
+import '../styles/pages/add.css';
 import React, { useState } from 'react';
-// import Alert from '../components/Alert';
 import TagsContainer from '../components/add/Tags'
 import TitleContainer from '../components/add/Title'
 import SongContainer from '../components/add/Song'
 import { createAsync } from '../api/export';
-import { useNotificationDispatchContext } from '../context/NotificationProvider';
+import { NotificationBuilder, useNotificationDispatchContext } from '../context/NotificationProvider';
+import Button from '../components/elements/Button';
 
 export default function AddPage() {
     const [id, setId] = useState(0);
@@ -15,8 +16,7 @@ export default function AddPage() {
 
     const [songName, setSongName] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
-    // const [success, setSuccess] = useState(null);
-    const { add } = useNotificationDispatchContext();
+    const { pushNotification } = useNotificationDispatchContext();
 
     const _onDropdownClick = ({ id, type, name, tags }) => {
         setId(id);
@@ -43,7 +43,7 @@ export default function AddPage() {
      * 
      * @param {SubmitEvent} e 
      */
-    const _onFormSubmit = async (e) => {
+    const FormSubmitHandler = async (e) => {
         e.preventDefault();
 
         /**
@@ -58,6 +58,8 @@ export default function AddPage() {
             return false;
         }
 
+        let builder = NotificationBuilder().clickable();
+
         try {
             const response = await createAsync(
                 { id, name, type, tags },
@@ -68,39 +70,18 @@ export default function AddPage() {
                 throw new Error(response.statusText);
             }
 
-            add({
-                text: "The song was successfully created.",
-                gap: 10,
-                hasButton: false,
-                orient: "bottom",
-                waitForClick: false
-            });
-            // setSuccess({type: 'success', message: "The song was successfully created!"})
+            builder = builder.text("The song was successfully created.")
         } catch (error) {
             console.error(error);
 
             if (error instanceof TypeError) {
-                // setSuccess({ type: 'danger', message: "Server API offline" });
-                add({
-                    text: "API offline, try again later.",
-                    gap: 10,
-                    hasButton: false,
-                    orient: "bottom",
-                    waitForClick: false
-                });
+                builder = builder.text("API offline, try again later.")
             } else {
-                // setSuccess({ type: 'danger', message: error.message });
                 const data = error.response.data;
-                add({
-                    text: data.error.message,
-                    gap: 10,
-                    hasButton: false,
-                    orient: "bottom",
-                    waitForClick: false
-                });
+                builder = builder.text(data.error.message);
             }
         } finally {
-            // setTimeout(() => setSuccess(null), 1000 * 10);
+            pushNotification(builder.build());
             setId(0);
             setName('');
             setType('Animes');
@@ -122,16 +103,16 @@ export default function AddPage() {
     }
 
     return (
-        <form className='add-form row' onSubmit={_onFormSubmit}>
-            <div id='create-container' className='col'>
-                <TitleContainer id={id} onDropdownClick={_onDropdownClick}
-                    setSearchQuery={setSearchQuery} setTag={setTag}
-                    type={type} />
-                <TagsContainer tags={tags} setTags={setTags} />
-                <SongContainer songName={songName} youtubeId={youtubeId}
-                    setSongName={setSongName} setYoutubeId={matchYoutubeId} />
-                {/* {success && <Alert message={success.message} type={success.type} />} */}
-            </div>
+        <form className='add-form container' onSubmit={FormSubmitHandler}>
+            <TitleContainer id={id} onDropdownClick={_onDropdownClick}
+                setSearchQuery={setSearchQuery} setTag={setTag}
+                type={type} />
+            <TagsContainer tags={tags} setTags={setTags} />
+            <SongContainer songName={songName} youtubeId={youtubeId}
+                setSongName={setSongName} setYoutubeId={matchYoutubeId} />
+            <Button.Group>
+                <Button className={'btn-green'} withLoading={true}>Send</Button>
+            </Button.Group>
         </form>
     );
 }

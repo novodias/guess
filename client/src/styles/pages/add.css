@@ -1,0 +1,70 @@
+.add-form {
+    padding: 30px;
+    width: 500px;
+}
+
+.add-form > .header {
+    width: 100%;
+}
+
+.add-form > .header > h1 > span {
+    margin-left: 10px;
+}
+
+.add-form > .header > h1 > .help {
+    margin-top: 5px;
+}
+
+.add-form > .header:not(:first-child) {
+    margin-top: 1rem;
+}
+
+.add-form .input-container + .input-container {
+    margin-top: 20px;
+}
+
+.add-form > .buttons-group {
+    margin-top: 20px;
+}
+
+/* .add-form > .buttons-group > .btn-green {
+    background-color: var(--green-color);
+    color: hsl(0, 0%, 95%);
+}
+
+.add-form > .buttons-group > .btn-green:hover {
+    background-color: var(--green-color-hover);
+    color: hsl(0, 0%, 100%);
+    outline: none;
+} */
+
+.titles-form > .row {
+    gap: 12px;
+}
+
+.titles-form #title-id {
+    display: inline-block;
+    box-sizing: border-box;
+    font-size: 1.4em;
+    padding: 10px 12px;
+    border-radius: var(--border-radius);
+    background-color: var(--input-background);
+    color: var(--text-faded-color);
+}
+
+.titles-form select {
+    box-sizing: border-box;
+    font-size: 1.4em;
+    padding: 8px 12px;
+    border-radius: var(--border-radius);
+    border: none;
+    outline: none;
+    background-color: var(--input-background);
+    color: var(--text-faded-color);
+}
+
+.title-wrapper {
+    position: relative;
+    margin-top: 1rem;
+    z-index: 5;
+}

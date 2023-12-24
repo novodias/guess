@@ -72,14 +72,17 @@ export default function TagsContainer({ tags, setTags }) {
     }
 
     return (
-        <Container className='tags-container col'
-            header={(<><AddBoxRounded /> Tags</>)}>
-            <h3>Tags can be helpful to find a title.</h3>
+        <>
+            <Container.Header>
+                <AddBoxRounded />
+                <span>Tags</span>
+                <p className='help'>Tags can be helpful to find a title.</p>
+            </Container.Header>
             <div className='tags-input-container col' onClick={_focusInput}>
                 <input type='text' value={tagText} ref={inputRef}
                     onChange={_onChange} onKeyUp={_onKeyUp} onKeyDown={_onKeyDown} />
                 <TagsWrapper />
             </div>
-        </Container>
+        </>
     )
 }
