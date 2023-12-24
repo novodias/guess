@@ -3,6 +3,7 @@ import Dropdown from './Dropdown';
 import './SearchResults.css';
 import { getTitlesAsync } from '../api/export';
 import logger from '../utils';
+import useLogger from '../hooks/useLogger';
 
 /**
  * @param {String} v1 
@@ -74,74 +75,99 @@ function filterResults(query, titles) {
 }
 
 export default function SearchResults({ query, focus, onDropdownClick }) {
+    const { info, debug } = useLogger("Search");
     const [list, setList] = useState([]);
-    const [lastSuccessfulQuery, setLastSuccessfulQuery] = useState('');
-    const [isFetchEmpty, setIsFetchEmpty] = useState(null);
+    const [validQuery, setValidQuery] = useState('');
+    const [empty, setEmpty] = useState(null);
 
     const filtered = useMemo(() => {
         return filterResults(query, list);
     }, [query, list]);
 
     useEffect(() => {
-        async function searchQueryAsync() {
-            // console.log("Fetching titles with name:", query);
-            logger.debug("Fetching titles with name:", query);
-            
+        async function searchTitles() {
             try {
-                const data = await getTitlesAsync({ name: query });
-                if (data) {
-                    setList(data);
-                }
-    
-                if (data.length === 0) {
-                    setIsFetchEmpty(true);
+                debug(`Fetching titles with name: ${query}`);
+                const titles = await getTitlesAsync({ name: query });
+                if (titles && titles.length !== 0) {
+                    setValidQuery(query);
+                    setList(titles);
+                    setEmpty(false);
                 } else {
-                    setIsFetchEmpty(false);
+                    setEmpty(true);
                 }
-            } catch (error) {
-                setIsFetchEmpty(true);
+            } catch (e) {
+                if (e instanceof Error) debug(e.message);
             }
-            
         }
 
-        function queryEqualsLast() {
-            if (query === null || query === undefined) {
-                return false;
-            }
-
-            return query.toLowerCase() === lastSuccessfulQuery.toLowerCase();
-        }
-
-        if (isFetchEmpty === null) {
-            // console.log("Fresh load, get 100 titles.");
-            logger.debug("Fresh load");
-            searchQueryAsync();
-        } else if (isFetchEmpty === true) {
-            if (query === '') {
-                // console.log("Query empty, fetch more");
-                logger.debug("Query empty, fetch more");
-                searchQueryAsync();
-            } else if (queryEqualsLast()) {  
-                if (list.length === 0) {
-                    // console.log("Fetch last succesful query:", lastSuccessfulQuery);                
-                    logger.debug("Fetch last succesful query:", lastSuccessfulQuery);
-                    searchQueryAsync();
-                }
-            }
-        } else {
-            if (filtered.length === 0) {
-                // console.log("Filtered empty, fetch more titles");
-                logger.debug("Filtered empty, fetch more titles");
-                searchQueryAsync();
+        if (empty === null) {
+            info("Fresh titles load");
+            searchTitles();
+        } else if (empty === true) {
+            if (query.startsWith(validQuery) || query === '') {
+                searchTitles();
             } else {
-                if (!queryEqualsLast()) {
-                    // console.log("Set last successful query:", query);
-                    logger.debug("Set last successful query:", query)
-                    setLastSuccessfulQuery(query);
-                }
+                debug("Query doesn't match valid query - doing nothing");
             }
         }
-    }, [query, filtered, isFetchEmpty, list.length, lastSuccessfulQuery]);
+        
+    }, [query]);
+
+    // useEffect(() => {
+    //     async function searchQueryAsync() {
+    //         // console.log("Fetching titles with name:", query);
+    //         logger.debug("Fetching titles with name:", query);    
+    //         try {
+    //             const data = await getTitlesAsync({ name: query });
+    //             if (data) {
+    //                 setList(data);
+    //             }
+    //             if (data.length === 0) {
+    //                 setIsFetchEmpty(true);
+    //             } else {
+    //                 setIsFetchEmpty(false);
+    //             }
+    //         } catch (error) {
+    //             setIsFetchEmpty(true);
+    //         }     
+    //     }
+    //     function queryEqualsLast() {
+    //         if (query === null || query === undefined) {
+    //             return false;
+    //         }
+    //         return query.toLowerCase() === lastSuccessfulQuery.toLowerCase();
+    //     }
+    //     if (isFetchEmpty === null) {
+    //         // console.log("Fresh load, get 100 titles.");
+    //         logger.debug("Fresh load");
+    //         searchQueryAsync();
+    //     } else if (isFetchEmpty === true) {
+    //         if (query === '') {
+    //             // console.log("Query empty, fetch more");
+    //             logger.debug("Query empty, fetch more");
+    //             searchQueryAsync();
+    //         } else if (queryEqualsLast()) {  
+    //             if (list.length === 0) {
+    //                 // console.log("Fetch last succesful query:", lastSuccessfulQuery);                
+    //                 logger.debug("Fetch last succesful query:", lastSuccessfulQuery);
+    //                 searchQueryAsync();
+    //             }
+    //         }
+    //     } else {
+    //         if (filtered.length === 0) {
+    //             // console.log("Filtered empty, fetch more titles");
+    //             logger.debug("Filtered empty, fetch more titles");
+    //             searchQueryAsync();
+    //         } else {
+    //             if (!queryEqualsLast()) {
+    //                 // console.log("Set last successful query:", query);
+    //                 logger.debug("Set last successful query:", query)
+    //                 setLastSuccessfulQuery(query);
+    //             }
+    //         }
+    //     }
+    // }, [query, filtered, isFetchEmpty, list.length, lastSuccessfulQuery]);
 
     return (
         <Dropdown className={focus}>
