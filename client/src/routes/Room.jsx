@@ -133,6 +133,7 @@ function RoomPage() {
         "round_result": (body) => {
             const { title } = body;
             setTitle(title);
+            setReadOnly(true);
         },
         "end": (body) => {
             const winners = body.winners;
