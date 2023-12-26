@@ -37,9 +37,12 @@ const app: Application = express()
     .use(bodyParser.urlencoded({ extended: false }));
 
 // if (process.env.NODE_ENV === 'production') {
-//     const buildPath = path.join(__dirname, "client", "build");
+//     const buildPath = path.join(process.env.DIST_BUILD as string);
 //     app.use(express.static(buildPath));
-//     app.get("(/*)?", async (req, res, next) => {
+//     // app.get("(/*)?", async (req, res, next) => {
+//     //     res.sendFile(path.join(buildPath, 'index.html'));
+//     // });
+//     app.get("/", async (req, res, next) => {
 //         res.sendFile(path.join(buildPath, 'index.html'));
 //     });
 // }
@@ -92,9 +95,9 @@ api.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-api.get("/", (req, res) => {
-    res.send("Ok");
-});
+// api.get("/", (req, res) => {
+//     res.send("Ok");
+// });
 
 // api.get("/secret", async (req, res, next) => {
 //     try {
@@ -230,7 +233,11 @@ api.post("/create", async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-api.use("/musics", subdomain('cdn', routers.musics));
+if (process.env.HTTPS === 'true') {
+    api.use("/musics", subdomain('cdn', routers.musics));
+} else {
+    api.use("/musics", routers.musics);
+}
 logger.log("Route /musics enabled");
 
 api.use("/rooms", routers.rooms);
@@ -242,7 +249,8 @@ logger.log("Route /songs enabled");
 api.use("/titles", routers.titles);
 logger.log("Route /titles enabled");
 
-api.use("/avatars", subdomain('cdn', routers.avatars));
+api.use("/avatars", routers.avatars);
+logger.log("Route /avatars enabled");
 
 const clientErrorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof AbortError) {
@@ -272,7 +280,13 @@ const errorHandler = (err: Error, req: Request, res: Response, next: NextFunctio
 
 api.use(clientErrorHandler);
 api.use(errorHandler);
-app.use("/", api);
+
+if (process.env.NODE_ENV == 'development') {
+    app.use("/", api);
+} else {
+    app.use("/api", api);
+}
+
 
 server.listen(PORT, () => {
     logger.log(`Listening on ${PORT}`);
