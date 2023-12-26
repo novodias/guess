@@ -1,4 +1,5 @@
 import React, { useState, createContext, useContext, useCallback } from 'react';
+import { nanoid } from 'nanoid'
 
 /**
  * @typedef {Object} NotificationObject
@@ -15,7 +16,7 @@ export function NotificationBuilder() {
      * @type {NotificationObject}
      */
     const notification = {
-        uid: crypto.randomUUID(),
+        uid: nanoid(),
         orient: "bottom",
         gap: 10,
         clickable: false,
@@ -99,7 +100,7 @@ export function NotificationProvider({ children }) {
      */
     const add = useCallback(({ text, orient, hasButton, buttonText, onButtonClick, waitForClick }) => {
         const notification = {
-            uid: crypto.randomUUID(),
+            uid: nanoid(),
             text,
             orient,
             gap: 10,
