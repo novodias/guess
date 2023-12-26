@@ -3,8 +3,10 @@ import axios from 'axios';
 // const adr_api = process.env.NODE_ENV === 'development' ?
 //     'http://localhost:3001/api' : process.env.REACT_APP_API;
 
+const baseURL = import.meta.env.PROD ? `http://${import.meta.env.VITE_APP_URL}` : '';
+
 export const client = axios.create({
-    baseURL: '/api',
+    baseURL: baseURL + '/api',
     timeout: 1000 * 30,
 });
 
@@ -24,7 +26,7 @@ export function getMusic(roomid, hash) {
     if (import.meta.env.DEV) {
         return `cdn/musics/${roomid}?hash=${hash}`;
     } else {
-        return `api/musics/${roomid}?hash=${hash}`;
+        return baseURL + '/' + `api/musics/${roomid}?hash=${hash}`;
     }
 }
 
@@ -40,7 +42,7 @@ export async function getAvatars() {
         if (import.meta.env.DEV) {
             response = await axios.get("cdn/avatars/all");
         } else {
-            response = await axios.get("api/avatars/all");
+            response = await axios.get(baseURL + '/' + "api/avatars/all");
         }
         const { total, result } = response.data;
         return { total, avatars: result };
@@ -53,7 +55,7 @@ export function getAvatarUrl(num) {
     if (import.meta.env.DEV) {
         return `cdn/avatars/${num}`;
     } else {
-        return `api/avatars/${num}`;
+        return baseURL + '/' + `api/avatars/${num}`;
     }
 }
 
