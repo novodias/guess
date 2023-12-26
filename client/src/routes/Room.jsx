@@ -1,4 +1,3 @@
-import logger from '../utils';
 import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 // import useWebSocket from 'react-use-websocket';
@@ -184,8 +183,7 @@ function RoomPage() {
             }
             
             if (notification) pushNotification(notification);
-
-            // navigate('/');
+            navigate('/');
         },
         onError: (e) => {
             if (import.meta.env.DEV) {
