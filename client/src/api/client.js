@@ -3,7 +3,7 @@ import axios from 'axios';
 // const adr_api = process.env.NODE_ENV === 'development' ?
 //     'http://localhost:3001/api' : process.env.REACT_APP_API;
 
-const baseURL = import.meta.env.PROD ? `http://${import.meta.env.VITE_APP_URL}` : '';
+const baseURL = import.meta.env.PROD ? `http://${import.meta.env.VITE_APP_URL}:3000` : '';
 
 export const client = axios.create({
     baseURL: baseURL + '/api',
