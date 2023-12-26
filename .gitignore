@@ -20,6 +20,7 @@ client/public/*.png
 client/public/browserconfig.xml
 client/public/safari-pinned-tab.svg
 client/public/site.webmanifest
+client/dist
 
 # server
 server/assets
