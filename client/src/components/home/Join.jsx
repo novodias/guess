@@ -77,6 +77,11 @@ function RoomsSection() {
 
             const start = count * page;
             const data = await getPublicRoomsAsync(start, count);
+
+            if (typeof data.rooms === 'undefined') {
+                throw new Error("Response data undefined");
+            }
+            
             setRooms(data.rooms);
 
             if (page <= 0) {
