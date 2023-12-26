@@ -1,11 +1,11 @@
 // import React from 'react';
 import useWebSocket from 'react-use-websocket';
-// import logger from '../../../utils';
 import { useCallback } from 'react';
 
-const webSocketAddress = (process.env.NODE_ENV === 'development' ?
-    `wss://${window.location.hostname}:3001` :
-    `wss://${window.location.hostname}:3000`) + `/socket`;
+const protocol = import.meta.env.DEV ? "wss://" : "ws://";
+const webSocketAddress = (import.meta.env.DEV ?
+    `${protocol}${window.location.hostname}:3001` :
+    `${protocol}${window.location.hostname}:3000`) + `/socket`;
 
 /**
  * @callback OnMessage

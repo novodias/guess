@@ -21,7 +21,11 @@ export function getMusicUrl(name, song_name) {
 }
 
 export function getMusic(roomid, hash) {
-    return `cdn/musics/${roomid}?hash=${hash}`;
+    if (import.meta.env.DEV) {
+        return `cdn/musics/${roomid}?hash=${hash}`;
+    } else {
+        return `api/musics/${roomid}?hash=${hash}`;
+    }
 }
 
 /**
@@ -32,11 +36,24 @@ export function getMusic(roomid, hash) {
  */
 export async function getAvatars() {
     try {
-        const response = await axios.get("cdn/avatars/all");
+        let response;
+        if (import.meta.env.DEV) {
+            response = await axios.get("cdn/avatars/all");
+        } else {
+            response = await axios.get("api/avatars/all");
+        }
         const { total, result } = response.data;
         return { total, avatars: result };
     } catch (err) {
         throw err;
+    }
+}
+
+export function getAvatarUrl(num) {
+    if (import.meta.env.DEV) {
+        return `cdn/avatars/${num}`;
+    } else {
+        return `api/avatars/${num}`;
     }
 }
 

@@ -5,6 +5,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import PendingIcon from '@mui/icons-material/Pending';
 import { LogoutRounded } from '@mui/icons-material';
+import { getAvatarUrl } from '../../api/client';
+
 
 export function Crown({ width, height, style }) {
     return (
@@ -94,7 +96,7 @@ const Guest = ({ nickname, points, status, avatar }) => {
 
     return (
         <div className='guest-info'>
-            <img className='avatar' src={'cdn/avatars/' + avatar}
+            <img className='avatar' src={getAvatarUrl(avatar)}
                 width={44} height={44} alt='Avatar'></img>
             <div>
                 <span>{nickname}</span>

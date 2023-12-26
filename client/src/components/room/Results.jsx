@@ -2,6 +2,7 @@ import React from "react";
 import Modal from "../elements/Modal";
 import { Crown } from './Guest';
 import './Results.css';
+import { getAvatarUrl } from '../../api/client';
 
 /**
  * @param {Object} props 
@@ -13,7 +14,7 @@ import './Results.css';
 function ResultPlace({ result, nickname, points, avatar }) {
     return (
         <div className={result}>
-            <img src={'cdn/avatars/' + avatar} alt=''></img>
+            <img src={getAvatarUrl(avatar)} alt=''></img>
             <span>{nickname}</span>
             <i>Points: {points}</i>
             <Crown width={"48"} height={"48"} />

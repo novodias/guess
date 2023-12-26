@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { MessageRounded } from '@mui/icons-material';
 import './Chat.css';
+import { getAvatarUrl } from '../../api/client';
 
-// const getEmoji = (id) => `<img src='/cdn/avatars/${id}' width="44" height="44" alt='Emote ${id}'></img>`
+
 const getEmoji = (id) => {
-    return { src: `/cdn/avatars/${id}`, id };
+    return { src: getAvatarUrl(id), id };
 }
 
 const emojis = {}

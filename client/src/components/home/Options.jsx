@@ -5,6 +5,7 @@ import TextInput from '../elements/TextInput';
 import { Settings } from '@mui/icons-material';
 import LazyImage from '../elements/Image';
 import useToggleDisplay from '../../hooks/useToggleDisplay';
+import { getAvatarUrl } from '../../api/client';
 
 function AvatarContainer() {
     const { avatar } = useSettingsContext();
@@ -25,7 +26,7 @@ function AvatarContainer() {
     const total = getTotalAvatars();
 
     function Avatar({num}) {
-        const url = `cdn/avatars/${num}`;
+        const url = getAvatarUrl(num);
 
         return (
             <span className='avatar-selectable darken'
@@ -53,7 +54,7 @@ function AvatarContainer() {
 
     return (
         <div data-text="Your avatar" className={`avatars-container tooltip`} onClick={toggleAvatars}>
-            <LazyImage className='your-avatar' src={`cdn/avatars/${avatar}`} alt='Your avatar' />
+            <LazyImage className='your-avatar' src={getAvatarUrl(avatar)} alt='Your avatar' />
             <AvatarsContainer />
         </div>
     )
@@ -85,25 +86,6 @@ function SettingsContainer() {
             }
         });
     }
-
-    // const toggleDisplay = () => {
-    //     const el = settingsRef.current;
-    //     // const isVisible = el.style.display !== 'none' && el.style.display !== '';
-
-    //     // if (isVisible) {
-    //     //     el.style.display = 'none';
-    //     // } else {
-    //     //     el.style.display = 'block';
-    //     // }
-
-    //     if (el.classList.contains("hide")) {
-    //         el.classList.add("show");
-    //         el.classList.remove("hide");
-    //     } else {
-    //         el.classList.add("hide");
-    //         el.classList.remove("show");
-    //     }
-    // }
 
     return (
         <div>
