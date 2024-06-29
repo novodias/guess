@@ -2,10 +2,15 @@
 import useWebSocket from 'react-use-websocket';
 import { useCallback } from 'react';
 
-const protocol = import.meta.env.DEV ? "wss://" : "ws://";
-const webSocketAddress = (import.meta.env.DEV ?
-    `${protocol}${window.location.hostname}:3001` :
-    `${protocol}${window.location.hostname}:3000`) + `/socket`;
+const wssAddress = (function () {
+    const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+    const portPath = import.meta.env.PROD ? "/socket" : ":3001/socket";
+    return protocol + location.hostname + portPath;
+})();
+
+// const webSocketAddress = (import.meta.env.DEV ?
+//     `${protocol}${window.location.hostname}:3001` :
+//     `${protocol}${window.location.hostname}:3000`) + `/socket`;
 
 /**
  * @callback OnMessage
@@ -34,13 +39,13 @@ const webSocketAddress = (import.meta.env.DEV ?
  * @returns {sendMessage}
  */
 export default function useGameWebSocket({ onMessage, onOpen, onClose, onError }) {    
-    const { sendJsonMessage } = useWebSocket(webSocketAddress, {
+    const { sendJsonMessage } = useWebSocket(wssAddress, {
         onOpen,
         onMessage,
         onClose,
         onError,
         shouldReconnect: () => false,
-        share: true,
+        share: true
     }, true);
 
     function prepareMessage(type, body) {

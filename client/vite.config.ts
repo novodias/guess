@@ -8,10 +8,10 @@ export default defineConfig(({ command, mode }) => {
     const baseURL = process.env.VITE_APP_URL;
     const secure = process.env.VITE_APP_SECURE === 'true';
     const port = isDev ? 3000 : 3001;
+    const apiPort = isDev ? 3001 : 3000;
     const protocol = secure ? 'https://' : 'http://';
-    const apiTarget = protocol + baseURL + ':' + port;
-    const cdnTarget = protocol + "cdn." + baseURL + ':' + port;
-    const wssTarget = (secure ? "wss://" : "ws://") + baseURL + ':' + port;
+    const apiTarget = protocol + baseURL + ':' + apiPort;
+    const wssTarget = (secure ? "wss://" : "ws://") + baseURL + ':' + apiPort;
     
     return {
         plugins: [react()],
@@ -23,13 +23,13 @@ export default defineConfig(({ command, mode }) => {
                 '^/api': {
                     target: apiTarget,
                     changeOrigin: isDev,
-                    rewrite: (path) => path.replace("api/", ""),
+                    // rewrite: (path) => path.replace("api/", ""),
                     secure: secure
                 },
                 '^/cdn': {
-                    target: cdnTarget,
+                    target: apiTarget,
                     changeOrigin: isDev,
-                    rewrite: (path) => path.replace("cdn/", ""),
+                    rewrite: (path) => path.replace("cdn/", "api/"),
                     secure: secure
                 },
                 '/socket': {

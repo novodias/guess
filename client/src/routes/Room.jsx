@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, MutableRefObject } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import useWebSocket from 'react-use-websocket';
-
-// import './Room.css';
 import '../styles/pages/room.css'
-import { SettingsContext } from '../context/SettingsProvider';
+import { useSettingsContext } from '../context/SettingsProvider';
 import { Chat, CopyLink, Difficulty, GuestContainer, OwnerButton } from '../components/room/Export';
-import { useRoomContext } from '../context/RoomProvider';
+import { useRoomContext, useRoomDispatchContext } from '../context/RoomProvider';
 import { error } from '../api/export';
 import InputTitles from '../components/InputTitles';
 import useGameWebSocket from '../components/room/game/Websocket';
@@ -36,123 +33,212 @@ function Results({result}) {
     return <ResultsModal {...result} />
 }
 
+const roomMessageHandler = {
+    "players": (players, { gameManager }) => {
+        gameManager.setPlayers(players);
+    },
+    "exited": (body, { players, gameManager, chatManager }) => {
+        const exit = body;
+        const player = players.find(g => g.id === exit.id);
+        let systemMessage;
+        if (!exit.kicked) {
+            systemMessage = {
+                text: `${player.nickname} exited the game.`,
+                nickname: "System",
+            }
+        } else {
+            systemMessage = {
+                text: `${player.nickname} was kicked from the game.`,
+                nickname: "System",
+            }
+        }
+        chatManager.alert(systemMessage);
+        gameManager.removePlayer(exit.id);
+    },
+    "details": (body, { gameManager }) => {
+        const { id, timerDuration, endDuration, prepareDuration } = body;
+        gameManager.setClientId(id);
+        gameManager.configureTimer({timerDuration, endDuration, prepareDuration});
+    },
+    "chat": (body, { chatManager }) => {
+        chatManager.add(body);
+    },
+    "change": (body, { gameManager }) => {
+        gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
+    },
+    "prepare": (body, { setRound, setReadOnly, gameManager }) => {
+        const { musicHash, startAt, round } = body;
+        const src = getMusic(roomId, musicHash);
+        setRound(round);
+
+        gameManager.configurePlayback({
+            src: src,
+            start_at: startAt,
+            play: false
+        });
+
+        setReadOnly(true);
+        gameManager.revertTimer();
+    },
+    "round": (body, { setReadOnly, roundElement, gameManager }) => {
+        const { players } = body;
+        setReadOnly(false);
+        
+        roundElement.classList.add('show');
+        setTimeout(() => roundElement.classList.remove('show'), 4000);
+
+        gameManager.startTimer();
+        gameManager.setPlayers(players);
+        gameManager.configurePlayback({ play: true });
+    },
+    "round_result": (body, { setTitle, setReadOnly }) => {
+        const { title } = body;
+        setTitle(title);
+        setReadOnly(true);
+    },
+    "end": (body, { setResult, gameManager, createStartNotification }) => {
+        const winners = body.winners;
+        setResult(winners);
+        gameManager.configurePlayback({ play: false });
+        gameManager.revertTimer();
+        createStartNotification();
+    }
+};
+
 function RoomPage() {
     const { debug } = useLogger('Room');
-    let navigate = useNavigate();
-    const { username, showAudioVisualizer, avatar } = useContext(SettingsContext);
+    // let navigate = useNavigate();
+    const { username, showAudioVisualizer, avatar } = useSettingsContext();
+    
     const { owner, roomId } = useRoomContext();
+    const { setOwner } = useRoomDispatchContext();
 
     const { id, players, chat, music, timer } = useGameContext();
     const { chatManager, gameManager } = useGameDispatchContext();
     
     const { pushNotification, remove } = useNotificationDispatchContext();
-    const [startNotification, setStartNotification] = useState(null);
+    const [notifyId, setNotifyId] = useState(null);
 
     const canvasRef = useRef(undefined);
 
     const [showKickBtn, setShowKickBtn] = useState(false);
-    const [readOnly, setReadOnly] = useState(false);
+    const [readOnly, setReadOnly] = useState(true);
     const [result, setResult] = useState(undefined);
     
     const [round, setRound] = useState(0);
     const [title, setTitle] = useState('');
 
     /**
-     * @type {import('react').MutableRefObject<HTMLDivElement>}
+     * @type {MutableRefObject<HTMLDivElement>}
      */
     const roundRef = useRef(undefined);
 
     /**
-     * @type {import('react').MutableRefObject<HTMLSpanElement>}
+     * @type {MutableRefObject<HTMLSpanElement>}
      */
     const titleRef = useRef(undefined);
 
-    const messageHandler = {
-        "players": (body) => {
-            const newPĺayers = body;
-            gameManager.setPlayers(newPĺayers);
-        },
-        "exited": (body) => {
-            const exit = body;
-            const player = players.find(g => g.id === exit.id);
-            let systemMessage;
-            if (!exit.kicked) {
-                systemMessage = {
-                    text: `${player.nickname} exited the game.`,
-                    nickname: "System",
-                }
-            } else {
-                systemMessage = {
-                    text: `${player.nickname} was kicked from the game.`,
-                    nickname: "System",
-                }
-            }
-            chatManager.alert(systemMessage);
-            gameManager.removePlayer(exit.id);
-        },
-        "yourid": (body) => {
-            const { id } = body;
-            gameManager.setClientId(id);
-        },
-        "timer": (body) => {
-            gameManager.configureTimer(body);
-        },
-        "chat": (body) => {
-            chatManager.add(body);
-        },
-        "change": (body) => {
-            gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
-        },
-        "prepare": (body) => {
-            const { music_hash, start_at } = body;
-            const play = false;
-            const src = getMusic(roomId, music_hash);
+    const createStartNotification = () => {
+        if (owner !== '') {
+            const notification = NotificationBuilder()
+                .text("Click here to begin")
+                .button("Start", () => sendMessage("start", { owner }))
+                .build();
             
-            gameManager.configurePlayback({
-                src: src,
-                start_at: start_at,
-                play: play
-            });
-
-            gameManager.revertTimer();
-            // RevertTimer();
-        },
-        "round": (body) => {
-            const { players } = body;
-            
-            setRound(r => ++r);
-            roundRef.current.classList.add('show');
-            setTimeout(() => roundRef.current.classList.remove('show'), 4000);
-
-            gameManager.startTimer();
-            setReadOnly(false);
-            gameManager.setPlayers(players);
-            gameManager.configurePlayback({ play: true });
-        },
-        "round_result": (body) => {
-            const { title } = body;
-            setTitle(title);
-            setReadOnly(true);
-        },
-        "end": (body) => {
-            const winners = body.winners;
-            setResult({
-                first: winners[0],
-                second: winners[1],
-                third: winners[2]
-            });
-            gameManager.configurePlayback({ play: false });
-            gameManager.revertTimer();
-            // RevertTimer();
+            const idx = pushNotification(notification);
+            setNotifyId(idx);
         }
-    };
+    }
+
+    // const messageHandler = {
+    //     "players": (body) => {
+    //         const newPĺayers = body;
+    //         gameManager.setPlayers(newPĺayers);
+    //     },
+    //     "exited": (body) => {
+    //         const exit = body;
+    //         const player = players.find(g => g.id === exit.id);
+    //         let systemMessage;
+    //         if (!exit.kicked) {
+    //             systemMessage = {
+    //                 text: `${player.nickname} exited the game.`,
+    //                 nickname: "System",
+    //             }
+    //         } else {
+    //             systemMessage = {
+    //                 text: `${player.nickname} was kicked from the game.`,
+    //                 nickname: "System",
+    //             }
+    //         }
+    //         chatManager.alert(systemMessage);
+    //         gameManager.removePlayer(exit.id);
+    //     },
+    //     "details": (body) => {
+    //         const { id, timerDuration, endDuration, prepareDuration } = body;
+    //         gameManager.setClientId(id);
+    //         gameManager.configureTimer({timerDuration, endDuration, prepareDuration});
+    //     },
+    //     "chat": (body) => {
+    //         chatManager.add(body);
+    //     },
+    //     "change": (body) => {
+    //         gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
+    //     },
+    //     "prepare": (body) => {
+    //         const { musicHash, startAt, round } = body;
+    //         const src = getMusic(roomId, musicHash);
+    //         setRound(round);
+
+    //         gameManager.configurePlayback({
+    //             src: src,
+    //             start_at: startAt,
+    //             play: false
+    //         });
+
+    //         setReadOnly(true);
+    //         gameManager.revertTimer();
+    //     },
+    //     "round": (body) => {
+    //         const { players } = body;
+    //         setReadOnly(false);
+            
+    //         roundRef.current.classList.add('show');
+    //         setTimeout(() => roundRef.current.classList.remove('show'), 4000);
+
+    //         gameManager.startTimer();
+    //         gameManager.setPlayers(players);
+    //         gameManager.configurePlayback({ play: true });
+    //     },
+    //     "round_result": (body) => {
+    //         const { title } = body;
+    //         setTitle(title);
+    //         setReadOnly(true);
+    //     },
+    //     "end": (body) => {
+    //         const winners = body.winners;
+    //         setResult(winners);
+    //         gameManager.configurePlayback({ play: false });
+    //         gameManager.revertTimer();
+    //         createStartNotification();
+    //     }
+    // };
 
     const { sendMessage } = useGameWebSocket({
         onMessage: (e) => {
             const message = JSON.parse(e.data);
             const { type, body } = message;
-            debug("WS Message [" + type + "]:", body);
-            messageHandler[type](body);
+            debug("WebSocket Message [" + type + "]:", body);
+            roomMessageHandler[type](body, {
+                gameManager,
+                chatManager,
+                players, 
+                setRound,
+                setReadOnly,
+                roundElement: roundRef.current,
+                setTitle,
+                setResult,
+                createStartNotification
+            });
         },
         onOpen: () => {
             if (id === null) {
@@ -167,7 +253,8 @@ function RoomPage() {
          * @param {CloseEvent} e
          */
         onClose: (e) => {
-            debug("Websocket client closed:", e.reason);
+            debug("Websocket client closed:", e.reason.message);
+            setOwner('');
             
             const builder = NotificationBuilder()
                 .clickable();
@@ -183,7 +270,7 @@ function RoomPage() {
             }
             
             if (notification) pushNotification(notification);
-            navigate('/');
+            // navigate('/');
         },
         onError: (e) => {
             if (import.meta.env.DEV) {
@@ -191,7 +278,7 @@ function RoomPage() {
                 e.nickname = username;
                 e.date = new Date();
                 error(e);
-                debug(e);
+                debug("WebSocket/OnError:", e);
             }
         }
     });
@@ -231,23 +318,16 @@ function RoomPage() {
     }, []);
 
     useEffect(() => {
-        if (startNotification === null && owner) {
-            const notification = NotificationBuilder()
-                .text("Click here to begin")
-                .button("Start", () => sendMessage("start", { owner }))
-                .build();
-            
-            const idx = pushNotification(notification);
-
-            setStartNotification(idx);
+        if (notifyId === null) {
+            createStartNotification();
         }
         
         return () => {
-            if (startNotification !== null) {
-                remove(startNotification);
+            if (notifyId !== null) {
+                remove(notifyId);
             }
         }
-    }, [owner, sendMessage, startNotification, remove]);
+    }, [owner, sendMessage, notifyId, remove]);
 
     useEffect(() => {
         if (title !== '') {

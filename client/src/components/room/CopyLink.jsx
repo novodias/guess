@@ -6,7 +6,9 @@ export default function BubbleCopyLink({ id }) {
     const [visible, setVisible] = useState(true);
 
     function CopyCode() {
-        navigator.clipboard.writeText(window.location.protocol + '//' + import.meta.env.VITE_APP_URL + "/room/" + id);
+        const port = import.meta.env.PROD ? "" : ":3000";
+        const adr = protocol + location.hostname + port;
+        navigator.clipboard.writeText(adr + "/room/" + id);
     }
 
     return (

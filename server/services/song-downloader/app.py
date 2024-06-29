@@ -113,6 +113,7 @@ def fetch():
     song_file_name = data['song_name']
     youtube_id = data['youtube_id']
     
+    print("[SongDownloader] Fetching song: " + song_file_name + " / Title name: " + title_dir_name + " / YT-Id: " + youtube_id)
     duration = try_download(youtube_id)
     
     try:

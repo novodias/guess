@@ -1,9 +1,10 @@
 import WebSocket from "ws";
 import Song from "./models/song.model";
-import Player, { PlayerChangeEvent, Players } from "./player";
-import { intFromInterval, makeid } from './utils';
+import Player, { PlayerChangeEvent, PlayerStatus, Players } from "./player";
+import { intFromInterval, makeid, wait } from './utils';
 import { v4 as uuid } from 'uuid';
 import EventEmitter from "events";
+import SongsService from "./services/songs.service";
 
 export interface RoomConfig {
     name: string;
@@ -16,20 +17,22 @@ export interface MusicDetails {
     partialPath: string;
 }
 
-// interface MessageRequestHandler {
-//     [k: string]: () => void;
-// }
-// type MessageKey = keyof MessageRequestHandler;
+enum MessageType {
+    START = "start",
+    KICK = "kick",
+    CHAT = "chat",
+    SUBMIT = "submit"
+}
+
+export enum RoomStatus {
+    WAITING = 'waiting',
+    PREPARING = 'preparing',
+    STARTED = 'started',
+    ROUND_ENDED = "round_ended",
+    ENDED = 'ended'
+}
 
 abstract class Room {
-    static readonly STATUS = Object.freeze({
-        WAITING: 'waiting',
-        PREPARING: 'preparing',
-        STARTED: 'started',
-        ROUND_ENDED: "round_ended",
-        ENDED: 'ended'
-    });
-
     public readonly id: string;
     public readonly name: string;
     public readonly particular: boolean;
@@ -47,14 +50,15 @@ abstract class Room {
     public roundPrepare: number;
     public roundsMax: number;
 
+    public service: SongsService;
     public musics: Song[];
     public music?: Song;
     public musicDetails?: MusicDetails;
 
-    public timer?: NodeJS.Timeout;
-    public timerCallback: () => void;
+    // public timer?: NodeJS.Timeout;
+    // public timerCallback: () => void;
 
-    constructor(id: string, config: RoomConfig, songs: Song[]) {
+    constructor(id: string, config: RoomConfig) {
         this.id = id;
         this.name = config.name;
         this.particular = config.particular;
@@ -64,7 +68,7 @@ abstract class Room {
         this.listeners = {};
         
         // GAME PROPERTIES
-        this.status = Room.STATUS.WAITING; // wait owner to start
+        this.status = RoomStatus.WAITING; // wait owner to start
         this.players = new Players();
         
         this.rounds = 0;
@@ -76,12 +80,13 @@ abstract class Room {
         // this.roundsMax = 3;
 
         // songs
-        this.musics = songs; // has 10 here - use maxRounds to get the right amount
+        this.service = new SongsService();
+        this.musics = []; // has 10 here - use maxRounds to get the right amount
         this.music = undefined; // selects on prepareRound
         this.musicDetails = undefined;
         
         // timer
-        this.timer = undefined;
+        // this.timer = undefined;
 
         this.messageEventEmitter = new EventEmitter();
 
@@ -134,39 +139,158 @@ abstract class Room {
 }
 
 export default class RoomStandard extends Room {
+    private _cancel: boolean;
 
-    constructor(id: string, config: RoomConfig, songs: Song[]) {
-        super(id, config, songs);
+    private constructor(id: string, config: RoomConfig) {
+        super(id, config);
+        this._cancel = false;
         this.setupMessageEventEmitter();
-        this.timerCallback = this._prepareRound;
+    }
+
+    public static async create(id: string, config: RoomConfig): Promise<RoomStandard> {
+        const room = new RoomStandard(id, config);
+        room.musics = await room.service.random(10);
+        return room;
+    }
+
+    private async _restart() {
+        this._cancel = false;
+        this.rounds = 0;
+        this.musics = await this.service.random(10);
+    }
+
+    private async _prepare() {
+        // this._updateMusicStats();
+        
+        this.rounds += 1;
+        this.music = this._randomMusic();
+        
+        const start_at = intFromInterval(5, this.music.duration - 30);
+        const prepare = {
+            type: "prepare",
+            body: {
+                room_status: this.status,
+                round: this.rounds,
+                roundMax: this.roundsMax,
+                musicHash: this.musicDetails!.hash,
+                startAt: start_at,
+            }
+        };
+
+        this.broadcast(prepare);
+        await wait(this.roundPrepare * 1000);
+        this.status = RoomStatus.STARTED;
+    }
+
+    private async _round() {
+        this.players.forEach(ply => {
+            ply.status = Player.STATUS.PENDING;
+        });
+
+        const round = {
+            type: "round",
+            body: {
+                room_status: this.status,
+                players: this.players.sanitized
+            }
+        };
+
+        this.broadcast(round);
+        await wait(this.roundTime * 1000);
+        this.status = RoomStatus.ROUND_ENDED;
+    }
+
+    private async _roundEnd() {
+        const result = {
+            type: 'round_result',
+            body: {
+                room_status: this.status,
+                title: this.music?.title_name,
+            }
+        }
+
+        this.broadcast(result);
+        await wait(this.roundEnd * 1000);
+        this.status = RoomStatus.PREPARING;
+    }
+
+    private _end(): void {
+        this.status = RoomStatus.ENDED;
+        
+        const winners = this.players.sanitized
+            .sort((v1, v2) => v2.points - v1.points)
+            .slice(0, 3);
+        
+        const end = {
+            type: "end",
+            body: {
+                winners: {
+                    first: winners[0],
+                    second: winners[1],
+                    third: winners[2]
+                },
+                room_status: this.status,
+            }
+        };
+
+        this.broadcast(end);
+    }
+
+    private _ensureOwner(owner: string): boolean {
+        return owner === this.ownerUID;
+    }
+
+    private async _start(): Promise<void> {
+        this.status = RoomStatus.PREPARING;
+
+        while (!this._cancel) {
+            if (this.rounds === this.roundsMax) {
+                this._end();
+                break;
+            }
+
+            switch (this.status) {
+                case RoomStatus.PREPARING:
+                    await this._prepare();
+                break;
+                    
+                case RoomStatus.STARTED:
+                    await this._round();
+                break;
+                    
+                    
+                case RoomStatus.ROUND_ENDED:
+                    await this._roundEnd();
+                break;
+            }
+        }
+
+        this.status = RoomStatus.WAITING;
+        await this._restart();
     }
 
     private setupMessageEventEmitter(): void {
-        this.messageEventEmitter.once("start", (body) => {
-            const isOwner = body.owner === this.ownerUID;
-
-            if (!isOwner) {
+        this.messageEventEmitter.on("start", (body) => {
+            if (this.status !== RoomStatus.WAITING) {
+                return;
+            }
+            
+            if (!this._ensureOwner(body.owner)) {
                 return;
             }
 
-            if (this.status !== Room.STATUS.WAITING) {
-                return;
-            }
-
-            this._prepareRound();
+            this._start();
         });
 
         this.messageEventEmitter.on("kick", (body) => {
-            const isOwner = body.owner === this.ownerUID;
-
-            if (!isOwner) {
+            if (!this._ensureOwner(body.owner)) {
                 return;
             }
 
             this.removePlayer(
                 body.id,
                 3000,
-                "You got kicked from the room.",
+                "You got kicked from the room",
                 true
             );
         });
@@ -179,18 +303,36 @@ export default class RoomStandard extends Room {
         });
 
         this.messageEventEmitter.on("submit", (body, player: Player) => {
-            if (this.music === undefined) return;
+            if (typeof this.music === 'undefined') return;
             
             const title_id = body.title.id;
             const pending = this.players.withStatus(Player.STATUS.PENDING);
             
             const ratio = pending.length / this.players.size;
             let status = this.music.title_id === title_id ? Player.STATUS.CORRECT : Player.STATUS.WRONG;
-            let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 15 * ratio) : player.points;
+            let points = status === Player.STATUS.CORRECT ? Math.floor(player.points + 30 * ratio) : player.points;
             
+            if (status === PlayerStatus.CORRECT) {
+                this.music.correct! += 1;
+            } else if (status === PlayerStatus.WRONG) {
+                this.music.misses! += 1;
+            }
+
             // the player class emits a onchange event and broadcasts to all
             player.set(points, status);
         });
+    }
+
+    private async _updateMusicStats() {
+        if (typeof this.music === 'undefined') return;
+
+        const result = await this.service.update(this.music.id!, {
+            correct: this.music.correct,
+            misses: this.music.misses
+        });
+
+        console.assert(result, "Not able to update C/M of " + this.music.name);
+        console.log(`[Room/${this.id}] ${this.music.name} - C/M: [${this.music.correct}/${this.music.misses}]`)
     }
 
     private _randomMusic(): Song {
@@ -206,100 +348,7 @@ export default class RoomStandard extends Room {
         console.log(`[Room/${this.id}] Hash: ${this.musicDetails.hash} / Selected song:`, music.name);
         
         return music;
-    }
-
-    private _clearTimer(): void {
-        if (this.timer === null) {
-            return;
-        }
-
-        clearTimeout(this.timer);
-    }
-
-    private _startTimer(seconds: number): void {
-        this.timer = setTimeout(this.timerCallback, 1000 * seconds);
-    }
-
-    private _prepareRound(): void {
-        if (this.rounds === this.roundsMax) {
-            this._endGame();
-            return;
-        }
-    
-        this.rounds += 1;
-        this.status = Room.STATUS.PREPARING;
-        this.music = this._randomMusic();
-        
-        const start_at = intFromInterval(5, this.music.duration - 30);
-        const prepare = {
-            type: "prepare",
-            body: {
-                room_status: this.status,
-                round: this.rounds,
-                roundMax: this.roundsMax,
-                music_hash: this.musicDetails!.hash,
-                start_at,
-            }
-        };
-
-        this.broadcast(prepare);
-        this.timerCallback = this._startRound.bind(this);
-        this._startTimer(this.roundPrepare);
-    }
-
-    private _endRound(): void {
-        this.status = Room.STATUS.ROUND_ENDED;
-        
-        const result = {
-            type: 'round_result',
-            body: {
-                room_status: this.status,
-                title: this.music?.title_name,
-            }
-        }
-
-        this.broadcast(result);
-        this.timerCallback = this._prepareRound.bind(this);
-        this._startTimer(this.roundEnd);
-    }
-
-    private _startRound(): void {
-        this.players.forEach(ply => {
-            ply.status = Player.STATUS.PENDING;
-        });
-
-        this.status = Room.STATUS.STARTED;
-
-        const round = {
-            type: "round",
-            body: {
-                room_status: this.status,
-                players: this.players.sanitized
-            }
-        };
-
-        this.broadcast(round);
-        this.timerCallback = this._endRound.bind(this);
-        this._startTimer(this.roundTime);
-    }
-
-    private _endGame(): void {
-        const winners = this.players.sanitized
-            .sort((v1, v2) => v2.points - v1.points)
-            .slice(0, 3);
-
-        this.status = Room.STATUS.ENDED;
-        
-        const end = {
-            type: "end",
-            body: {
-                winners,
-                room_status: this.status,
-            }
-        };
-
-        this.broadcast(end);
-    }    
+    }   
 
     public addPlayer(player: Player) {
         player.ws.on("close", () => {
@@ -322,9 +371,14 @@ export default class RoomStandard extends Room {
 
         this.players.set(player.id, player);
 
-        const you = {
-            type: "yourid",
-            body: { id: player.id }
+        const details = {
+            type: "details",
+            body: {
+                id: player.id,
+                timerDuration: this.roundTime,
+                endDuration: this.roundEnd,
+                prepareDuration: this.roundPrepare,
+            }
         };
 
         const players = {
@@ -332,33 +386,23 @@ export default class RoomStandard extends Room {
             body: this.players.sanitized,
         };
 
-        const timer = {
-            type: "timer",
-            body: {
-                timerDuration: this.roundTime,
-                endDuration: this.roundEnd,
-                prepareDuration: this.roundPrepare,
-            }
-        }
-
         // sends to player who's joined all the players
         // this.send(players, player);
         
         // send id to the player
-        this.send(you, player);
-        this.send(timer, player);
+        this.send(details, player);
         
         // sends to all players the person who's joined
         this.broadcast(players);
     }
 
     broadcast(object: any, ignore: Player | undefined = undefined): void {
-        if (!object) {
+        if (typeof object === 'undefined') {
             return;
         }
 
         for (const [id, player] of this.players) {
-            if (ignore !== undefined) {
+            if (typeof ignore !== 'undefined') {
                 if (ignore.id === player.id) {
                     continue;
                 }
@@ -378,7 +422,7 @@ export default class RoomStandard extends Room {
         player.send(object);
     }
 
-    removePlayer(id: number,
+    removePlayer(id: string,
                 code: number | undefined = undefined,
                 reason: string | undefined = undefined,
                 kicked = false) {
@@ -389,7 +433,10 @@ export default class RoomStandard extends Room {
 
         if (this.players.size === 0 && typeof this.listeners["empty"] === 'function') {
             // emits empty and then the cluster deletes the room
-            this._clearTimer();
+            // this._clearTimer();
+
+            this._cancel = true;
+            this.status = RoomStatus.ENDED;
             this.emit("empty", this.id);
         } else {
             const message = {

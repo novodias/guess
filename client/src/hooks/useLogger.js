@@ -17,7 +17,7 @@ class Logger {
     debug(message, ...array) {
         if (import.meta.env.DEV) {
             // set this to "log" for now, for some reason chrome only shows debug on verbose
-            this.log('log', message, ['color: rgb(160, 106, 160);', 'color: reset;'], array);
+            this.log('log', message, ['color: rgb(160, 106, 160);', 'color: reset;'], ...array || '');
         }
     }
 
@@ -26,6 +26,9 @@ class Logger {
     }
 }
 
+/**
+ * @returns {{info: function(string), debug: function(string, ...)}}
+ */
 export default function useLogger(name) {
     const raf = useRef(new Logger(name));
     const logger = raf.current;

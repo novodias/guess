@@ -81,10 +81,7 @@ rooms.post("/", async (req: Request, res: Response, next: NextFunction) => {
     
         const config: RoomConfig = req.body;
         const cluster = req.cluster;
-        const songsRepo = req.services.getRequired<Songs>(Songs);
-    
-        const songs = await songsRepo.random(10);
-        const roomInfo = cluster!.createRoom(config, songs);
+        const roomInfo = await cluster.createRoom(config);
         res.json(roomInfo);
     } catch (err) {
         next(err);

@@ -1,4 +1,5 @@
 import { WebSocket } from 'ws';
+import { makeid } from './utils';
 
 export enum PlayerStatus {
     PENDING = 0,
@@ -7,7 +8,7 @@ export enum PlayerStatus {
 }
 
 export interface PlayerChangeEvent {
-    readonly id: number;
+    readonly id: string;
     readonly points?: number;
     readonly status?: PlayerStatus;
 }
@@ -15,7 +16,7 @@ export interface PlayerChangeEvent {
 export type PlayerChangeCallback = (e: PlayerChangeEvent) => void;
 
 export interface PlayerData {
-    id: number;
+    id: string;
     nickname: string;
     points: number;
     status: PlayerStatus;
@@ -27,7 +28,7 @@ export default class Player {
     public static STATUS = Object.freeze(PlayerStatus);
 
     public ws: WebSocket;
-    public id: number;
+    public id: string;
     public nickname: string;
     public points: number;
     public status: PlayerStatus;
@@ -35,12 +36,13 @@ export default class Player {
 
     private listeners: any;
 
-    constructor(ws: WebSocket, id: number, nickname: string, points: number, status: PlayerStatus, avatar: number) {
+    constructor(ws: WebSocket, nickname: string, avatar: number) {
+        this.id = makeid(5);
+        this.points = 0;
+        this.status = Player.STATUS.PENDING;
+        
         this.ws = ws;
-        this.id = id;
         this.nickname = nickname;
-        this.points = points;
-        this.status = status;
         this.avatar = avatar;
 
         this.listeners = {};
@@ -121,7 +123,7 @@ export default class Player {
     }
 }
 
-export class Players extends Map<number, Player> {
+export class Players extends Map<string, Player> {
     private get _players(): IterableIterator<Player> {
         return this.values();
     }

@@ -78,19 +78,20 @@ musics.get("/:roomid", async (req: Request, res: Response, next) => {
     }
 });
 
-// musics.get("/:title/:name", async (req, res) => {
-//     const {title, name} = req.params;
-//     const musicPath = musicTest(title, name);
-//     try {
-//         // throws a error if the file doesn't exist
-//         await checkAsync(musicPath);
-//         res.type("audio/mp4");
-//         res.sendFile(musicPath);
-//         // res.send(musicPath);
-//     } catch (error) {
-//         res.status(404).send("Not found LOL");
-//         console.log("Error trying to found music file: ", error.message, error.code);
-//     }
-// });
+musics.get("/:title/:name", async (req, res, next) => {
+    const {title, name} = req.params;
+    try {
+        res.type("audio/m4a")
+        res.sendFile(join(title, name), {
+            root: MUSICS_DIRECTORY,
+            extensions: 'm4a',
+            lastModified: false,
+        }, (err) => {
+            if (err) next(err);
+        });
+    } catch (error) {
+        next(error);
+    }
+});
 
 export default musics;

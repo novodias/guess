@@ -1,26 +1,20 @@
 import http from 'http';
-import {WebSocket, WebSocketServer, RawData} from 'ws';
-import Room, { RoomConfig } from './room';
+import { WebSocket, WebSocketServer, RawData } from 'ws';
+import Room, { RoomConfig, RoomStatus } from './room';
 import Player from './player';
 import { intFromInterval } from './utils';
-import { ILogger } from './logger';
-import Song from './models/song.model';
-import { RedisClientType, createClient } from 'redis';
+import { ILogger, loggerFactory } from './logger';
 import RoomStandard from './room';
 
-const generateRoomCode = () => {
-    let initialCode = "";
-    let finalCode = "";
-    
-    for (let i = 0; i < 3; i++) {
-        initialCode += String.fromCharCode(intFromInterval(65, 90));
+const randomRoomCode = () => {
+    let code = "";
+    const randomChar = (n1: number, n2: number) => String.fromCharCode(intFromInterval(n1, n2));
+
+    for (let i = 0; i < 8; i++) {
+        code += i < 3 ? randomChar(65, 90) : randomChar(48, 57);
     }
 
-    for (let i = 0; i < 5; i++) {
-        finalCode += String.fromCharCode(intFromInterval(48, 57));
-    }
-
-    return initialCode + finalCode;
+    return code;
 }
 
 export default class RoomsCluster {
@@ -29,14 +23,14 @@ export default class RoomsCluster {
     private logger?: ILogger;
     private wss: WebSocketServer;
     private rooms: Map<string, Room>;
-    // private client: RedisClientType;
 
-    constructor(server: http.Server, port: number) {
+    constructor(server: http.Server) {
         if (RoomsCluster._instance) {
             return RoomsCluster._instance;
         }
 
         RoomsCluster._instance = this;
+        this.logger = loggerFactory("Cluster");
 
         this.rooms = new Map();
         
@@ -44,14 +38,15 @@ export default class RoomsCluster {
             server: server,
             path: "/socket",
         });
+
         this.wss.on('connection', ws => {
             this._setupClient(ws);
         });
     }
 
-    createRoom(config: RoomConfig, musics: Song[]) {
-        const id = generateRoomCode();
-        const room = new RoomStandard(id, config, musics);
+    async createRoom(config: RoomConfig) {
+        const id = randomRoomCode();
+        const room = await RoomStandard.create(id, config);
         
         // timer
         const timerDeleteRoom = () => {
@@ -61,7 +56,7 @@ export default class RoomsCluster {
             if (this.deleteRoom(room.id)) {
                 this.logger?.log("Deleted room:", id, "due to inactivity");
             } else {
-                this.logger?.log("Hasn't able to delete room with timer:", id);
+                this.logger?.log("Not able to delete room with timer:", id);
             }
         }
         
@@ -71,7 +66,7 @@ export default class RoomsCluster {
             if (this.deleteRoom(id)) {
                 this.logger?.log("Deleted room:", id);
             } else {
-                this.logger?.log("Hasn't able to delete room:", id);
+                this.logger?.log("Not able to delete room:", id);
             }
 
             clearTimeout(timer);
@@ -103,11 +98,10 @@ export default class RoomsCluster {
             };
         }
 
-        // if (count > this.rooms.size) count -= (count - this.rooms.size) + start + 1; 
-
         const rooms = Array.from(this.rooms.values());
         for (let i = start; i < count; i++) {
-            if (typeof rooms[i] !== 'undefined') {
+            if (typeof rooms[i] !== 'undefined' &&
+                rooms[i].status === RoomStatus.WAITING) {
                 publicRooms.push(rooms[i].public);
 
                 if (i === count - 1) {
@@ -131,17 +125,25 @@ export default class RoomsCluster {
         const nameLowerCase = name.toLowerCase();
             
         const roomsFound = Array.from(this.rooms.values())
-            .filter(r => r.name.toLowerCase().includes(nameLowerCase));
+            .filter(r => r.name.toLowerCase().includes(nameLowerCase)
+                && r.status === RoomStatus.WAITING);
 
-        return roomsFound.map(r => r.public);;
+        return roomsFound.map(r => r.public);
     }
 
     deleteRoom(id: string) {
         return this.rooms.delete(id);
     }
 
+    wsError(ws: WebSocket, message: string, code: number = 3400) {
+        ws.close(code, JSON.stringify({
+            type: "error",
+            message
+        }));
+    }
+
     private _setupClient(ws: WebSocket): void {
-        const _onMessage = (data: RawData) => {
+        const upgrade = (data: RawData) => {
             const message = JSON.parse(data.toString());
             this.logger?.debug(message);
 
@@ -149,29 +151,26 @@ export default class RoomsCluster {
             const body = message.body;
             if (message.type !== "joined") {
                 this.logger?.debug("[Cluster] Closing WebSocket client connection, type didn't match");
-                ws.close();
+                this.wsError(ws, `Message type not accetable`);
                 return;
             }
 
             const room = this.getRoom(body.room_id);
-            if (room === undefined) {
-                const notFound = {
-                    type: "error",
-                    statusCode: 404,
-                    message: `Room ${body.room_id} not found`
-                };
-
-                ws.close(3404, JSON.stringify(notFound));
+            if (typeof room === 'undefined') {
+                this.wsError(ws, `Room ${body.room_id} not found`, 3404);
+                return;
+            }
+            
+            if (room.players.size === 15) {
+                this.wsError(ws, `Room is already full`);
                 return;
             }
 
-            const id = room.players.size;
-            const player = new Player(ws, id, body.nickname, 0, Player.STATUS.PENDING, body.avatar);
-            
+            const player = new Player(ws, body.nickname, body.avatar);
             // addPlayer handles the rest;
             room.addPlayer(player);
         };
 
-        ws.once('message', _onMessage);
+        ws.once('message', upgrade);
     }
 }

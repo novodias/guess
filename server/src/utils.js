@@ -39,6 +39,8 @@ const search = /[':]/g
  */
 function filterName(value) {
     return value
+        .trim()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(search, "").replace(/ /g, "-")
         .toLowerCase();
 }
@@ -71,12 +73,20 @@ function makeid(length) {
 
 const isDebug = process.env.NODE_ENV == 'development'
 
-module.exports = {
+const namePattern = /[^a-zA-Z0-9 ':\-!()&,]/g
+const youtubePattern = /[^A-Za-z0-9_-]/g
+
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+export {
     compareArrays,
     intFromInterval,
     filterName,
     nullOrUndefined,
     iterableAnyNullOrUndefined,
     makeid,
-    isDebug
+    wait,
+    isDebug,
+    namePattern,
+    youtubePattern
 }

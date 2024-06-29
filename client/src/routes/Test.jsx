@@ -3,27 +3,31 @@ import './Test.css';
 import { AnimationNodeHelper } from '../animation';
 import { useNotificationDispatchContext } from '../context/NotificationProvider';
 import Container from '../components/Container';
+import AudioPlayer from '../components/room/game/AudioPlayer';
+import useToggleDisplay from '../hooks/useToggleDisplay';
 
 export default function AudioPlayerTestPage() {
     /**
      * @type {import('react').MutableRefObject<HTMLDivElement>}
      */
-    // const divRef = useRef(undefined);
-    const { add } = useNotificationDispatchContext();
+    const divRef = useRef(undefined);
+    const toggle = useToggleDisplay(divRef);
 
-    const onClickAddNotification = (e) => {
-        add({
-            text: "This is a notification test",
-            gap: 10,
-            orient: "bottom",
-            waitForClick: true,
-            // hasButton: true,
-            // buttonText: "Start",
-            // onButtonClick: function () {
-            //     alert("test");
-            // }
-        });
-    }
+    // const { add } = useNotificationDispatchContext();
+
+    // const onClickAddNotification = (e) => {
+    //     add({
+    //         text: "This is a notification test",
+    //         gap: 10,
+    //         orient: "bottom",
+    //         waitForClick: true,
+    //         // hasButton: true,
+    //         // buttonText: "Start",
+    //         // onButtonClick: function () {
+    //         //     alert("test");
+    //         // }
+    //     });
+    // }
 
     // useEffect(() => {
     //     const node = divRef.current;
@@ -54,11 +58,21 @@ export default function AudioPlayerTestPage() {
     //     </div>
     // )
 
+    // const canvasRef = useRef(undefined);
+
     return (
-        <Container isContent={false} headerText={"Notification"}>
-            <button className="btn" onClick={onClickAddNotification}>
-                Create notification
-            </button>
-        </Container>
+        <div className='container test'>
+            <div ref={divRef} className='container'>Test</div>
+            <button className='btn' onClick={() => toggle()}>Toggle</button>
+        </div>
+        // <>
+        //     <canvas ref={canvasRef} width={500} height={500}></canvas>
+        //     <AudioPlayer play={true} src='/cdn/musics/minecraft/sweden' canvasRef={canvasRef} showAudioVisualizer={true} />
+        // </>
+        // <Container isContent={false} headerText={"Notification"}>
+        //     <button className="btn" onClick={onClickAddNotification}>
+        //         Create notification
+        //     </button>
+        // </Container>
     )
 }

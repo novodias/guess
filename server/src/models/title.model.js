@@ -1,4 +1,4 @@
-const { filterName } = require("../utils")
+import { filterName } from "../utils"
 
 class Title {
     id
@@ -33,4 +33,4 @@ class Title {
     }
 }
 
-module.exports = Title;
+export default Title;

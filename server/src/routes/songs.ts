@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import AbortError from '../models/abortError';
-import Songs from '../database/songs.controller';
+import { SongData } from '../services/songs.service';
+import { TitleType } from '../services/titles.service';
 
 const songs: Router = Router();
 
@@ -13,9 +14,8 @@ interface SongRequest {
 songs.get("/", async (req, res, next) => {
     try {
         const query: SongRequest = req.query as any;
-        const songsRepo: Songs = req.services.getRequired(Songs);
-        const result = await songsRepo.find(query.name, query.type, query.id);
-        
+        const result = await req.songs.find(query.name, query.type);
+
         if (result.length <= 0) {
             throw new AbortError("Not found", 404);
         }
@@ -26,43 +26,46 @@ songs.get("/", async (req, res, next) => {
     }
 });
 
-// songs.post("/create", async (req, res) => {
-//     const {
-//         title_id,
-//         type,
-//         song_name,
-//         youtube_id
-//     } = req.body;
-//     const db = req.db;
-    
-//     const content_type = req.get("Content-Type");
-//     if (content_type && content_type !== "application/json") {
-//         res.status(406).send("Not acceptable");
-//     }
+songs.post("/", async (req, res, next) => {
+    try {
+        const content_type = req.get("Content-Type");
+        if (content_type && content_type !== "application/json") {
+            res.status(406).send("Not acceptable");
+        }
 
-//     // todo: verify visibility
-//     try {
-//         const video = await youtubeGet(youtube_id, YOUTUBE_API_KEY);
-        
-//         const duration = moment
-//             .duration(video.items[0].contentDetails.duration, moment.ISO_8601)
-//             .asSeconds();
-//         const song = new db.Song(title_id, type, song_name, duration, youtube_id);
-//         const result = await db.add_song(song);
-        
-//         res.json(result);
-//     } catch (error) {
-//         res.status(404).send("Not found");
-//         console.log(error);
-//     }
-// });
+        const data: SongData = req.body;
+        const result = await req.songs.register(data);
+        if (!result.registered) throw new AbortError("Cannot register the song", 406);
+        res.json(result.song);
+    } catch (err) {
+        next(err);
+    }
+})
 
-// temporary
-// songs.get("/random", async (req, res) => {
-//     const { total, type } = req.query;
-//     const db = req.db;
-//     const result = await db.get_songs_random(Number.parseInt(total), type);
-//     res.json(result);
-// });
+songs.patch("/:id", async (req, res, next) => {
+    try {
+        if (typeof req.params.id === 'undefined') {
+            throw new AbortError("Id was not specified", 406);
+        }
+
+        const content_type = req.get("Content-Type");
+        if (content_type && content_type !== "application/json") {
+            throw new AbortError("Not acceptable", 406);
+        }
+
+        const id = parseInt(req.params.id);
+        const changes: {
+            name?: string,
+            type?: TitleType,
+            duration?: number,
+            youtube_id?: string,
+            title_id?: number
+        } = req.body;
+        const result = await req.songs.update(id, changes);
+        res.json({ success: result });
+    } catch (err) {
+        next(err);
+    }
+})
 
 export default songs;

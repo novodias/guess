@@ -1,8 +1,8 @@
 import { filterName } from '../utils';
 
 export interface SongParameters {
-    song_name: string;
-    song_duration: number;
+    name: string;
+    duration: number;
     type: string;
     youtube_id: string;
     title_id: number;
@@ -31,8 +31,8 @@ export default class Song {
 
     constructor(data: SongParameters | undefined = undefined) {
         if (data) {
-            this.name = data['song_name'];
-            this.duration = data['song_duration'];
+            this.name = data['name'];
+            this.duration = data['duration'];
             this.type = data['type'];
             this.youtube_id = data['youtube_id'];
             this.title_id = data['title_id'];
@@ -42,12 +42,14 @@ export default class Song {
     static instantiate(row: any) {
         const obj = new Song();
         obj.id = row['id'];
-        obj.name = row['song_name'];
-        obj.duration = row['song_duration'];
+        obj.name = row['name'];
+        obj.duration = row['duration'];
         obj.youtube_id = row['youtube_id'];
         obj.title_id = row['title_id'];
-        obj.title_name = row["name"];
         obj.type = row['type'];
+        obj.title_name = row["title_name"];
+        obj.correct = row['correct'];
+        obj.misses = row['misses'];
         return obj;
     }
 
@@ -56,11 +58,11 @@ export default class Song {
     }
 
     private get titleNameFiltered(): string {
-        return filterName(this.title_name || "");
+        return filterName(this.title_name?.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "");
     }
 
     private get songNameFiltered() {
-        return filterName(this.name);
+        return filterName(this.name.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
     }
 
     public get partialPath() {

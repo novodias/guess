@@ -13,11 +13,6 @@ function RoomProvider({ children }) {
     const { id } = useParams();
 
     const getRoom = async (password) => {
-        // return new Promise((resolve, reject) => {
-        //     axios.get(`/api/rooms/${id}${password !== null ? `?hash=${password}` : ''}`)
-        //         .then((data) => resolve(data))
-        //         .catch((reason) => reject(reason));
-        // });
         setRoomId(id);
         return await getRoomAsync(id, password);
     }

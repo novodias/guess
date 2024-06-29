@@ -12,6 +12,7 @@
     flex-direction: column;
     align-items: center;
     height: 100%;
+    width: calc(100% / 3);
     position: relative;
     opacity: 0;
 }
@@ -19,6 +20,7 @@
 .winners > div > span {
     font-weight: 500;
     font-size: 1.2rem;
+    text-align: center;
 }
 
 .winners > div > i {

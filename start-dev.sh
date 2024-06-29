@@ -19,6 +19,15 @@ Help()
 
 CLIENT_PID=0
 SERVER_PID=0
+TUNNEL_PID=0
+
+Tunnel()
+{
+    echo "Starting cloudflare tunnel..."
+    cloudflared tunnel --url http://localhost:3000 &
+    TUNNEL_PID=$!
+    echo "Tunnel PID: $TUNNEL_PID"
+}
 
 ClientDev()
 {
@@ -71,12 +80,22 @@ KillProc()
     fi
 }
 
+echo "|=================================|"
+echo "| RITMOVU DEVELOPMENT BASH SCRIPT |"
+echo "|=================================|"
+
 if [ $# -gt 0 ]; then
-    while getopts ":hfsbp" option; do
+    while getopts ":hbtfsp" option; do
         case $option in
             h)
                 Help
                 exit
+                ;;
+            b)
+                Build
+                ;;
+            t)
+                Tunnel
                 ;;
             f)
                 ClientDev
@@ -88,10 +107,6 @@ if [ $# -gt 0 ]; then
                 ;;
             p)
                 Prod
-                break
-                ;;
-            b)
-                Build
                 break
                 ;;
             \?)
@@ -110,6 +125,7 @@ Cancel()
     echo "Killing servers..."
     KillProc $CLIENT_PID
     KillProc $SERVER_PID
+    KillProc $TUNNEL_PID
     echo "Exiting..."
     exit
 }

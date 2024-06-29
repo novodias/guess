@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Dropdown from './Dropdown';
-import './SearchResults.css';
 import { getTitlesAsync } from '../api/export';
-import logger from '../utils';
 import useLogger from '../hooks/useLogger';
+import './SearchResults.css';
+import { noop } from '../utils';
 
 /**
  * @param {String} v1 
@@ -74,106 +74,87 @@ function filterResults(query, titles) {
     return starts.concat(includes);
 }
 
-export default function SearchResults({ query, focus, onDropdownClick }) {
+export default function SearchResults({ query, focus, onDropdownClick, selected, setLength, isSelected, onSelected }) {
     const { info, debug } = useLogger("Search");
     const [list, setList] = useState([]);
     const [validQuery, setValidQuery] = useState('');
-    const [empty, setEmpty] = useState(null);
-
+    const [initial, setInitial] = useState(false);
+    
+    
     const filtered = useMemo(() => {
         return filterResults(query, list);
     }, [query, list]);
-
+    
+    const isEmpty = list.length === 0;
+    
     useEffect(() => {
-        async function searchTitles() {
+        async function searchTitles(titleQuery) {
             try {
-                debug(`Fetching titles with name: ${query}`);
-                const titles = await getTitlesAsync({ name: query });
-                if (titles && titles.length !== 0) {
-                    setValidQuery(query);
+                debug(`Fetching titles with name: ${titleQuery}`);
+                const titles = await getTitlesAsync({ name: titleQuery || '' });
+                if (typeof titles !== 'undefined' && titles.length !== 0) {
+                    setLength(titles.length);
+                    if (typeof titleQuery === 'undefined') {
+                        setValidQuery(query);
+                    }
                     setList(titles);
-                    setEmpty(false);
-                } else {
-                    setEmpty(true);
                 }
             } catch (e) {
                 if (e instanceof Error) debug(e.message);
             }
         }
-
-        if (empty === null) {
+        
+        if (!initial) {
             info("Fresh titles load");
             searchTitles();
-        } else if (empty === true) {
-            if (query.startsWith(validQuery) || query === '') {
+            setInitial(true);
+        } else {
+            const queryIsValid = query.startsWith(validQuery);
+            const queryIsEmpty = query === '' || typeof query === 'undefined';
+            const filteredIsEmpty = filtered.length === 0;
+
+            if (isEmpty) {
                 searchTitles();
+                debug("Titles list empty");
+                return;
             } else {
-                debug("Query doesn't match valid query - doing nothing");
+                if (filteredIsEmpty) {
+                    searchTitles(query);
+                    debug("Filtered titles list empty, searching more");
+                    return;
+                }
+
+                if (queryIsValid) {
+                    searchTitles(query);
+                    debug("Input query is valid, searching: " + query);
+                    return;
+                }
+
+                if (queryIsEmpty) {
+                    searchTitles();
+                    debug("Input empty, searching more titles");
+                    return;
+                }
             }
+
         }
-        
     }, [query]);
 
-    // useEffect(() => {
-    //     async function searchQueryAsync() {
-    //         // console.log("Fetching titles with name:", query);
-    //         logger.debug("Fetching titles with name:", query);    
-    //         try {
-    //             const data = await getTitlesAsync({ name: query });
-    //             if (data) {
-    //                 setList(data);
-    //             }
-    //             if (data.length === 0) {
-    //                 setIsFetchEmpty(true);
-    //             } else {
-    //                 setIsFetchEmpty(false);
-    //             }
-    //         } catch (error) {
-    //             setIsFetchEmpty(true);
-    //         }     
-    //     }
-    //     function queryEqualsLast() {
-    //         if (query === null || query === undefined) {
-    //             return false;
-    //         }
-    //         return query.toLowerCase() === lastSuccessfulQuery.toLowerCase();
-    //     }
-    //     if (isFetchEmpty === null) {
-    //         // console.log("Fresh load, get 100 titles.");
-    //         logger.debug("Fresh load");
-    //         searchQueryAsync();
-    //     } else if (isFetchEmpty === true) {
-    //         if (query === '') {
-    //             // console.log("Query empty, fetch more");
-    //             logger.debug("Query empty, fetch more");
-    //             searchQueryAsync();
-    //         } else if (queryEqualsLast()) {  
-    //             if (list.length === 0) {
-    //                 // console.log("Fetch last succesful query:", lastSuccessfulQuery);                
-    //                 logger.debug("Fetch last succesful query:", lastSuccessfulQuery);
-    //                 searchQueryAsync();
-    //             }
-    //         }
-    //     } else {
-    //         if (filtered.length === 0) {
-    //             // console.log("Filtered empty, fetch more titles");
-    //             logger.debug("Filtered empty, fetch more titles");
-    //             searchQueryAsync();
-    //         } else {
-    //             if (!queryEqualsLast()) {
-    //                 // console.log("Set last successful query:", query);
-    //                 logger.debug("Set last successful query:", query)
-    //                 setLastSuccessfulQuery(query);
-    //             }
-    //         }
-    //     }
-    // }, [query, filtered, isFetchEmpty, list.length, lastSuccessfulQuery]);
+    useEffect(() => {
+        if (isSelected) {
+            const title = filtered.filter((_, idx) => idx === selected)[0];
+            (onSelected || noop)(title);
+        }
+    }, [isSelected]);
 
     return (
-        <Dropdown className={focus}>
-            {filtered.map((title, key) => {
+        <Dropdown className={focus ? 'title-input-focused' : ''}>
+            {filtered.map((title, idx) => {
                 return (
-                    <li onClick={() => onDropdownClick(title)} key={key} id={title.id}>
+                    <li className={`${idx === selected ? 'selected' : ''}`}
+                        onClick={() => onDropdownClick(title)}
+                        key={idx}
+                        id={title.id}>
                         {title.name}
                     </li>
                 );
@@ -181,16 +162,3 @@ export default function SearchResults({ query, focus, onDropdownClick }) {
         </Dropdown>
     );
 }
-
-// function Loading() {
-//     const circle1 = { animation: "circle-loop 0.3s ease-in-out alternate" };
-//     const circle2 = { animation: "circle-loop 0.3s ease-in-out alternate", animationDelay: "250ms" };
-//     const circle3 = { animation: "circle-loop 0.3s ease-in-out alternate", animationDelay: "500ms" };
-//     return (
-//         <div className='row' style={{ justifyContent: 'center', alignItems: 'center' }}>
-//             <CircleIcon style={circle1} htmlColor='white' />
-//             <CircleIcon style={circle2} htmlColor='white' />
-//             <CircleIcon style={circle3} htmlColor='white' />
-//         </div>
-//     )
-// }
