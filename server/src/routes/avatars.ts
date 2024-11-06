@@ -45,7 +45,7 @@ avatars.get("/:name", async (req, res, next) => {
         const { name } = req.params;
         res.sendFile(name, {
             root: avatarsPath,
-            extensions: ['webp', 'gif', 'jpeg', 'jpg'],
+            extensions: ['webp', 'gif', 'jpeg', 'jpg', 'png'],
             lastModified: false
         }, (err) => {
             if (err) next(err);

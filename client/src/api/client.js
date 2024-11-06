@@ -19,12 +19,12 @@ export const client = axios.create({
 export function getMusicUrl(name, song_name) {
     name = name.replace(":", "").replace("'", "");
     song_name = song_name.replace(":", "").replace("'", "");
-    return `cdn/musics/${name}/${song_name}`;
+    return `api/musics/${name}/${song_name}`;
 }
 
 export function getMusic(roomid, hash) {
     if (import.meta.env.DEV) {
-        return `cdn/musics/${roomid}?hash=${hash}`;
+        return `api/musics/${roomid}?hash=${hash}`;
     } else {
         return `api/musics/${roomid}?hash=${hash}`;
     }
@@ -60,30 +60,64 @@ export function getAvatarUrl(num) {
  * @param {*} title 
  * @param {*} song_name 
  * @param {*} youtube_id 
- * @returns {import('axios').AxiosResponse}
+ * @returns {Promise<import('axios').AxiosResponse>}
  */
 export async function createAsync(title, song_name, youtube_id) {
-    const data = {
-        title_id: title.id,
-        title_name: title.name,
-        title_type: title.type,
-        title_tags: title.tags,
-        song_name,
-        youtube_id
-    };
-    
-    try {
-        const response = await client.post("/create", data, {
+    // const data = {
+    //     title_id: title.id,
+    //     title_name: title.name,
+    //     title_type: title.type,
+    //     title_tags: title.tags,
+    //     song_name,
+    //     youtube_id
+    // };
+
+    if (title.id == 0) {
+        const data_title = {
+            title: title.name,
+            tags: title.tags,
+            type: title.type
+        }
+
+        /**
+         * @type {{id, name, type, tags}}
+         */
+        const title_response = await client.post("/titles", data_title, {
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             }
         });
 
-        return response;
-    } catch (error) {
-        console.error(error);
-        throw error;
+        title.id = title_response.id;
     }
+
+    const data_song = {
+        youtube_id,
+        title_id: title.id,
+        name: song_name,
+        type: title.type,
+    }
+
+    const song_response = await client.post("/songs", data_song, {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    return song_response;
+    
+    // try {
+    //     const response = await client.post("/create", data, {
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //         }
+    //     });
+
+    //     return response;
+    // } catch (error) {
+    //     console.error(error);
+    //     throw error;
+    // }
 }
 
 export async function error(error) {

@@ -1,13 +1,14 @@
 import os
-from dotenv import dotenv_values
+# from dotenv import dotenv_values
 from flask import Flask, make_response, request, abort, jsonify
 from os import listdir
 from os.path import isfile, join
 from yt_dlp import YoutubeDL
 # from markupsafe import escape
 
-config = dotenv_values('.env')
-music_dir = config.get("MUSIC_DIRECTORY")
+# config = dotenv_values('.env')
+# music_dir = config.get("MUSIC_DIRECTORY")
+music_dir = "/home/novodias/repo/guess/assets/musics"
 local_temp_songs = "./temp_songs"
 
 if not os.path.exists(local_temp_songs):

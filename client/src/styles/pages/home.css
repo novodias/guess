@@ -212,6 +212,7 @@
     cursor: pointer;
     display: grid;
     place-content: center;
+    user-select: none;
 }
 
 .cog.tooltip::before {
@@ -222,6 +223,7 @@
     font-size: inherit;
     user-select: none;
     transition: transform 100ms linear;
+    user-select: none;
 }
 
 .cog:hover > .icon {

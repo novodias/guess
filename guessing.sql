@@ -7,7 +7,7 @@ CREATE TYPE "types" AS ENUM (
 );
 
 CREATE TABLE "songs" (
-  "id" integer SERIAL PRIMARY KEY NOT NULL,
+  "id" SERIAL PRIMARY KEY,
   "title_id" integer NOT NULL,
   "type" types,
   "name" varchar(255) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE "songs" (
 );
 
 CREATE TABLE "titles" (
-  "id" integer SERIAL PRIMARY KEY NOT NULL,
+  "id" SERIAL PRIMARY KEY,
   "type" types,
   "name" varchar(255) NOT NULL,
   "tags" varchar[] NOT NULL

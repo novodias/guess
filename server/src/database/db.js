@@ -202,11 +202,12 @@ class GuessRepository {
         }
 
         const query = {
-            text: `SELECT * FROM songs WHERE ${queryName} ${queryType} ${queryTitle} ORDER BY song_name LIMIT 100`,
+            text: `SELECT * FROM songs WHERE ${queryName} ${queryType} ${queryTitle} ORDER BY name LIMIT 100`,
             values
         };
 
         const result = await this._execute(query);
+        console.log(result);
         return Song.toArray(result.rows);
     }
 

@@ -66,7 +66,7 @@ const roomMessageHandler = {
     "change": (body, { gameManager }) => {
         gameManager.updatePlayers((plys) => plys.map(ply => updateGuest(ply, body)));
     },
-    "prepare": (body, { setRound, setReadOnly, gameManager }) => {
+    "prepare": (body, { roomId, setRound, setReadOnly, gameManager }) => {
         const { musicHash, startAt, round } = body;
         const src = getMusic(roomId, musicHash);
         setRound(round);
@@ -229,6 +229,7 @@ function RoomPage() {
             const { type, body } = message;
             debug("WebSocket Message [" + type + "]:", body);
             roomMessageHandler[type](body, {
+                roomId: roomId,
                 gameManager,
                 chatManager,
                 players, 

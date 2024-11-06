@@ -2,6 +2,7 @@ import React, { useDeferredValue, useRef, useState, MutableRefObject, useEffect 
 import SearchResults from './SearchResults';
 import './InputTitles.css';
 import { noop } from '../utils';
+import useLogger from '../hooks/useLogger';
 
 /**
  * @param {Object} props 
@@ -26,7 +27,7 @@ export default function InputTitles({ onDropdownClick, onKeyUp, onKeyDown, readO
     const InputHandler = (event) => {
         const text = event.target.value;
         setQuery(text);
-        onText && onText(text);
+        (onText|| noop)(text);
         setFocus(true);
         setSelected(0);
     }
@@ -61,6 +62,7 @@ export default function InputTitles({ onDropdownClick, onKeyUp, onKeyDown, readO
     }
 
     const SelectedHandler = (title) => {
+        if (!title) return;
         setIsSelected(false);
         setSelected(0);
         setFocus(false);
@@ -72,18 +74,21 @@ export default function InputTitles({ onDropdownClick, onKeyUp, onKeyDown, readO
      * @param {KeyboardEvent} e 
      */
     const KeyDownHandler = (e) => {
-        e.preventDefault();
         
         switch (e.key) {
             case "ArrowUp":
+                e.preventDefault();
                 HandleArrowUp();
                 break;
             
             case "ArrowDown":
+                e.preventDefault();
                 HandleArrowDown();
                 break;
             
             case "Tab":
+                if (length < 0) break;
+                e.preventDefault();
                 setIsSelected(true);
                 break;
             
