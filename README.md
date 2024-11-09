@@ -1,9 +1,11 @@
 # Ritmovu (Guess)
 Created with React (Client) and Express (API)
 
-## Setup database
+## Setup
 
-Setup should be easy - run `create-db` or manually create the database with the file `guessing.sql`.
+Setup should be easy - run `create-db` shell script or manually create the database with the file `guessing.sql`.
+
+Create a .env file in the server directory, and set a `ASSETS_DIRECTORY` to use.
 
 ## Build
 

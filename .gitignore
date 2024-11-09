@@ -26,6 +26,10 @@ client/dist
 server/assets
 server/services/song-downloader/temp_songs
 server/dist
+#---
+backend/obj
+backend/bin
+backend/appsettings.json
 
 # production
 client/build
