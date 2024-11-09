@@ -26,6 +26,7 @@ client/dist
 server/assets
 server/services/song-downloader/temp_songs
 server/dist
+server/.dist_backup
 #---
 backend/obj
 backend/bin
