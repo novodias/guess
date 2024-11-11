@@ -39,19 +39,29 @@ export default class SongsService {
         return await Titles.findById(id)
     }
 
-    private static _validSong(songData: SongData): boolean {
+    private static _ThrowIfNotValidSong(songData: SongData): void {
         const { title_id, youtube_id, name } = songData;
-        if (typeof name === 'undefined' || name === "") return false;
-        if (typeof title_id === 'undefined' || title_id <= 0) return false;
+        // if (typeof name === 'undefined' || name === "") return false;
+        // if (typeof title_id === 'undefined' || title_id <= 0) return false;
+        
+        // if (typeof youtube_id === 'undefined' ||
+        //     youtube_id === "" ||
+        //     youtube_id.length > 11 ||
+        //     youtube_id.length < 11 ||
+        //     youtubePattern.test(youtube_id)
+        // ) return false;
+        
+        // return true;
+
+        if (typeof name === 'undefined' || name === "") throw new Error("Song name is not valid => " + name);
+        if (typeof title_id === 'undefined' || title_id <= 0) throw new Error("Title ID is not valid =>" + title_id)
         
         if (typeof youtube_id === 'undefined' ||
             youtube_id === "" ||
             youtube_id.length > 11 ||
             youtube_id.length < 11 ||
             youtubePattern.test(youtube_id)
-        ) return false;
-        
-        return true;
+        ) throw new Error("Youtube ID is not valid => " + youtube_id);
     }
 
     private static _sanitize(songData: SongData): SongData {
@@ -99,7 +109,13 @@ export default class SongsService {
         }
 
         songData = SongsService._sanitize(songData);
-        if (!SongsService._validSong(songData)) throw new Error("Data is not valid");
+        try {
+            SongsService._ThrowIfNotValidSong(songData);
+        } catch (error) {
+            console.error(error);
+            return { registered: false, song: undefined };          
+        }
+        // if (!SongsService._validSong(songData))
 
         const { success, duration } = await this._download(songData);
         if (!success) return { registered: false, song: undefined };
