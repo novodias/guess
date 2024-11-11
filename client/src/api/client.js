@@ -88,7 +88,7 @@ export async function createAsync(title, song_name, youtube_id) {
             }
         });
 
-        title.id = title_response.id;
+        title = title_response.data;
     }
 
     const data_song = {
