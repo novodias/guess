@@ -91,7 +91,7 @@ export default function AddPage() {
     const setTag = (e) => {
         setId(0);
         setType(e.target.value);
-        setTags([]);
+        // setTags([]);
     }
 
     const setSearchQuery = (text) => {
