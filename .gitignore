@@ -23,6 +23,7 @@ client/public/site.webmanifest
 client/dist
 
 # server
+assets/**/*
 server/assets
 server/services/song-downloader/temp_songs
 server/dist
